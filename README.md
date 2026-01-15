@@ -49,28 +49,28 @@ c:\laragon\www\Hotel\c:\laragon\www\Hotel\
 │   └───views\
 │       ├───admin\
 │       │   ├───dashboard.php
-│       │   ├───users\ (NEW - PARTIAL)
+│       │   ├───users\
 │       │   │   ├───index.php
 │       │   │   ├───create.php
 │       │   │   ├───edit.php
 │       │   │   └───view.php
-│       │   ├───reservations\ (NEW - PARTIAL)
+│       │   ├───reservations\
 │       │   │   ├───index.php
 │       │   │   ├───view.php
 │       │   │   ├───edit.php
 │       │   │   └───status-modal.php
-│       │   ├───rooms\ (NEW - PARTIAL)
+│       │   ├───rooms\
 │       │   │   ├───index.php
 │       │   │   ├───create.php
 │       │   │   ├───edit.php
 │       │   │   ├───view.php
 │       │   │   └───availability-calendar.php
-│       │   ├───services\ (NEW - PARTIAL)
+│       │   ├───services\
 │       │   │   ├───index.php
 │       │   │   ├───create.php
 │       │   │   ├───edit.php
 │       │   │   └───status-modal.php
-│       │   ├───reports\ (NEW - PARTIAL)
+│       │   ├───reports\
 │       │   │   ├───index.php
 │       │   │   ├───revenue.php
 │       │   │   ├───occupancy.php
@@ -78,12 +78,12 @@ c:\laragon\www\Hotel\c:\laragon\www\Hotel\
 │       │   │   ├───customers.php
 │       │   │   ├───services.php
 │       │   │   └───export-modal.php
-│       │   ├───contact\ (NEW - MISSING)
+│       │   ├───contact\
 │       │   │   ├───index.php
 │       │   │   ├───view.php
 │       │   │   ├───reply.php
 │       │   │   └───reply-modal.php
-│       │   └───partials\ (NEW - MISSING)
+│       │   └───partials\
 │       │       ├───header.php
 │       │       ├───sidebar.php
 │       │       ├───footer.php
@@ -97,75 +97,46 @@ c:\laragon\www\Hotel\c:\laragon\www\Hotel\
 │       │   └───reset-password.php
 │       ├───customer\
 │       │   ├───dashboard.php
-│       │   ├───reservations\ (NEW - PARTIAL)
+│       │   ├───reservations\
 │       │   │   ├───index.php
 │       │   │   ├───view.php
 │       │   │   ├───cancel.php
 │       │   │   └───invoice.php
-│       │   ├───booking\ (NEW - PARTIAL)
+│       │   ├───booking\
 │       │   │   ├───index.php
 │       │   │   ├───confirmation.php
 │       │   │   └───payment.php
-│       │   └───profile\ (NEW - PARTIAL)
+│       │   └───profile\
 │       │       ├───index.php
 │       │       ├───edit.php
 │       │       └───change-password.php
 │       ├───public\
 │       │   ├───room-search.php
 │       │   ├───rooms.php
-│       │   ├───room-details.php (NEW - MISSING)
-│       │   ├───room-compare.php (NEW - MISSING)
+│       │   ├───room-details.php
+│       │   ├───room-compare.php
 │       │   ├───contact.php
 │       │   ├───about.php
-│       │   ├───home.php (NEW - MISSING)
-│       │   ├───amenities.php (NEW - MISSING)
-│       │   └───gallery.php (NEW - MISSING)
+│       │   ├───home.php
+│       │   ├───amenities.php
+│       │   └───gallery.php
 │       ├───errors\
 │       │   ├───403.php
 │       │   ├───404.php
-│       │   ├───500.php (NEW - MISSING)
-│       │   └───maintenance.php (NEW - MISSING)
+│       │   ├───500.php
+│       │   └───maintenance.php
 │       └───layout\
 │           ├───header.php
 │           ├───footer.php
-│           ├───sidebar.php
-│           ├───navbar.php
-│           ├───admin-header.php (NEW - MISSING)
-│           ├───admin-sidebar.php (NEW - MISSING)
-│           ├───admin-footer.php (NEW - MISSING)
-│           ├───customer-header.php (NEW - MISSING)
-│           └───customer-sidebar.php (NEW - MISSING)
+│           └───sidebar.php
 ├───config\
 │   ├───app.php
 │   ├───dbconn.php
-│   ├───load_env.php
-│   ├───constants.php (NEW - MISSING)
-│   ├───routes.php (NEW - MISSING)
-│   ├───security.php (NEW - MISSING)
-│   ├───mail.php (NEW - MISSING)
-│   └───pagination.php (NEW - MISSING)
-├───img\
+│   └───load_env.php
 ├───public\
 │   ├───.htaccess
 │   ├───index.php
-│   ├───assets\ (NEW - MISSING)
-│   │   ├───css\
-│   │   │   ├───style.css
-│   │   │   ├───admin.css
-│   │   │   ├───customer.css
-│   │   │   └───responsive.css
-│   │   ├───js\
-│   │   │   ├───main.js
-│   │   │   ├───admin.js
-│   │   │   ├───booking.js
-│   │   │   └───validation.js
-│   │   └───img\
-│   │       ├───logo.png
-│   │       ├───favicon.ico
-│   │       ├───rooms\
-│   │       ├───gallery\
-│   │       └───team\
-│   └───uploads\ (NEW - MISSING)
+│   └───uploads\
 │       ├───profile_pictures\
 │       ├───room_images\
 │       └───documents\

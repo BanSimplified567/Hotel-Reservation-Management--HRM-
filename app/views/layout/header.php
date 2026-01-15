@@ -1,114 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title ?? 'Hotel Management System'; ?></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?php echo $page_title ?? 'Hotel Management System'; ?></title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <!-- In your main layout file -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- In your head.php file -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Custom CSS -->
-    <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #48bb78;
-            --danger-color: #f56565;
-            --warning-color: #ed8936;
-            --info-color: #4299e1;
+  <!-- Custom Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#48bb78',
+            danger: '#f56565',
+            warning: '#ed8936',
+            info: '#4299e1',
+          },
+          fontFamily: {
+            'sans': ['Segoe UI', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif'],
+          },
         }
+      }
+    }
+  </script>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
+  <!-- Custom CSS for additional styles -->
+  <style>
+    .sidebar-gradient {
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
 
-        .navbar-brand {
-            font-weight: bold;
-            color: var(--primary-color) !important;
-        }
+    .stat-gradient-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
 
-        .sidebar {
-            min-height: calc(100vh - 56px);
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-        }
+    .stat-gradient-success {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
 
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 12px 20px;
-            transition: all 0.3s;
-        }
+    .stat-gradient-warning {
+      background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    }
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid white;
-        }
+    .stat-gradient-info {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    }
 
-        .card {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
-        }
+    .sidebar-link {
+      transition: all 0.3s;
+    }
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
+    .sidebar-link:hover,
+    .sidebar-link.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-left: 4px solid white;
+    }
 
-        .stat-card {
-            border-radius: 10px;
-            padding: 20px;
-            color: white;
-            margin-bottom: 20px;
-        }
+    .card-hover {
+      transition: transform 0.3s;
+    }
 
-        .stat-card i {
-            font-size: 2.5rem;
-            opacity: 0.8;
-        }
-
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        }
-
-        .bg-gradient-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #38a169 100%);
-        }
-
-        .bg-gradient-warning {
-            background: linear-gradient(135deg, var(--warning-color) 0%, #dd6b20 100%);
-        }
-
-        .bg-gradient-info {
-            background: linear-gradient(135deg, var(--info-color) 0%, #3182ce 100%);
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-        }
-
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            color: #4a5568;
-        }
-
-        .alert {
-            border: none;
-            border-radius: 8px;
-        }
-    </style>
+    .card-hover:hover {
+      transform: translateY(-5px);
+    }
+  </style>
 </head>
-<body>
-    <!-- Navigation will be included from navbar.php -->
+
+<body class="bg-gray-50 font-sans">
+  <!-- Navigation will be included from navbar.php -->
