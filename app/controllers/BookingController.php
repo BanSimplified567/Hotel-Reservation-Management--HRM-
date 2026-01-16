@@ -218,7 +218,7 @@ class BookingController extends BaseController
       try {
         // Calculate room total
         $stmt = $this->pdo->prepare("
-                    SELECT rt.base_price as price_per_night
+                    SELECT rt.base_price as price_per_night, r.room_number, rt.name as room_type
                     FROM rooms r
                     JOIN room_types rt ON r.room_type_id = rt.id
                     WHERE r.id = ?
@@ -232,15 +232,14 @@ class BookingController extends BaseController
         $tax_rate = 0.10; // 10% tax
         $tax_amount = ($room_total + $services_total) * $tax_rate;
         $total_amount = $room_total + $services_total + $tax_amount;
+        $deposit_rate = 0.20; // 20% deposit
+        $deposit_amount = $total_amount * $deposit_rate;
 
         // Start transaction
         $this->pdo->beginTransaction();
 
         // Generate reservation code
         $reservation_code = 'RES' . strtoupper(substr(uniqid(), -8));
-
-        // Calculate total nights
-        $total_nights = $nights;
 
         // Create reservation
         $stmt = $this->pdo->prepare("
@@ -262,7 +261,7 @@ class BookingController extends BaseController
           $check_in,
           $check_out,
           $adults,
-          $total_nights,
+          $nights,
           $base_price,
           $taxes,
           $special_requests,
@@ -270,6 +269,26 @@ class BookingController extends BaseController
         ]);
 
         $reservation_id = $this->pdo->lastInsertId();
+
+        // Store reservation details in session for confirmation page
+        $_SESSION['last_booking'] = [
+          'reservation_id' => $reservation_id,
+          'reservation_code' => $reservation_code,
+          'room_id' => $room_id,
+          'room_number' => $room['room_number'],
+          'room_type' => $room['room_type'],
+          'check_in' => $check_in,
+          'check_out' => $check_out,
+          'guests' => $guests,
+          'nights' => $nights,
+          'room_total' => $room_total,
+          'services_total' => $services_total,
+          'tax_amount' => $tax_amount,
+          'total_amount' => $total_amount,
+          'deposit_amount' => $deposit_amount,
+          'selected_services' => $selectedServices,
+          'special_requests' => $special_requests
+        ];
 
         // Add services
         foreach ($selectedServices as $service) {
@@ -287,11 +306,8 @@ class BookingController extends BaseController
         // Log the action
         $this->logAction($userId, "Created booking #$reservation_id for room #$room_id");
 
-        // Send confirmation email (in production)
-        // $this->sendConfirmationEmail($userId, $reservation_id);
-
-        $_SESSION['success'] = "Booking submitted successfully! Your reservation is pending approval.";
-        $this->redirect('my-reservations');
+        // Redirect to confirmation page
+        $this->redirect('booking-confirmation');
       } catch (PDOException $e) {
         $this->pdo->rollBack();
         error_log("Booking creation error: " . $e->getMessage());
@@ -306,9 +322,51 @@ class BookingController extends BaseController
     }
   }
 
+  public function confirmation()
+  {
+    $this->requireLogin('customer');
+
+    if (!isset($_SESSION['last_booking'])) {
+      $_SESSION['error'] = "No booking found. Please make a reservation first.";
+      $this->redirect('book-room');
+    }
+
+    $booking = $_SESSION['last_booking'];
+
+    // Get service details if any
+    $service_name = '';
+    $service_price = 0;
+    if (!empty($booking['selected_services'])) {
+      $first_service = $booking['selected_services'][0];
+      $service_name = $first_service['name'];
+      $service_price = $first_service['price'];
+    }
+
+    $data = [
+      'reservation' => [
+        'id' => $booking['reservation_id'],
+        'reservation_code' => $booking['reservation_code'],
+        'room_number' => $booking['room_number'],
+        'room_type' => $booking['room_type'],
+        'check_in' => $booking['check_in'],
+        'check_out' => $booking['check_out'],
+        'guests' => $booking['guests'],
+        'deposit_amount' => $booking['deposit_amount'],
+        'created_at' => date('Y-m-d H:i:s'),
+        'service_name' => $service_name,
+        'service_price' => $service_price
+      ],
+      'nights' => $booking['nights'],
+      'roomTotal' => $booking['room_total'],
+      'serviceTotal' => $booking['services_total'],
+      'page_title' => 'Booking Confirmation'
+    ];
+
+    $this->render('customer/booking/confirmation', $data);
+  }
+
   public function checkAvailability()
   {
-    // This can be called via AJAX
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $room_id = intval($_POST['room_id'] ?? 0);
       $check_in = $_POST['check_in'] ?? '';
@@ -455,7 +513,7 @@ class BookingController extends BaseController
   private function logAction($userId, $action)
   {
     try {
-      $stmt = $this->pdo->prepare("INSERT INTO logs (user_id, action, created_at) VALUES (?, ?, NOW())");
+      $stmt = $this->pdo->prepare("INSERT INTO logs (user_id, action, timestamp) VALUES (?, ?, NOW())");
       $stmt->execute([$userId, $action]);
     } catch (PDOException $e) {
       error_log("Log action error: " . $e->getMessage());

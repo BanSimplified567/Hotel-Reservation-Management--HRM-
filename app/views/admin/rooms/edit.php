@@ -1,40 +1,12 @@
 <?php
-require_once '../../layout/admin-header.php';
-require_once '../../layout/admin-sidebar.php';
-
 $old = $_SESSION['old'] ?? [];
 $error = $_SESSION['error'] ?? '';
 $room = $old ?: $room;
 unset($_SESSION['old']);
 unset($_SESSION['error']);
 
-// Decode amenities
-$room['amenities'] = json_decode($room['amenities'] ?? '[]', true);
-
-// Predefined room types and amenities
-$roomTypes = ['Standard', 'Deluxe', 'Suite', 'Executive', 'Family', 'Penthouse'];
-$allAmenities = [
-  'WiFi',
-  'TV',
-  'Air Conditioning',
-  'Mini Bar',
-  'Safe',
-  'Hair Dryer',
-  'Coffee Maker',
-  'Iron',
-  'Room Service',
-  'Balcony',
-  'Ocean View',
-  'Bathtub',
-  'Kitchenette',
-  'Jacuzzi',
-  'Fireplace',
-  'Pool View',
-  'Garden View',
-  'City View',
-  'Mountain View',
-  'Private Pool'
-];
+// Decode features
+$room['features'] = json_decode($room['features'] ?? '[]', true);
 ?>
 
 <div class="container-fluid">
@@ -59,7 +31,7 @@ $allAmenities = [
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
           <h6 class="m-0 font-weight-bold text-primary">Edit Room Information</h6>
           <span class="badge badge-<?php
-                                    echo $room['status'] == 'available' ? 'success' : ($room['status'] == 'occupied' ? 'warning' : 'danger');
+                                    echo $room['status'] == 'available' ? 'success' : ($room['status'] == 'occupied' ? 'warning' : ($room['status'] == 'maintenance' ? 'danger' : ($room['status'] == 'cleaning' ? 'info' : 'secondary')));
                                     ?>">
             <?php echo ucfirst($room['status']); ?>
           </span>
@@ -80,13 +52,33 @@ $allAmenities = [
                 <small class="text-muted">Must be unique</small>
               </div>
               <div class="col-md-6 mb-3">
-                <label for="type" class="form-label">Room Type *</label>
-                <select class="form-control" id="type" name="type" required>
+                <label for="room_type_id" class="form-label">Room Type *</label>
+                <select class="form-control" id="room_type_id" name="room_type_id" required>
                   <option value="">Select Type</option>
                   <?php foreach ($roomTypes as $type): ?>
-                    <option value="<?php echo htmlspecialchars($type); ?>"
-                      <?php echo ($room['type'] ?? '') == $type ? 'selected' : ''; ?>>
-                      <?php echo htmlspecialchars($type); ?>
+                    <option value="<?php echo $type['id']; ?>"
+                      <?php echo $room['room_type_id'] == $type['id'] ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($type['name']); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="floor" class="form-label">Floor *</label>
+                <input type="number" class="form-control" id="floor" name="floor"
+                  value="<?php echo htmlspecialchars($room['floor'] ?? 1); ?>"
+                  min="1" max="20" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="view_type" class="form-label">View Type *</label>
+                <select class="form-control" id="view_type" name="view_type" required>
+                  <?php foreach ($viewTypes as $view): ?>
+                    <option value="<?php echo $view; ?>"
+                      <?php echo ($room['view_type'] ?? 'city') == $view ? 'selected' : ''; ?>>
+                      <?php echo ucfirst($view); ?>
                     </option>
                   <?php endforeach; ?>
                 </select>
@@ -99,48 +91,42 @@ $allAmenities = [
                 rows="3"><?php echo htmlspecialchars($room['description'] ?? ''); ?></textarea>
             </div>
 
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="price_per_night" class="form-label">Price per Night *</label>
-                <div class="input-group">
-                  <div class="input-group-prepend">
-                    <span class="input-group-text">$</span>
-                  </div>
-                  <input type="number" class="form-control" id="price_per_night" name="price_per_night"
-                    value="<?php echo htmlspecialchars($room['price_per_night']); ?>"
-                    step="0.01" min="0" required>
-                </div>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="capacity" class="form-label">Capacity *</label>
-                <select class="form-control" id="capacity" name="capacity" required>
-                  <option value="">Select Capacity</option>
-                  <?php for ($i = 1; $i <= 6; $i++): ?>
-                    <option value="<?php echo $i; ?>"
-                      <?php echo ($room['capacity'] ?? '') == $i ? 'selected' : ''; ?>>
-                      <?php echo $i; ?> person<?php echo $i > 1 ? 's' : ''; ?>
-                    </option>
-                  <?php endfor; ?> <!-- Changed from endforeach to endfor -->
-                </select>
-              </div>
-            </div>
-
+            <!-- Features Section -->
             <div class="mb-4">
-              <label class="form-label">Amenities</label>
+              <label class="form-label">Features</label>
               <div class="row">
-                <?php foreach ($allAmenities as $index => $amenity): ?>
-                  <div class="col-md-4 mb-2">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox"
-                        id="amenity_<?php echo $index; ?>"
-                        name="amenities[]" value="<?php echo htmlspecialchars($amenity); ?>"
-                        <?php echo in_array($amenity, $room['amenities']) ? 'checked' : ''; ?>>
-                      <label class="form-check-label" for="amenity_<?php echo $index; ?>">
-                        <?php echo htmlspecialchars($amenity); ?>
-                      </label>
-                    </div>
+                <div class="col-md-4 mb-3">
+                  <label for="features_bed" class="form-label">Bed Type</label>
+                  <select class="form-control" id="features_bed" name="features_bed">
+                    <option value="">Select Bed Type</option>
+                    <?php foreach ($bedTypes as $bed): ?>
+                      <option value="<?php echo $bed; ?>"
+                        <?php echo (isset($room['features']['bed']) && $room['features']['bed'] == $bed) ? 'selected' : ''; ?>>
+                        <?php echo ucfirst($bed); ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox"
+                      id="features_balcony" name="features_balcony" value="1"
+                      <?php echo (isset($room['features']['balcony']) && $room['features']['balcony']) ? 'checked' : ''; ?>>
+                    <label class="form-check-label" for="features_balcony">
+                      Has Balcony
+                    </label>
                   </div>
-                <?php endforeach; ?>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox"
+                      id="features_private_pool" name="features_private_pool" value="1"
+                      <?php echo (isset($room['features']['private_pool']) && $room['features']['private_pool']) ? 'checked' : ''; ?>>
+                    <label class="form-check-label" for="features_private_pool">
+                      Private Pool
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -150,8 +136,10 @@ $allAmenities = [
                 <option value="available" <?php echo $room['status'] == 'available' ? 'selected' : ''; ?>>Available</option>
                 <option value="occupied" <?php echo $room['status'] == 'occupied' ? 'selected' : ''; ?>>Occupied</option>
                 <option value="maintenance" <?php echo $room['status'] == 'maintenance' ? 'selected' : ''; ?>>Under Maintenance</option>
+                <option value="cleaning" <?php echo $room['status'] == 'cleaning' ? 'selected' : ''; ?>>Cleaning</option>
+                <option value="reserved" <?php echo $room['status'] == 'reserved' ? 'selected' : ''; ?>>Reserved</option>
               </select>
-              <?php if ($room['status'] == 'occupied' && $activeReservations > 0): ?>
+              <?php if ($room['status'] == 'occupied' && $active_reservations > 0): ?>
                 <small class="text-danger">
                   <i class="fas fa-exclamation-triangle"></i>
                   Cannot set as available. Room has active reservations.
@@ -185,12 +173,12 @@ $allAmenities = [
           <div class="text-center mb-4">
             <div class="room-icon mb-3">
               <i class="fas fa-<?php
-                                echo $room['status'] == 'available' ? 'door-open text-success' : ($room['status'] == 'occupied' ? 'bed text-warning' : 'tools text-danger');
+                                echo $room['status'] == 'available' ? 'door-open text-success' : ($room['status'] == 'occupied' ? 'bed text-warning' : ($room['status'] == 'maintenance' ? 'tools text-danger' : ($room['status'] == 'cleaning' ? 'broom text-info' : 'calendar-check text-secondary')));
                                 ?> fa-3x"></i>
             </div>
             <h4><?php echo htmlspecialchars($room['room_number']); ?></h4>
-            <p class="text-muted mb-1"><?php echo htmlspecialchars($room['type']); ?></p>
-            <p class="text-success font-weight-bold">$<?php echo number_format($room['price_per_night'], 2); ?>/night</p>
+            <p class="text-muted mb-1"><?php echo htmlspecialchars($room['room_type_name'] ?? 'Unknown Type'); ?></p>
+            <p class="text-success font-weight-bold">₱<?php echo number_format($room['room_type_price'] ?? 0, 2); ?>/night</p>
           </div>
 
           <div class="list-group list-group-flush">
@@ -201,10 +189,6 @@ $allAmenities = [
             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
               Active Reservations
               <span class="badge badge-warning badge-pill"><?php echo $active_reservations ?? 0; ?></span>
-            </div>
-            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-              Total Revenue
-              <span class="text-success">$<?php echo number_format($total_revenue ?? 0, 2); ?></span>
             </div>
             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
               Created
@@ -218,20 +202,26 @@ $allAmenities = [
         </div>
       </div>
 
-      <!-- Current Amenities -->
+      <!-- Current Features -->
       <div class="card shadow mb-4">
         <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Current Amenities</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Current Features</h6>
         </div>
         <div class="card-body">
-          <?php if (!empty($room['amenities'])): ?>
+          <?php if (!empty($room['features'])): ?>
             <div class="d-flex flex-wrap">
-              <?php foreach ($room['amenities'] as $amenity): ?>
-                <span class="badge badge-light border mr-1 mb-1"><?php echo htmlspecialchars($amenity); ?></span>
-              <?php endforeach; ?>
+              <?php if (isset($room['features']['bed'])): ?>
+                <span class="badge badge-light border mr-1 mb-1">Bed: <?php echo ucfirst($room['features']['bed']); ?></span>
+              <?php endif; ?>
+              <?php if (isset($room['features']['balcony']) && $room['features']['balcony']): ?>
+                <span class="badge badge-light border mr-1 mb-1">Balcony</span>
+              <?php endif; ?>
+              <?php if (isset($room['features']['private_pool']) && $room['features']['private_pool']): ?>
+                <span class="badge badge-light border mr-1 mb-1">Private Pool</span>
+              <?php endif; ?>
             </div>
           <?php else: ?>
-            <p class="text-center text-muted">No amenities set</p>
+            <p class="text-center text-muted">No features set</p>
           <?php endif; ?>
         </div>
       </div>
@@ -421,10 +411,10 @@ $allAmenities = [
         return false;
       }
 
-      // Check price
-      const priceInput = document.getElementById('price_per_night');
-      if (parseFloat(priceInput.value) <= 0) {
-        alert('Price must be greater than 0');
+      // Check floor
+      const floorInput = document.getElementById('floor');
+      if (parseInt(floorInput.value) < 1) {
+        alert('Floor must be at least 1');
         e.preventDefault();
         return false;
       }
@@ -456,7 +446,3 @@ $allAmenities = [
 `;
   document.head.appendChild(style);
 </script>
-
-<?php
-require_once '../../layout/admin-footer.php';
-?>
