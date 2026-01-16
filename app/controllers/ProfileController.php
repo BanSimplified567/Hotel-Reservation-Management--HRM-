@@ -12,13 +12,49 @@ class ProfileController extends BaseController
     public function index()
     {
         $this->requireLogin();
+        $userId = $_SESSION['user_id'];
+        $this->showProfile($userId);
+    }
 
+    public function edit()
+    {
+        $this->requireLogin();
         $userId = $_SESSION['user_id'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handleProfileUpdate($userId);
         } else {
-            $this->showProfile($userId);
+            $this->showEditForm($userId);
+        }
+    }
+
+    private function showEditForm($userId)
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT id, username, email, first_name, last_name,
+                       phone, address, date_of_birth, role, created_at
+                FROM users
+                WHERE id = ?
+            ");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                session_destroy();
+                $this->redirect('login');
+            }
+
+            $data = [
+                'user' => $user,
+                'page_title' => 'Edit Profile'
+            ];
+
+            $this->render('customer/profile/edit', $data);
+        } catch (PDOException $e) {
+            error_log("Show edit form error: " . $e->getMessage());
+            $_SESSION['error'] = "Failed to load edit form.";
+            $this->redirect('profile');
         }
     }
 
@@ -243,11 +279,12 @@ class ProfileController extends BaseController
 
             // Favorite room type
             $stmt = $this->pdo->prepare("
-                SELECT rm.type, COUNT(*) as count
+                SELECT rt.name as type, COUNT(*) as count
                 FROM reservations r
                 JOIN rooms rm ON r.room_id = rm.id
+                JOIN room_types rt ON rm.room_type_id = rt.id
                 WHERE r.user_id = ?
-                GROUP BY rm.type
+                GROUP BY rt.name
                 ORDER BY count DESC
                 LIMIT 1
             ");

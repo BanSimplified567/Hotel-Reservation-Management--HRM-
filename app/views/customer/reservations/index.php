@@ -9,7 +9,7 @@
       <h1 class="text-3xl font-bold mb-2 text-gray-800">My Reservations</h1>
       <p class="text-gray-600">Manage and view all your bookings</p>
     </div>
-    <a href="index.php?action=book-room" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition duration-300">
+    <a href="index.php?action=book-room" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 flex items-center">
       <i class="fas fa-plus-circle mr-2"></i> New Booking
     </a>
   </div>
@@ -36,8 +36,8 @@
             class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
             Cancelled
           </a>
-          <a href="index.php?action=my-reservations&status=completed"
-            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'completed' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
+          <a href="index.php?action=my-reservations&status=checked_out"
+            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'checked_out' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
             Completed
           </a>
         </div>
@@ -48,7 +48,7 @@
           <?php if ($status): ?>
             <input type="hidden" name="status" value="<?php echo htmlspecialchars($status); ?>">
           <?php endif; ?>
-          <input type="text" name="search" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+          <input type="text" name="search" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             placeholder="Search reservations..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
           <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-semibold transition duration-300">
             <i class="fas fa-search"></i>
@@ -102,7 +102,7 @@
               </div>
               <div class="flex items-center text-gray-600">
                 <i class="fas fa-users text-primary mr-2"></i>
-                <span class="text-sm"><?php echo $reservation['guests'] ?? 1; ?> guests</span>
+                <span class="text-sm"><?php echo ($reservation['adults'] ?? 1) + ($reservation['children'] ?? 0); ?> guests</span>
               </div>
             </div>
 

@@ -23,10 +23,13 @@ class ReservationController extends BaseController
         // Build query
         $query = "
             SELECT r.*,
-                   rm.room_number, rm.type as room_type,
-                   rm.price_per_night
+                   rm.room_number,
+                   rt.name as room_type,
+                   rt.base_price as price_per_night,
+                   rt.description as room_description
             FROM reservations r
             JOIN rooms rm ON r.room_id = rm.id
+            JOIN room_types rt ON rm.room_type_id = rt.id
             WHERE r.user_id = ?
         ";
         $params = [$userId];
@@ -89,13 +92,15 @@ class ReservationController extends BaseController
         try {
             $stmt = $this->pdo->prepare("
                 SELECT r.*,
-                       rm.room_number, rm.type as room_type,
-                       rm.description as room_description,
-                       rm.price_per_night,
+                       rm.room_number,
+                       rt.name as room_type,
+                       rt.description as room_description,
+                       rt.base_price as price_per_night,
                        GROUP_CONCAT(s.name SEPARATOR ', ') as services,
-                       SUM(rs.service_price) as total_services_price
+                       SUM(rs.total_price) as total_services_price
                 FROM reservations r
                 JOIN rooms rm ON r.room_id = rm.id
+                JOIN room_types rt ON rm.room_type_id = rt.id
                 LEFT JOIN reservation_services rs ON r.id = rs.reservation_id
                 LEFT JOIN services s ON rs.service_id = s.id
                 WHERE r.id = ? AND r.user_id = ?
@@ -111,7 +116,7 @@ class ReservationController extends BaseController
 
             // Get individual services
             $stmt = $this->pdo->prepare("
-                SELECT s.name, s.description, rs.service_price
+                SELECT s.name, s.description, rs.total_price as service_price, rs.quantity
                 FROM reservation_services rs
                 JOIN services s ON rs.service_id = s.id
                 WHERE rs.reservation_id = ?
@@ -123,6 +128,7 @@ class ReservationController extends BaseController
             $check_in = new DateTime($reservation['check_in']);
             $check_out = new DateTime($reservation['check_out']);
             $nights = $check_in->diff($check_out)->days;
+            if ($nights == 0) $nights = 1; // Minimum 1 night
 
             $reservation['nights'] = $nights;
             $reservation['room_total'] = $reservation['price_per_night'] * $nights;
@@ -294,13 +300,15 @@ class ReservationController extends BaseController
         try {
             $stmt = $this->pdo->prepare("
                 SELECT r.*,
-                       rm.room_number, rm.type as room_type,
-                       rm.price_per_night,
+                       rm.room_number,
+                       rt.name as room_type,
+                       rt.base_price as price_per_night,
                        u.username, u.email, u.first_name, u.last_name, u.phone, u.address,
                        GROUP_CONCAT(s.name SEPARATOR ', ') as services,
-                       SUM(rs.service_price) as total_services_price
+                       SUM(rs.total_price) as total_services_price
                 FROM reservations r
                 JOIN rooms rm ON r.room_id = rm.id
+                JOIN room_types rt ON rm.room_type_id = rt.id
                 JOIN users u ON r.user_id = u.id
                 LEFT JOIN reservation_services rs ON r.id = rs.reservation_id
                 LEFT JOIN services s ON rs.service_id = s.id
@@ -317,7 +325,7 @@ class ReservationController extends BaseController
 
             // Get individual services
             $stmt = $this->pdo->prepare("
-                SELECT s.name, s.description, rs.service_price
+                SELECT s.name, s.description, rs.total_price as service_price, rs.quantity
                 FROM reservation_services rs
                 JOIN services s ON rs.service_id = s.id
                 WHERE rs.reservation_id = ?
@@ -329,10 +337,13 @@ class ReservationController extends BaseController
             $check_in = new DateTime($reservation['check_in']);
             $check_out = new DateTime($reservation['check_out']);
             $nights = $check_in->diff($check_out)->days;
+            if ($nights == 0) $nights = 1; // Minimum 1 night
 
             $room_total = $reservation['price_per_night'] * $nights;
             $services_total = $reservation['total_services_price'] ?: 0;
-            $grand_total = $room_total + $services_total;
+            $tax_rate = 0.10; // 10% tax
+            $tax_amount = ($room_total + $services_total) * $tax_rate;
+            $grand_total = $room_total + $services_total + $tax_amount;
 
             $data = [
                 'reservation' => $reservation,
@@ -340,6 +351,7 @@ class ReservationController extends BaseController
                 'nights' => $nights,
                 'room_total' => $room_total,
                 'services_total' => $services_total,
+                'tax_amount' => $tax_amount,
                 'grand_total' => $grand_total,
                 'page_title' => 'Invoice'
             ];

@@ -85,10 +85,13 @@ class DashboardController extends BaseController
       $today = date('Y-m-d');
       $stmt = $this->pdo->prepare("
                 SELECT r.*,
-                       rm.room_number, rm.type as room_type,
-                       rm.price_per_night
+                       rm.room_number,
+                       rt.name as room_type,
+                       rt.base_price as price_per_night,
+                       rt.description as room_description
                 FROM reservations r
                 JOIN rooms rm ON r.room_id = rm.id
+                JOIN room_types rt ON rm.room_type_id = rt.id
                 WHERE r.user_id = ?
                 AND r.check_in >= ?
                 AND r.status IN ('confirmed', 'pending')
@@ -108,10 +111,13 @@ class DashboardController extends BaseController
     try {
       $stmt = $this->pdo->prepare("
                 SELECT r.*,
-                       rm.room_number, rm.type as room_type,
-                       rm.price_per_night
+                       rm.room_number,
+                       rt.name as room_type,
+                       rt.base_price as price_per_night,
+                       rt.description as room_description
                 FROM reservations r
                 JOIN rooms rm ON r.room_id = rm.id
+                JOIN room_types rt ON rm.room_type_id = rt.id
                 WHERE r.user_id = ?
                 AND (r.check_out < CURDATE() OR r.status IN ('completed', 'cancelled'))
                 ORDER BY r.check_out DESC
@@ -177,10 +183,11 @@ class DashboardController extends BaseController
       $stmt = $this->pdo->prepare("
                 SELECT r.*,
                        u.first_name, u.last_name,
-                       rm.type as room_type
+                       rt.name as room_type
                 FROM reservations r
                 JOIN users u ON r.user_id = u.id
                 JOIN rooms rm ON r.room_id = rm.id
+                JOIN room_types rt ON rm.room_type_id = rt.id
                 ORDER BY r.created_at DESC
                 LIMIT ?
             ");

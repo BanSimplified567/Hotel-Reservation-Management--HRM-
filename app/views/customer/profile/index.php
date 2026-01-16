@@ -1,351 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - Hotel Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-    <style>
-        .profile-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-        }
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            background: rgba(255,255,255,0.2);
-            border: 4px solid white;
-        }
-        .info-card {
-            transition: transform 0.3s;
-        }
-        .info-card:hover {
-            transform: translateY(-5px);
-        }
-        .stat-badge {
-            font-size: 0.9rem;
-            padding: 0.5rem 1rem;
-        }
-    </style>
-</head>
-<body>
-    <?php include '../layout/customer-header.php'; ?>
+<?php
+// app/views/customer/profile/index.php
+// Note: $user, $stats, $page_title are passed from controller
+?>
 
-    <div class="container-fluid">
-        <div class="row">
-            <?php include '../layout/customer-sidebar.php'; ?>
-
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-                <!-- Profile Header -->
-                <div class="profile-header">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="d-flex align-items-center">
-                                <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center me-4">
-                                    <span class="display-4">
-                                        <?php echo strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1)); ?>
-                                    </span>
-                                </div>
-                                <div>
-                                    <h1 class="h2 mb-1"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></h1>
-                                    <p class="mb-2 opacity-75">
-                                        <i class="bi bi-envelope me-1"></i> <?php echo htmlspecialchars($user['email']); ?>
-                                    </p>
-                                    <div class="d-flex gap-2">
-                                        <span class="badge stat-badge bg-light text-dark">
-                                            <i class="bi bi-person me-1"></i> Customer
-                                        </span>
-                                        <span class="badge stat-badge bg-light text-dark">
-                                            Member since <?php echo date('M Y', strtotime($user['created_at'])); ?>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <a href="index.php?action=customer/profile/edit" class="btn btn-light me-2">
-                                <i class="bi bi-pencil me-1"></i> Edit Profile
-                            </a>
-                            <a href="index.php?action=customer/profile/change-password" class="btn btn-outline-light">
-                                <i class="bi bi-key me-1"></i> Change Password
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <!-- Personal Information -->
-                    <div class="col-lg-8">
-                        <!-- Basic Information -->
-                        <div class="card info-card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Personal Information</h5>
-                                <a href="index.php?action=customer/profile/edit" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </a>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">First Name</small>
-                                            <p class="mb-0"><?php echo htmlspecialchars($user['first_name']); ?></p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Last Name</small>
-                                            <p class="mb-0"><?php echo htmlspecialchars($user['last_name']); ?></p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Email Address</small>
-                                            <p class="mb-0"><?php echo htmlspecialchars($user['email']); ?></p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Phone Number</small>
-                                            <p class="mb-0"><?php echo htmlspecialchars($user['phone'] ?? 'Not provided'); ?></p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Date of Birth</small>
-                                            <p class="mb-0">
-                                                <?php echo $user['date_of_birth'] ? date('F j, Y', strtotime($user['date_of_birth'])) : 'Not provided'; ?>
-                                            </p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Username</small>
-                                            <p class="mb-0"><?php echo htmlspecialchars($user['username']); ?></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Contact Information -->
-                        <div class="card info-card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Contact Information</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <small class="text-muted d-block">Address</small>
-                                    <p class="mb-0"><?php echo htmlspecialchars($user['address'] ?? 'Not provided'); ?></p>
-                                </div>
-                                <div class="mb-3">
-                                    <small class="text-muted d-block">Emergency Contact</small>
-                                    <p class="mb-0"><?php echo htmlspecialchars($user['emergency_contact'] ?? 'Not provided'); ?></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Account Information -->
-                        <div class="card info-card">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Account Information</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Account Status</small>
-                                            <p class="mb-0">
-                                                <span class="badge bg-success">Active</span>
-                                            </p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Member Since</small>
-                                            <p class="mb-0"><?php echo date('F j, Y', strtotime($user['created_at'])); ?></p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Last Updated</small>
-                                            <p class="mb-0">
-                                                <?php echo $user['updated_at'] ? date('F j, Y', strtotime($user['updated_at'])) : 'Never'; ?>
-                                            </p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block">Last Login</small>
-                                            <p class="mb-0">
-                                                <?php
-                                                // You would need to track last login separately
-                                                echo 'Recently';
-                                                ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions & Stats -->
-                    <div class="col-lg-4">
-                        <!-- Quick Actions -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <a href="index.php?action=customer/profile/edit" class="btn btn-outline-primary">
-                                        <i class="bi bi-pencil me-2"></i> Edit Profile
-                                    </a>
-                                    <a href="index.php?action=customer/profile/change-password" class="btn btn-outline-primary">
-                                        <i class="bi bi-key me-2"></i> Change Password
-                                    </a>
-                                    <a href="index.php?action=customer/booking" class="btn btn-outline-success">
-                                        <i class="bi bi-calendar-plus me-2"></i> New Booking
-                                    </a>
-                                    <a href="index.php?action=customer/reservations" class="btn btn-outline-info">
-                                        <i class="bi bi-receipt me-2"></i> My Reservations
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Security Tips -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-warning">
-                                <h5 class="mb-0 text-white"><i class="bi bi-shield-exclamation me-2"></i>Security Tips</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        Use a strong, unique password
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        Update your contact information regularly
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        Never share your login credentials
-                                    </li>
-                                    <li>
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        Log out after each session
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Contact Support -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-headset me-2"></i>Need Help?</h5>
-                            </div>
-                            <div class="card-body text-center">
-                                <div class="mb-3">
-                                    <i class="bi bi-question-circle fs-1 text-primary"></i>
-                                </div>
-                                <p class="small text-muted mb-3">
-                                    Have questions about your account or need assistance?
-                                </p>
-                                <div class="d-grid gap-2">
-                                    <a href="mailto:support@hotelmanagement.com" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-envelope me-1"></i> Email Support
-                                    </a>
-                                    <a href="tel:+1234567890" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-telephone me-1"></i> Call Support
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Danger Zone -->
-                <div class="card border-danger mt-4">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h6 class="mb-1">Delete Account</h6>
-                                <p class="text-muted mb-0 small">
-                                    Once you delete your account, there is no going back. Please be certain.
-                                </p>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                                    <i class="bi bi-trash me-1"></i> Delete Account
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+<div class="container mx-auto px-4 py-8">
+  <!-- Profile Header -->
+  <div class="bg-gradient-to-r from-primary to-secondary rounded-xl shadow-lg p-8 mb-8 text-white">
+    <div class="flex flex-col md:flex-row items-center md:items-start justify-between">
+      <div class="flex items-center mb-4 md:mb-0">
+        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold mr-6">
+          <?php echo strtoupper(substr($user['first_name'] ?? 'U', 0, 1) . substr($user['last_name'] ?? 'S', 0, 1)); ?>
         </div>
+        <div>
+          <h1 class="text-3xl font-bold mb-2"><?php echo htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')); ?></h1>
+          <p class="text-white/80 mb-2">
+            <i class="fas fa-envelope mr-2"></i> <?php echo htmlspecialchars($user['email'] ?? ''); ?>
+          </p>
+          <div class="flex gap-2">
+            <span class="px-3 py-1 bg-white/20 rounded-full text-sm">
+              <i class="fas fa-user mr-1"></i> Customer
+            </span>
+            <span class="px-3 py-1 bg-white/20 rounded-full text-sm">
+              Member since <?php echo date('M Y', strtotime($user['created_at'] ?? 'now')); ?>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <a href="index.php?action=profile&sub_action=edit" class="bg-white text-primary hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition duration-300">
+          <i class="fas fa-edit mr-2"></i> Edit Profile
+        </a>
+        <a href="index.php?action=profile&sub_action=change-password" class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 border border-white/30">
+          <i class="fas fa-key mr-2"></i> Change Password
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column: Profile Information -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Personal Information -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-user-circle text-primary mr-2"></i> Personal Information
+          </h2>
+          <a href="index.php?action=profile&sub_action=edit" class="text-primary hover:text-primary/80 text-sm font-semibold">
+            <i class="fas fa-edit mr-1"></i> Edit
+          </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-gray-600 text-sm mb-1">First Name</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user['first_name'] ?? ''); ?></p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Last Name</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user['last_name'] ?? ''); ?></p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Email Address</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user['email'] ?? ''); ?></p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Phone Number</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user['phone'] ?? 'Not provided'); ?></p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Username</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user['username'] ?? ''); ?></p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Date of Birth</p>
+            <p class="font-semibold text-gray-800">
+              <?php echo !empty($user['date_of_birth']) ? date('F j, Y', strtotime($user['date_of_birth'])) : 'Not provided'; ?>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <i class="fas fa-map-marker-alt text-primary mr-2"></i> Contact Information
+        </h2>
+        <div class="space-y-4">
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Address</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user['address'] ?? 'Not provided'); ?></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <i class="fas fa-chart-bar text-primary mr-2"></i> Your Statistics
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="text-center p-4 bg-blue-50 rounded-lg">
+            <p class="text-2xl font-bold text-primary"><?php echo $stats['total_reservations'] ?? 0; ?></p>
+            <p class="text-sm text-gray-600">Total Reservations</p>
+          </div>
+          <div class="text-center p-4 bg-green-50 rounded-lg">
+            <p class="text-2xl font-bold text-green-600"><?php echo $stats['completed_reservations'] ?? 0; ?></p>
+            <p class="text-sm text-gray-600">Completed</p>
+          </div>
+          <div class="text-center p-4 bg-purple-50 rounded-lg">
+            <p class="text-2xl font-bold text-purple-600"><?php echo $stats['upcoming_reservations'] ?? 0; ?></p>
+            <p class="text-sm text-gray-600">Upcoming</p>
+          </div>
+          <div class="text-center p-4 bg-orange-50 rounded-lg">
+            <p class="text-2xl font-bold text-orange-600">$<?php echo number_format($stats['total_spent'] ?? 0, 0); ?></p>
+            <p class="text-sm text-gray-600">Total Spent</p>
+          </div>
+        </div>
+        <?php if (!empty($stats['favorite_room_type']) && $stats['favorite_room_type'] !== 'None'): ?>
+          <div class="mt-6 pt-6 border-t">
+            <p class="text-gray-600 text-sm mb-1">Favorite Room Type</p>
+            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($stats['favorite_room_type']); ?></p>
+          </div>
+        <?php endif; ?>
+      </div>
     </div>
 
-    <!-- Delete Account Modal -->
-    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-danger">Delete Account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <strong>Warning:</strong> This action cannot be undone.
-                    </div>
-                    <p>Are you sure you want to delete your account? This will:</p>
-                    <ul class="mb-3">
-                        <li>Permanently delete your profile</li>
-                        <li>Cancel all upcoming reservations</li>
-                        <li>Remove your booking history</li>
-                        <li>Delete all personal information</li>
-                    </ul>
-                    <div class="mb-3">
-                        <label class="form-label">Type "DELETE" to confirm:</label>
-                        <input type="text" class="form-control" id="deleteConfirm" placeholder="DELETE">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete" disabled>
-                        Delete My Account
-                    </button>
-                </div>
-            </div>
+    <!-- Right Column: Quick Actions -->
+    <div class="space-y-6">
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-bolt text-primary mr-2"></i> Quick Actions
+        </h2>
+        <div class="space-y-3">
+          <a href="index.php?action=profile&sub_action=edit" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+            <i class="fas fa-edit mr-2"></i> Edit Profile
+          </a>
+          <a href="index.php?action=profile&sub_action=change-password" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+            <i class="fas fa-key mr-2"></i> Change Password
+          </a>
+          <a href="index.php?action=book-room" class="block w-full bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+            <i class="fas fa-calendar-plus mr-2"></i> New Booking
+          </a>
+          <a href="index.php?action=my-reservations" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+            <i class="fas fa-receipt mr-2"></i> My Reservations
+          </a>
         </div>
+      </div>
+
+      <!-- Account Information -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-shield-alt text-primary mr-2"></i> Account Information
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Account Status</p>
+            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Active</span>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Member Since</p>
+            <p class="font-semibold text-gray-800"><?php echo date('F j, Y', strtotime($user['created_at'] ?? 'now')); ?></p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Last Updated</p>
+            <p class="font-semibold text-gray-800">
+              <?php echo !empty($user['updated_at']) ? date('F j, Y', strtotime($user['updated_at'])) : 'Never'; ?>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <?php include '../layout/footer.php'; ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Auto-dismiss alerts
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
-
-        // Delete account confirmation
-        const deleteConfirm = document.getElementById('deleteConfirm');
-        const confirmDeleteBtn = document.getElementById('confirmDelete');
-
-        deleteConfirm.addEventListener('input', function() {
-            confirmDeleteBtn.disabled = this.value !== 'DELETE';
-        });
-
-        confirmDeleteBtn.addEventListener('click', function() {
-            // In a real application, this would trigger an account deletion process
-            alert('Account deletion functionality would be implemented here.');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal'));
-            modal.hide();
-        });
-    </script>
-</body>
-</html>
+  </div>
+</div>

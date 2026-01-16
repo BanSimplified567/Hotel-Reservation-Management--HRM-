@@ -254,6 +254,9 @@ switch ($action) {
         $sub_action = $_GET['sub_action'] ?? 'index';
 
         switch ($sub_action) {
+            case 'edit':
+                $controller->edit();
+                break;
             case 'change-password':
                 $controller->changePassword();
                 break;

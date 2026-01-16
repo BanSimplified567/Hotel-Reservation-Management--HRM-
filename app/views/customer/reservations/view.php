@@ -1,463 +1,268 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+// app/views/customer/reservations/view.php
+// Note: $reservation, $services, $page_title are passed from controller
+?>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reservation Details - Hotel Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-  <style>
-    .detail-card {
-      border-radius: 10px;
-      overflow: hidden;
-    }
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="mb-6">
+    <ol class="flex items-center space-x-2 text-sm">
+      <li><a href="index.php?action=dashboard" class="text-primary hover:text-primary/80">Dashboard</a></li>
+      <li><i class="fas fa-chevron-right text-gray-400"></i></li>
+      <li><a href="index.php?action=my-reservations" class="text-primary hover:text-primary/80">My Reservations</a></li>
+      <li><i class="fas fa-chevron-right text-gray-400"></i></li>
+      <li class="text-gray-600">Reservation #<?php echo str_pad($reservation['id'], 6, '0', STR_PAD_LEFT); ?></li>
+    </ol>
+  </nav>
 
-    .timeline {
-      position: relative;
-      padding-left: 30px;
-    }
-
-    .timeline:before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: #e9ecef;
-    }
-
-    .timeline-item {
-      position: relative;
-      margin-bottom: 20px;
-    }
-
-    .timeline-item:before {
-      content: '';
-      position: absolute;
-      left: -25px;
-      top: 5px;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #6c757d;
-    }
-
-    .timeline-item.completed:before {
-      background: #198754;
-    }
-
-    .timeline-item.current:before {
-      background: #0d6efd;
-      box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2);
-    }
-
-    .price-breakdown td {
-      padding: 8px 0;
-      border-bottom: 1px solid #dee2e6;
-    }
-
-    .price-breakdown tr:last-child td {
-      border-bottom: none;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-  <?php include '../layout/customer-header.php'; ?>
-
-  <div class="container-fluid">
-    <div class="row">
-      <?php include '../layout/customer-sidebar.php'; ?>
-
-      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <nav aria-label="breadcrumb">
-              <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                  <a href="index.php?action=customer/reservations">Reservations</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">
-                  #<?php echo str_pad($reservation['id'], 6, '0', STR_PAD_LEFT); ?>
-                </li>
-              </ol>
-            </nav>
-            <h1 class="h2 mb-0">Reservation Details</h1>
-          </div>
-          <div class="btn-group">
-            <a href="index.php?action=customer/reservations/invoice&id=<?php echo $reservation['id']; ?>"
-              class="btn btn-outline-primary" target="_blank">
-              <i class="bi bi-receipt me-1"></i> Invoice
-            </a>
-            <?php if ($reservation['status'] === 'pending'): ?>
-              <a href="index.php?action=customer/booking/confirmation&id=<?php echo $reservation['id']; ?>"
-                class="btn btn-warning">
-                <i class="bi bi-credit-card me-1"></i> Complete Payment
-              </a>
-            <?php endif; ?>
-          </div>
-        </div>
-
-        <!-- Status Alert -->
-        <div class="alert alert-<?php
-                                echo $reservation['status'] === 'confirmed' ? 'success' : ($reservation['status'] === 'pending' ? 'warning' : ($reservation['status'] === 'cancelled' ? 'danger' : 'secondary'));
-                                ?> d-flex align-items-center mb-4" role="alert">
-          <i class="bi bi-<?php
-                          echo $reservation['status'] === 'confirmed' ? 'check-circle' : ($reservation['status'] === 'pending' ? 'clock' : ($reservation['status'] === 'cancelled' ? 'x-circle' : 'check2'));
-                          ?> me-2 fs-4"></i>
-          <div>
-            <h5 class="alert-heading mb-1">
-              Reservation <?php echo ucfirst($reservation['status']); ?>
-            </h5>
-            <p class="mb-0">
-              <?php
-              if ($reservation['status'] === 'pending') {
-                echo 'Awaiting payment confirmation';
-              } elseif ($reservation['status'] === 'confirmed') {
-                echo 'Your booking is confirmed and ready';
-              } elseif ($reservation['status'] === 'cancelled') {
-                echo 'This reservation has been cancelled';
-                if ($reservation['cancelled_at']) {
-                  echo ' on ' . date('M d, Y', strtotime($reservation['cancelled_at']));
-                }
-              } else {
-                echo 'This reservation has been completed';
-              }
-              ?>
-            </p>
-          </div>
-        </div>
-
-        <div class="row">
-          <!-- Left Column -->
-          <div class="col-lg-8">
-            <!-- Reservation Timeline -->
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Reservation Timeline</h5>
-              </div>
-              <div class="card-body">
-                <div class="timeline">
-                  <?php
-                  $timelineItems = [
-                    [
-                      'status' => 'created',
-                      'date' => $reservation['created_at'],
-                      'title' => 'Reservation Created',
-                      'description' => 'Your booking request was submitted',
-                      'completed' => true
-                    ],
-                    [
-                      'status' => 'confirmed',
-                      'date' => $reservation['confirmed_at'] ?? null,
-                      'title' => 'Payment Confirmed',
-                      'description' => 'Payment processed and booking confirmed',
-                      'completed' => in_array($reservation['status'], ['confirmed', 'completed'])
-                    ],
-                    [
-                      'status' => 'check_in',
-                      'date' => $reservation['check_in'],
-                      'title' => 'Check-in Date',
-                      'description' => 'Scheduled arrival date',
-                      'completed' => $reservation['status'] === 'completed' ||
-                        (strtotime($reservation['check_in']) < time())
-                    ],
-                    [
-                      'status' => 'check_out',
-                      'date' => $reservation['check_out'],
-                      'title' => 'Check-out Date',
-                      'description' => 'Scheduled departure date',
-                      'completed' => $reservation['status'] === 'completed' ||
-                        (strtotime($reservation['check_out']) < time())
-                    ]
-                  ];
-
-                  if ($reservation['status'] === 'cancelled') {
-                    $timelineItems[] = [
-                      'status' => 'cancelled',
-                      'date' => $reservation['cancelled_at'],
-                      'title' => 'Reservation Cancelled',
-                      'description' => $reservation['cancellation_reason'] ?? 'Cancelled by customer',
-                      'completed' => true
-                    ];
-                  }
-                  ?>
-
-                  <?php foreach ($timelineItems as $item): ?>
-                    <?php if ($item['date']): ?>
-                      <div class="timeline-item <?php echo $item['completed'] ? 'completed' : ''; ?>">
-                        <h6 class="mb-1"><?php echo $item['title']; ?></h6>
-                        <p class="text-muted small mb-1"><?php echo $item['description']; ?></p>
-                        <small class="text-muted">
-                          <i class="bi bi-calendar me-1"></i>
-                          <?php echo date('F j, Y g:i A', strtotime($item['date'])); ?>
-                        </small>
-                      </div>
-                    <?php endif; ?>
-                  <?php endforeach; ?>
-                </div>
-              </div>
-            </div>
-
-            <!-- Room Details -->
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-door-closed me-2"></i>Room Details</h5>
-              </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-8">
-                    <h5><?php echo htmlspecialchars($reservation['room_type']); ?></h5>
-                    <p class="text-muted">Room #<?php echo $reservation['room_number']; ?></p>
-                    <p><?php echo htmlspecialchars($reservation['room_description']); ?></p>
-
-                    <div class="row mt-3">
-                      <div class="col-6">
-                        <small class="text-muted d-block">Check-in</small>
-                        <strong><?php echo date('D, M j, Y', strtotime($reservation['check_in'])); ?></strong>
-                      </div>
-                      <div class="col-6">
-                        <small class="text-muted d-block">Check-out</small>
-                        <strong><?php echo date('D, M j, Y', strtotime($reservation['check_out'])); ?></strong>
-                      </div>
-                    </div>
-
-                    <div class="row mt-3">
-                      <div class="col-6">
-                        <small class="text-muted d-block">Duration</small>
-                        <strong>
-                          <?php
-                          $checkIn = new DateTime($reservation['check_in']);
-                          $checkOut = new DateTime($reservation['check_out']);
-                          echo $checkOut->diff($checkIn)->days . ' nights';
-                          ?>
-                        </strong>
-                      </div>
-                      <div class="col-6">
-                        <small class="text-muted d-block">Guests</small>
-                        <strong><?php echo $reservation['guests']; ?> guests</strong>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-4 text-center">
-                    <div class="bg-light rounded p-3">
-                      <h3>$<?php echo number_format($reservation['price_per_night'], 2); ?></h3>
-                      <small class="text-muted">per night</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <?php if ($reservation['service_name']): ?>
-              <!-- Service Details -->
-              <div class="card mb-4">
-                <div class="card-header">
-                  <h5 class="mb-0"><i class="bi bi-stars me-2"></i>Additional Service</h5>
-                </div>
-                <div class="card-body">
-                  <div class="row align-items-center">
-                    <div class="col-md-8">
-                      <h6><?php echo htmlspecialchars($reservation['service_name']); ?></h6>
-                      <p class="text-muted mb-0"><?php echo htmlspecialchars($reservation['service_description']); ?></p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                      <h5 class="text-primary">$<?php echo number_format($reservation['service_price'], 2); ?></h5>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            <?php endif; ?>
-
-            <?php if ($reservation['special_requests']): ?>
-              <!-- Special Requests -->
-              <div class="card mb-4">
-                <div class="card-header">
-                  <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>Special Requests</h5>
-                </div>
-                <div class="card-body">
-                  <p class="mb-0"><?php echo nl2br(htmlspecialchars($reservation['special_requests'])); ?></p>
-                </div>
-              </div>
-            <?php endif; ?>
-          </div>
-
-          <!-- Right Column -->
-          <div class="col-lg-4">
-            <!-- Price Breakdown -->
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>Price Breakdown</h5>
-              </div>
-              <div class="card-body">
-                <table class="table price-breakdown w-100">
-                  <?php
-                  $checkIn = new DateTime($reservation['check_in']);
-                  $checkOut = new DateTime($reservation['check_out']);
-                  $nights = $checkOut->diff($checkIn)->days;
-                  $roomTotal = $reservation['price_per_night'] * $nights;
-                  $serviceTotal = $reservation['service_price'] ?? 0;
-                  $taxRate = 0.10;
-                  $taxAmount = ($roomTotal + $serviceTotal) * $taxRate;
-                  $grandTotal = $roomTotal + $serviceTotal + $taxAmount;
-                  ?>
-
-                  <tr>
-                    <td>Room (<?php echo $nights; ?> nights × $<?php echo number_format($reservation['price_per_night'], 2); ?>)</td>
-                    <td class="text-end">$<?php echo number_format($roomTotal, 2); ?></td>
-                  </tr>
-
-                  <?php if ($serviceTotal > 0): ?>
-                    <tr>
-                      <td><?php echo htmlspecialchars($reservation['service_name']); ?></td>
-                      <td class="text-end">$<?php echo number_format($serviceTotal, 2); ?></td>
-                    </tr>
-                  <?php endif; ?>
-
-                  <tr>
-                    <td>Tax (10%)</td>
-                    <td class="text-end">$<?php echo number_format($taxAmount, 2); ?></td>
-                  </tr>
-
-                  <tr>
-                    <td><strong>Total Amount</strong></td>
-                    <td class="text-end"><strong>$<?php echo number_format($grandTotal, 2); ?></strong></td>
-                  </tr>
-
-                  <?php if ($reservation['deposit_amount'] > 0): ?>
-                    <tr>
-                      <td>Deposit Paid</td>
-                      <td class="text-end text-success">-$<?php echo number_format($reservation['deposit_amount'], 2); ?></td>
-                    </tr>
-
-                    <tr>
-                      <td><strong>Balance Due</strong></td>
-                      <td class="text-end"><strong>$<?php echo number_format($grandTotal - $reservation['deposit_amount'], 2); ?></strong></td>
-                    </tr>
-                  <?php endif; ?>
-                </table>
-              </div>
-            </div>
-
-            <!-- Payment Information -->
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Information</h5>
-              </div>
-              <div class="card-body">
-                <div class="mb-3">
-                  <small class="text-muted d-block">Payment Status</small>
-                  <span class="badge bg-<?php
-                                        echo $reservation['payment_status'] === 'paid' ? 'success' : 'warning';
-                                        ?>">
-                    <?php echo ucfirst($reservation['payment_status'] ?? 'pending'); ?>
-                  </span>
-                </div>
-
-                <?php if ($reservation['payment_method']): ?>
-                  <div class="mb-3">
-                    <small class="text-muted d-block">Payment Method</small>
-                    <strong><?php echo ucfirst($reservation['payment_method']); ?></strong>
-                  </div>
-                <?php endif; ?>
-
-                <?php if ($reservation['transaction_id']): ?>
-                  <div class="mb-3">
-                    <small class="text-muted d-block">Transaction ID</small>
-                    <code><?php echo $reservation['transaction_id']; ?></code>
-                  </div>
-                <?php endif; ?>
-
-                <?php if ($reservation['payment_date']): ?>
-                  <div class="mb-3">
-                    <small class="text-muted d-block">Payment Date</small>
-                    <strong><?php echo date('M j, Y g:i A', strtotime($reservation['payment_date'])); ?></strong>
-                  </div>
-                <?php endif; ?>
-              </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="card">
-              <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
-              </div>
-              <div class="card-body">
-                <div class="d-grid gap-2">
-                  <a href="index.php?action=customer/reservations/invoice&id=<?php echo $reservation['id']; ?>"
-                    class="btn btn-outline-primary" target="_blank">
-                    <i class="bi bi-download me-1"></i> Download Invoice
-                  </a>
-
-                  <?php if (in_array($reservation['status'], ['pending', 'confirmed'])): ?>
-                    <button type="button" class="btn btn-outline-danger"
-                      data-bs-toggle="modal" data-bs-target="#cancelModal">
-                      <i class="bi bi-x-circle me-1"></i> Cancel Reservation
-                    </button>
-                  <?php endif; ?>
-
-                  <a href="index.php?action=customer/booking" class="btn btn-outline-secondary">
-                    <i class="bi bi-plus-circle me-1"></i> Make Another Booking
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Reservation Details</h1>
+      <p class="text-gray-600">Reservation Code: <span class="font-semibold"><?php echo htmlspecialchars($reservation['reservation_code'] ?? 'N/A'); ?></span></p>
+    </div>
+    <div class="flex gap-3">
+      <a href="index.php?action=my-reservations&sub_action=print-invoice&id=<?php echo $reservation['id']; ?>"
+        class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition duration-300">
+        <i class="fas fa-file-invoice mr-2"></i> Invoice
+      </a>
+      <?php if ($reservation['status'] === 'pending'): ?>
+        <a href="index.php?action=book-room&sub_action=confirmation&id=<?php echo $reservation['id']; ?>"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold transition duration-300">
+          <i class="fas fa-credit-card mr-2"></i> Complete Payment
+        </a>
+      <?php endif; ?>
     </div>
   </div>
 
-  <!-- Cancel Modal -->
-  <?php if (in_array($reservation['status'], ['pending', 'confirmed'])): ?>
-    <div class="modal fade" id="cancelModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Cancel Reservation</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <!-- Status Alert -->
+  <div class="mb-6 p-4 rounded-lg <?php
+                                  echo $reservation['status'] === 'confirmed' ? 'bg-green-50 border border-green-200' : ($reservation['status'] === 'pending' ? 'bg-yellow-50 border border-yellow-200' : ($reservation['status'] === 'cancelled' ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'));
+                                  ?>">
+    <div class="flex items-center">
+      <i class="fas <?php
+                    echo $reservation['status'] === 'confirmed' ? 'fa-check-circle text-green-600' : ($reservation['status'] === 'pending' ? 'fa-clock text-yellow-600' : ($reservation['status'] === 'cancelled' ? 'fa-times-circle text-red-600' : 'fa-info-circle text-gray-600'));
+                    ?> text-2xl mr-3"></i>
+      <div>
+        <h3 class="font-semibold text-gray-800 mb-1">Reservation <?php echo ucfirst($reservation['status']); ?></h3>
+        <p class="text-gray-600 text-sm">
+          <?php
+          if ($reservation['status'] === 'pending') {
+            echo 'Awaiting payment confirmation';
+          } elseif ($reservation['status'] === 'confirmed') {
+            echo 'Your booking is confirmed and ready';
+          } elseif ($reservation['status'] === 'cancelled') {
+            echo 'This reservation has been cancelled';
+          } else {
+            echo 'This reservation has been completed';
+          }
+          ?>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Main Details -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Room Details -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-door-open text-primary mr-2"></i> Room Details
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2"><?php echo htmlspecialchars($reservation['room_type']); ?></h3>
+            <p class="text-gray-600 mb-4">Room #<?php echo htmlspecialchars($reservation['room_number']); ?></p>
+            <p class="text-gray-700"><?php echo htmlspecialchars($reservation['room_description'] ?? ''); ?></p>
           </div>
-          <form method="POST" action="index.php?action=customer/reservations/cancel&id=<?php echo $reservation['id']; ?>">
-            <div class="modal-body">
-              <p>Are you sure you want to cancel reservation #<?php echo str_pad($reservation['id'], 6, '0', STR_PAD_LEFT); ?>?</p>
-              <div class="mb-3">
-                <label class="form-label">Reason for cancellation:</label>
-                <textarea class="form-control" name="cancellation_reason" rows="3"
-                  placeholder="Optional reason for cancellation"></textarea>
+          <div class="bg-gray-50 rounded-lg p-4 text-center">
+            <p class="text-gray-600 text-sm mb-1">Price per night</p>
+            <p class="text-2xl font-bold text-primary">$<?php echo number_format($reservation['price_per_night'] ?? 0, 2); ?></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Check-in</p>
+            <p class="font-semibold text-gray-800"><?php echo date('M j, Y', strtotime($reservation['check_in'])); ?></p>
+            <p class="text-gray-500 text-xs">From 3:00 PM</p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Check-out</p>
+            <p class="font-semibold text-gray-800"><?php echo date('M j, Y', strtotime($reservation['check_out'])); ?></p>
+            <p class="text-gray-500 text-xs">Until 11:00 AM</p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Duration</p>
+            <p class="font-semibold text-gray-800"><?php echo $reservation['nights'] ?? 1; ?> nights</p>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Guests</p>
+            <p class="font-semibold text-gray-800"><?php echo ($reservation['adults'] ?? 1) + ($reservation['children'] ?? 0); ?> guests</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <?php if (!empty($services)): ?>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-concierge-bell text-primary mr-2"></i> Additional Services
+          </h2>
+          <div class="space-y-3">
+            <?php foreach ($services as $service): ?>
+              <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 class="font-semibold text-gray-800"><?php echo htmlspecialchars($service['name']); ?></h4>
+                  <?php if (!empty($service['description'])): ?>
+                    <p class="text-sm text-gray-600"><?php echo htmlspecialchars($service['description']); ?></p>
+                  <?php endif; ?>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-800">$<?php echo number_format($service['service_price'] ?? 0, 2); ?></p>
+                  <?php if (isset($service['quantity']) && $service['quantity'] > 1): ?>
+                    <p class="text-xs text-gray-500">Qty: <?php echo $service['quantity']; ?></p>
+                  <?php endif; ?>
+                </div>
               </div>
-              <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle"></i>
-                <strong>Cancellation Policy:</strong><br>
-                • Cancellations within 24 hours of check-in may incur a 50% fee<br>
-                • No-show reservations will be charged the full amount
-              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <!-- Special Requests -->
+      <?php if (!empty($reservation['special_requests'])): ?>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-comment-alt text-primary mr-2"></i> Special Requests
+          </h2>
+          <p class="text-gray-700 whitespace-pre-wrap"><?php echo htmlspecialchars($reservation['special_requests']); ?></p>
+        </div>
+      <?php endif; ?>
+    </div>
+
+    <!-- Right Column: Price & Actions -->
+    <div class="space-y-6">
+      <!-- Price Breakdown -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-calculator text-primary mr-2"></i> Price Breakdown
+        </h2>
+        <div class="space-y-3">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Room (<?php echo $reservation['nights'] ?? 1; ?> nights)</span>
+            <span class="font-semibold">$<?php echo number_format($reservation['room_total'] ?? 0, 2); ?></span>
+          </div>
+          <?php if (!empty($services)): ?>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Services</span>
+              <span class="font-semibold">$<?php echo number_format(array_sum(array_column($services, 'service_price')), 2); ?></span>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+          <?php endif; ?>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Tax (10%)</span>
+            <span class="font-semibold">$<?php echo number_format(($reservation['room_total'] ?? 0) * 0.10, 2); ?></span>
+          </div>
+          <div class="border-t pt-3 mt-3">
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-bold text-gray-800">Total Amount</span>
+              <span class="text-lg font-bold text-primary">$<?php echo number_format($reservation['total_amount'] ?? 0, 2); ?></span>
             </div>
-          </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Information -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-credit-card text-primary mr-2"></i> Payment Information
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <p class="text-gray-600 text-sm mb-1">Payment Status</p>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold <?php
+                                                                      echo $reservation['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                                                                      ?>">
+              <?php echo ucfirst($reservation['payment_status'] ?? 'pending'); ?>
+            </span>
+          </div>
+          <?php if (!empty($reservation['payment_method'])): ?>
+            <div>
+              <p class="text-gray-600 text-sm mb-1">Payment Method</p>
+              <p class="font-semibold text-gray-800"><?php echo ucfirst(str_replace('_', ' ', $reservation['payment_method'])); ?></p>
+            </div>
+          <?php endif; ?>
+          <?php if (!empty($reservation['transaction_id'])): ?>
+            <div>
+              <p class="text-gray-600 text-sm mb-1">Transaction ID</p>
+              <p class="font-mono text-sm text-gray-800"><?php echo htmlspecialchars($reservation['transaction_id']); ?></p>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-bolt text-primary mr-2"></i> Quick Actions
+        </h2>
+        <div class="space-y-3">
+          <a href="index.php?action=my-reservations&sub_action=print-invoice&id=<?php echo $reservation['id']; ?>"
+            class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+            <i class="fas fa-download mr-2"></i> Download Invoice
+          </a>
+          <?php if (in_array($reservation['status'], ['pending', 'confirmed'])): ?>
+            <button onclick="document.getElementById('cancelModal').classList.remove('hidden')"
+              class="block w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+              <i class="fas fa-times-circle mr-2"></i> Cancel Reservation
+            </button>
+          <?php endif; ?>
+          <a href="index.php?action=book-room"
+            class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
+            <i class="fas fa-plus-circle mr-2"></i> Make Another Booking
+          </a>
         </div>
       </div>
     </div>
-  <?php endif; ?>
+  </div>
+</div>
 
-  <?php include '../layout/footer.php'; ?>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Auto-dismiss alerts
-    setTimeout(function() {
-      const alerts = document.querySelectorAll('.alert');
-      alerts.forEach(alert => {
-        const bsAlert = new bootstrap.Alert(alert);
-        bsAlert.close();
-      });
-    }, 5000);
-  </script>
-</body>
-
-</html>
+<!-- Cancel Modal -->
+<?php if (in_array($reservation['status'], ['pending', 'confirmed'])): ?>
+  <div id="cancelModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Cancel Reservation</h3>
+        <button onclick="document.getElementById('cancelModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form method="POST" action="index.php?action=my-reservations&sub_action=cancel&id=<?php echo $reservation['id']; ?>">
+        <p class="text-gray-600 mb-4">Are you sure you want to cancel reservation #<?php echo str_pad($reservation['id'], 6, '0', STR_PAD_LEFT); ?>?</p>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-semibold mb-2">Reason for cancellation (optional):</label>
+          <textarea name="reason" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="Please provide a reason for cancellation"></textarea>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <p class="text-sm text-yellow-800">
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            <strong>Cancellation Policy:</strong><br>
+            • Cancellations within 24 hours of check-in may incur a 50% fee<br>
+            • No-show reservations will be charged the full amount
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="document.getElementById('cancelModal').classList.add('hidden')"
+            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold transition duration-300">
+            Close
+          </button>
+          <button type="submit" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition duration-300">
+            Confirm Cancellation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+<?php endif; ?>
