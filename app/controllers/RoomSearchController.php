@@ -1,13 +1,12 @@
 <?php
 // app/controllers/RoomSearchController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class RoomSearchController
+class RoomSearchController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
@@ -54,7 +53,24 @@ class RoomSearchController
         // Get amenities for filter
         $all_amenities = $this->getAllAmenities();
 
-        require_once '../app/views/public/room-search.php';
+        $data = [
+            'available_rooms' => $available_rooms,
+            'total_rooms' => $total_rooms,
+            'total_pages' => $total_pages,
+            'room_types' => $room_types,
+            'all_amenities' => $all_amenities,
+            'check_in' => $check_in,
+            'check_out' => $check_out,
+            'guests' => $guests,
+            'room_type' => $room_type,
+            'min_price' => $min_price,
+            'max_price' => $max_price,
+            'amenities' => $amenities,
+            'page' => $page,
+            'page_title' => 'Search Rooms'
+        ];
+
+        $this->render('public/room-search', $data);
     }
 
     private function searchAvailableRooms($check_in, $check_out, $guests, $room_type,
@@ -292,8 +308,7 @@ class RoomSearchController
             exit();
         }
 
-        header('Location: index.php?action=room-search');
-        exit();
+        $this->redirect('room-search');
     }
 
     public function getRoomDetails($room_id)
@@ -351,7 +366,6 @@ class RoomSearchController
             exit();
         }
 
-        header('Location: index.php?action=room-search');
-        exit();
+        $this->redirect('room-search');
     }
 }

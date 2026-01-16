@@ -1,21 +1,20 @@
 <?php
 // app/controllers/Admin/ServiceController.php
+require_once __DIR__ . '/../Path/BaseController.php';
 
-class ServiceController
+class ServiceController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check authorization
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         // Get filter parameters
@@ -57,14 +56,25 @@ class ServiceController
         $stmt->execute($params);
         $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        require_once '../app/views/admin/services/index.php';
+        $data = [
+            'services' => $services,
+            'search' => $search,
+            'status' => $status,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'totalServices' => $totalServices,
+            'page_title' => 'Manage Services'
+        ];
+
+        $this->render('admin/services/index', $data);
     }
 
     public function create()
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -121,8 +131,7 @@ class ServiceController
                 $this->logAction($_SESSION['user_id'], "Created service: $name");
 
                 $_SESSION['success'] = "Service created successfully.";
-                header('Location: index.php?action=admin/services');
-                exit();
+                $this->redirect('admin/services');
 
             } catch (PDOException $e) {
                 error_log("Create service error: " . $e->getMessage());
@@ -133,21 +142,25 @@ class ServiceController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header('Location: index.php?action=admin/services&action=create');
-            exit();
+            $this->redirect('admin/services', ['sub_action' => 'create']);
         }
     }
 
     private function showCreateForm()
     {
-        require_once '../app/views/admin/services/create.php';
+        $data = [
+            'page_title' => 'Create Service'
+        ];
+
+        $this->render('admin/services/create', $data);
     }
 
     public function edit($id)
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -204,8 +217,7 @@ class ServiceController
                 $this->logAction($_SESSION['user_id'], "Updated service #$id: $name");
 
                 $_SESSION['success'] = "Service updated successfully.";
-                header('Location: index.php?action=admin/services');
-                exit();
+                $this->redirect('admin/services');
 
             } catch (PDOException $e) {
                 error_log("Update service error: " . $e->getMessage());
@@ -216,8 +228,7 @@ class ServiceController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header("Location: index.php?action=admin/services&action=edit&id=$id");
-            exit();
+            $this->redirect('admin/services', ['sub_action' => 'edit', 'id' => $id]);
         }
     }
 
@@ -230,25 +241,25 @@ class ServiceController
 
             if (!$service) {
                 $_SESSION['error'] = "Service not found.";
-                header('Location: index.php?action=admin/services');
-                exit();
+                $this->redirect('admin/services');
             }
 
-            require_once '../app/views/admin/services/edit.php';
+            $data = [
+                'service' => $service,
+                'page_title' => 'Edit Service'
+            ];
+
+            $this->render('admin/services/edit', $data);
         } catch (PDOException $e) {
             error_log("Get service error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load service.";
-            header('Location: index.php?action=admin/services');
-            exit();
+            $this->redirect('admin/services');
         }
     }
 
     public function delete($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         try {
             // Check if service is used in any reservations
@@ -258,8 +269,7 @@ class ServiceController
 
             if ($usageCount > 0) {
                 $_SESSION['error'] = "Cannot delete service that is used in reservations. Deactivate instead.";
-                header('Location: index.php?action=admin/services');
-                exit();
+                $this->redirect('admin/services');
             }
 
             // Get service name for logging
@@ -280,15 +290,15 @@ class ServiceController
             $_SESSION['error'] = "Failed to delete service.";
         }
 
-        header('Location: index.php?action=admin/services');
-        exit();
+        $this->redirect('admin/services');
     }
 
     public function toggleStatus($id)
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         try {
@@ -316,8 +326,7 @@ class ServiceController
             $_SESSION['error'] = "Failed to update service status.";
         }
 
-        header('Location: index.php?action=admin/services');
-        exit();
+        $this->redirect('admin/services');
     }
 
     private function logAction($userId, $action)

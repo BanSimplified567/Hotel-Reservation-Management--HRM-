@@ -1,13 +1,12 @@
 <?php
 // app/controllers/RoomController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class RoomController
+class RoomController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
@@ -36,7 +35,24 @@ class RoomController
         // Get featured rooms
         $featured_rooms = $this->getFeaturedRooms();
 
-        require_once '../app/views/public/rooms.php';
+        $data = [
+            'rooms' => $rooms,
+            'total_rooms' => $total_rooms,
+            'total_pages' => $total_pages,
+            'room_types' => $room_types,
+            'all_amenities' => $all_amenities,
+            'featured_rooms' => $featured_rooms,
+            'type' => $type,
+            'min_price' => $min_price,
+            'max_price' => $max_price,
+            'capacity' => $capacity,
+            'amenities' => $amenities,
+            'sort' => $sort,
+            'page' => $page,
+            'page_title' => 'Our Rooms'
+        ];
+
+        $this->render('public/rooms', $data);
     }
 
     public function view($id)
@@ -58,8 +74,7 @@ class RoomController
 
             if (!$room) {
                 $_SESSION['error'] = "Room not found or not available.";
-                header('Location: index.php?action=rooms');
-                exit();
+                $this->redirect('rooms');
             }
 
             // Decode amenities
@@ -78,12 +93,19 @@ class RoomController
             // Check if user can review this room
             $can_review = $this->canUserReviewRoom($id);
 
-            require_once '../app/views/public/room-details.php';
+            $data = [
+                'room' => $room,
+                'similar_rooms' => $similar_rooms,
+                'reviews' => $reviews,
+                'can_review' => $can_review,
+                'page_title' => 'Room Details'
+            ];
+
+            $this->render('public/room-details', $data);
         } catch (PDOException $e) {
             error_log("View room error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load room details.";
-            header('Location: index.php?action=rooms');
-            exit();
+            $this->redirect('rooms');
         }
     }
 
@@ -366,11 +388,7 @@ class RoomController
 
     public function submitReview($room_id)
     {
-        if (!isset($_SESSION['user_id'])) {
-            $_SESSION['error'] = "Please login to submit a review.";
-            header('Location: index.php?action=login');
-            exit();
-        }
+        $this->requireLogin();
 
         $user_id = $_SESSION['user_id'];
 
@@ -382,27 +400,23 @@ class RoomController
             // Validation
             if ($rating < 1 || $rating > 5) {
                 $_SESSION['error'] = "Please select a valid rating (1-5 stars).";
-                header("Location: index.php?action=rooms&action=view&id=$room_id");
-                exit();
+                $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
             }
 
             if (empty($title)) {
                 $_SESSION['error'] = "Review title is required.";
-                header("Location: index.php?action=rooms&action=view&id=$room_id");
-                exit();
+                $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
             }
 
             if (empty($comment)) {
                 $_SESSION['error'] = "Review comment is required.";
-                header("Location: index.php?action=rooms&action=view&id=$room_id");
-                exit();
+                $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
             }
 
             // Check if user can review this room
             if (!$this->canUserReviewRoom($room_id)) {
                 $_SESSION['error'] = "You can only review rooms you have stayed in.";
-                header("Location: index.php?action=rooms&action=view&id=$room_id");
-                exit();
+                $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
             }
 
             try {
@@ -422,8 +436,7 @@ class RoomController
 
                 if (!$reservation) {
                     $_SESSION['error'] = "No eligible reservation found for review.";
-                    header("Location: index.php?action=rooms&action=view&id=$room_id");
-                    exit();
+                    $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
                 }
 
                 // Submit review
@@ -438,19 +451,16 @@ class RoomController
                 $this->logAction($user_id, "Submitted review for room #$room_id");
 
                 $_SESSION['success'] = "Review submitted successfully. It will be visible after approval.";
-                header("Location: index.php?action=rooms&action=view&id=$room_id");
-                exit();
+                $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
 
             } catch (PDOException $e) {
                 error_log("Submit review error: " . $e->getMessage());
                 $_SESSION['error'] = "Failed to submit review. Please try again.";
-                header("Location: index.php?action=rooms&action=view&id=$room_id");
-                exit();
+                $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
             }
         }
 
-        header("Location: index.php?action=rooms&action=view&id=$room_id");
-        exit();
+        $this->redirect('rooms', ['sub_action' => 'view', 'id' => $room_id]);
     }
 
     private function logAction($userId, $action)
@@ -469,8 +479,7 @@ class RoomController
 
         if (empty($room_ids) || count($room_ids) > 3) {
             $_SESSION['error'] = "Please select 1-3 rooms to compare.";
-            header('Location: index.php?action=rooms');
-            exit();
+            $this->redirect('rooms');
         }
 
         $rooms = [];
@@ -483,11 +492,15 @@ class RoomController
 
         if (empty($rooms)) {
             $_SESSION['error'] = "No valid rooms selected for comparison.";
-            header('Location: index.php?action=rooms');
-            exit();
+            $this->redirect('rooms');
         }
 
-        require_once '../app/views/public/room-compare.php';
+        $data = [
+            'rooms' => $rooms,
+            'page_title' => 'Compare Rooms'
+        ];
+
+        $this->render('public/room-compare', $data);
     }
 
     private function getRoomForComparison($room_id)

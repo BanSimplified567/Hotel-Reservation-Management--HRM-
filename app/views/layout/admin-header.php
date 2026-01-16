@@ -1,18 +1,14 @@
 <?php
-// app/views/layout/header.php
-// This header is for customers only
-$role = $_SESSION['role'] ?? 'guest';
-$isCustomer = $role === 'customer';
+// app/views/layout/admin-header.php
+// This header is for admin and staff only
 ?>
-
-<?php if ($isCustomer || $role === 'guest'): ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?php echo $page_title ?? 'Hotel Bannie State of Cebu Reservation System'; ?></title>
+  <title><?php echo $page_title ?? 'Hotel Bannie State of Cebu - Admin Panel'; ?></title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -63,4 +59,3 @@ $isCustomer = $role === 'customer';
 </head>
 
 <body class="bg-gray-50 font-sans">
-<?php endif; ?>

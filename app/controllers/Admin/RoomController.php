@@ -1,21 +1,20 @@
 <?php
 // app/controllers/Admin/RoomController.php
+require_once __DIR__ . '/../Path/BaseController.php';
 
-class RoomController
+class RoomController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check authorization
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         // Get filter parameters
@@ -68,14 +67,27 @@ class RoomController
         $typeStmt->execute();
         $roomTypes = $typeStmt->fetchAll(PDO::FETCH_COLUMN);
 
-        require_once '../app/views/admin/rooms/index.php';
+        $data = [
+            'rooms' => $rooms,
+            'roomTypes' => $roomTypes,
+            'search' => $search,
+            'type' => $type,
+            'status' => $status,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'totalRooms' => $totalRooms,
+            'page_title' => 'Manage Rooms'
+        ];
+
+        $this->render('admin/rooms/index', $data);
     }
 
     public function create()
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -149,8 +161,7 @@ class RoomController
                 $this->logAction($_SESSION['user_id'], "Created room: $room_number");
 
                 $_SESSION['success'] = "Room created successfully.";
-                header('Location: index.php?action=admin/rooms');
-                exit();
+                $this->redirect('admin/rooms');
 
             } catch (PDOException $e) {
                 error_log("Create room error: " . $e->getMessage());
@@ -161,8 +172,7 @@ class RoomController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header('Location: index.php?action=admin/rooms&action=create');
-            exit();
+            $this->redirect('admin/rooms', ['sub_action' => 'create']);
         }
     }
 
@@ -178,14 +188,21 @@ class RoomController
             'Bathtub', 'Kitchenette', 'Jacuzzi', 'Fireplace'
         ];
 
-        require_once '../app/views/admin/rooms/create.php';
+        $data = [
+            'roomTypes' => $roomTypes,
+            'allAmenities' => $allAmenities,
+            'page_title' => 'Create Room'
+        ];
+
+        $this->render('admin/rooms/create', $data);
     }
 
     public function edit($id)
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -281,8 +298,7 @@ class RoomController
                 $this->logAction($_SESSION['user_id'], "Updated room #$id: $room_number");
 
                 $_SESSION['success'] = "Room updated successfully.";
-                header('Location: index.php?action=admin/rooms');
-                exit();
+                $this->redirect('admin/rooms');
 
             } catch (PDOException $e) {
                 error_log("Update room error: " . $e->getMessage());
@@ -293,8 +309,7 @@ class RoomController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header("Location: index.php?action=admin/rooms&action=edit&id=$id");
-            exit();
+            $this->redirect('admin/rooms', ['sub_action' => 'edit', 'id' => $id]);
         }
     }
 
@@ -307,8 +322,7 @@ class RoomController
 
             if (!$room) {
                 $_SESSION['error'] = "Room not found.";
-                header('Location: index.php?action=admin/rooms');
-                exit();
+                $this->redirect('admin/rooms');
             }
 
             // Decode amenities JSON
@@ -328,21 +342,24 @@ class RoomController
                 'Bathtub', 'Kitchenette', 'Jacuzzi', 'Fireplace'
             ];
 
-            require_once '../app/views/admin/rooms/edit.php';
+            $data = [
+                'room' => $room,
+                'roomTypes' => $roomTypes,
+                'allAmenities' => $allAmenities,
+                'page_title' => 'Edit Room'
+            ];
+
+            $this->render('admin/rooms/edit', $data);
         } catch (PDOException $e) {
             error_log("Get room error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load room.";
-            header('Location: index.php?action=admin/rooms');
-            exit();
+            $this->redirect('admin/rooms');
         }
     }
 
     public function delete($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         try {
             // Check if room has any reservations
@@ -352,8 +369,7 @@ class RoomController
 
             if ($reservationCount > 0) {
                 $_SESSION['error'] = "Cannot delete room with existing reservations.";
-                header('Location: index.php?action=admin/rooms');
-                exit();
+                $this->redirect('admin/rooms');
             }
 
             // Get room number for logging
@@ -374,15 +390,15 @@ class RoomController
             $_SESSION['error'] = "Failed to delete room.";
         }
 
-        header('Location: index.php?action=admin/rooms');
-        exit();
+        $this->redirect('admin/rooms');
     }
 
     public function view($id)
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         try {
@@ -400,8 +416,7 @@ class RoomController
 
             if (!$room) {
                 $_SESSION['error'] = "Room not found.";
-                header('Location: index.php?action=admin/rooms');
-                exit();
+                $this->redirect('admin/rooms');
             }
 
             // Decode amenities JSON
@@ -425,12 +440,17 @@ class RoomController
             $stmt->execute([$id]);
             $upcomingReservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            require_once '../app/views/admin/rooms/view.php';
+            $data = [
+                'room' => $room,
+                'upcomingReservations' => $upcomingReservations,
+                'page_title' => 'View Room'
+            ];
+
+            $this->render('admin/rooms/view', $data);
         } catch (PDOException $e) {
             error_log("View room error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load room.";
-            header('Location: index.php?action=admin/rooms');
-            exit();
+            $this->redirect('admin/rooms');
         }
     }
 

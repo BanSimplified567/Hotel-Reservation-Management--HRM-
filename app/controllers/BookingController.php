@@ -1,22 +1,17 @@
 <?php
 // app/controllers/BookingController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class BookingController
+class BookingController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check if user is logged in as customer
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-            header('Location: index.php?action=login');
-            exit();
-        }
+        $this->requireLogin('customer');
 
         $userId = $_SESSION['user_id'];
 
@@ -73,12 +68,19 @@ class BookingController
                 }
             }
 
-            require_once '../app/views/customer/booking/index.php';
+            $data = [
+                'rooms' => $rooms,
+                'services' => $services,
+                'selectedRoom' => $selectedRoom,
+                'room_id' => $room_id,
+                'page_title' => 'Book Room'
+            ];
+
+            $this->render('customer/booking/index', $data);
         } catch (PDOException $e) {
             error_log("Show booking form error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load booking form.";
-            header('Location: index.php?action=dashboard');
-            exit();
+            $this->redirect('dashboard');
         }
     }
 
@@ -247,8 +249,7 @@ class BookingController
                 // $this->sendConfirmationEmail($userId, $reservation_id);
 
                 $_SESSION['success'] = "Booking submitted successfully! Your reservation is pending approval.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
 
             } catch (PDOException $e) {
                 $this->pdo->rollBack();
@@ -260,8 +261,7 @@ class BookingController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header('Location: index.php?action=book-room');
-            exit();
+            $this->redirect('book-room');
         }
     }
 
@@ -327,8 +327,7 @@ class BookingController
         }
 
         // If not POST, redirect to booking page
-        header('Location: index.php?action=book-room');
-        exit();
+        $this->redirect('book-room');
     }
 
     public function calculatePrice()
@@ -396,8 +395,7 @@ class BookingController
             exit();
         }
 
-        header('Location: index.php?action=book-room');
-        exit();
+        $this->redirect('book-room');
     }
 
     private function logAction($userId, $action)

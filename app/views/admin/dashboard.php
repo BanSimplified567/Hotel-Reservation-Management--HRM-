@@ -1,7 +1,3 @@
-<?php
-require_once '../views/layout/admin-header.php';
-require_once '../views/layout/admin-sidebar.php';
-?>
 
 <div class="container-fluid">
   <!-- Page Header -->
@@ -295,7 +291,3 @@ require_once '../views/layout/admin-sidebar.php';
     </div>
   </div>
 </div>
-
-<?php
-require_once '../views/layout/admin-footer.php';
-?>

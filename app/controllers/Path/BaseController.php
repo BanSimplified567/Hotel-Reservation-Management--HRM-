@@ -15,6 +15,11 @@ class BaseController
     // Extract data to variables
     extract($data);
 
+    // Get user role
+    $role = $_SESSION['role'] ?? 'guest';
+    $isCustomer = $role === 'customer';
+    $isStaff = in_array($role, ['admin', 'staff']);
+
     // Start output buffering
     ob_start();
 
@@ -28,16 +33,26 @@ class BaseController
 
     $content = ob_get_clean();
 
-    // Include layout components
-    include BASE_PATH . '/app/views/layout/header.php';
-    include BASE_PATH . '/app/views/layout/navbar.php';
-    include BASE_PATH . '/app/views/layout/sidebar.php';
+    // Include header only for customers/guests
+    if ($isCustomer || $role === 'guest') {
+      include BASE_PATH . '/app/views/layout/header.php';
+      include BASE_PATH . '/app/views/layout/navbar.php';
+    }
+
+    // Include admin header and sidebar only for admin/staff
+    if ($isStaff) {
+      include BASE_PATH . '/app/views/layout/admin-header.php';
+      include BASE_PATH . '/app/views/layout/sidebar.php';
+    }
 
     // Output content
     echo $content;
 
     // Include footer
-    include BASE_PATH . '/app/views/layout/footer.php';
+    if ($isCustomer || $role === 'guest') {
+      include BASE_PATH . '/app/views/layout/footer.php';
+    }
+
   }
 
   protected function redirect($action, $params = [])

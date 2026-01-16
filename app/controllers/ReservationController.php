@@ -1,22 +1,17 @@
 <?php
 // app/controllers/ReservationController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class ReservationController
+class ReservationController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check if user is logged in as customer
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('customer');
 
         $userId = $_SESSION['user_id'];
 
@@ -72,15 +67,22 @@ class ReservationController
             }
         }
 
-        require_once '../app/views/customer/reservations/index.php';
+        $data = [
+            'reservations' => $reservations,
+            'status' => $status,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'upcomingCount' => $upcomingCount,
+            'pastCount' => $pastCount,
+            'page_title' => 'My Reservations'
+        ];
+
+        $this->render('customer/reservations/index', $data);
     }
 
     public function view($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('customer');
 
         $userId = $_SESSION['user_id'];
 
@@ -104,8 +106,7 @@ class ReservationController
 
             if (!$reservation) {
                 $_SESSION['error'] = "Reservation not found or access denied.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
             }
 
             // Get individual services
@@ -126,21 +127,23 @@ class ReservationController
             $reservation['nights'] = $nights;
             $reservation['room_total'] = $reservation['price_per_night'] * $nights;
 
-            require_once '../app/views/customer/reservations/view.php';
+            $data = [
+                'reservation' => $reservation,
+                'services' => $services,
+                'page_title' => 'View Reservation'
+            ];
+
+            $this->render('customer/reservations/view', $data);
         } catch (PDOException $e) {
             error_log("View reservation error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load reservation.";
-            header('Location: index.php?action=my-reservations');
-            exit();
+            $this->redirect('my-reservations');
         }
     }
 
     public function cancel($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('customer');
 
         $userId = $_SESSION['user_id'];
 
@@ -155,15 +158,13 @@ class ReservationController
 
             if (!$reservation) {
                 $_SESSION['error'] = "Reservation not found or access denied.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
             }
 
             // Check if reservation can be cancelled
             if (!in_array($reservation['status'], ['pending', 'confirmed'])) {
                 $_SESSION['error'] = "Only pending or confirmed reservations can be cancelled.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
             }
 
             // Check cancellation policy (e.g., at least 24 hours before check-in)
@@ -173,8 +174,7 @@ class ReservationController
 
             if ($hours_diff < 24) {
                 $_SESSION['error'] = "Cannot cancel within 24 hours of check-in.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
             }
 
             // Update reservation status
@@ -190,23 +190,18 @@ class ReservationController
             $this->logAction($userId, "Cancelled reservation #$id");
 
             $_SESSION['success'] = "Reservation cancelled successfully.";
-            header('Location: index.php?action=my-reservations');
-            exit();
+            $this->redirect('my-reservations');
 
         } catch (PDOException $e) {
             error_log("Cancel reservation error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to cancel reservation.";
-            header('Location: index.php?action=my-reservations');
-            exit();
+            $this->redirect('my-reservations');
         }
     }
 
     public function requestCancellation($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('customer');
 
         $userId = $_SESSION['user_id'];
 
@@ -215,8 +210,7 @@ class ReservationController
 
             if (empty($reason)) {
                 $_SESSION['error'] = "Please provide a cancellation reason.";
-                header("Location: index.php?action=my-reservations&action=view&id=$id");
-                exit();
+                $this->redirect('my-reservations', ['sub_action' => 'view', 'id' => $id]);
             }
 
             try {
@@ -230,14 +224,12 @@ class ReservationController
 
                 if (!$reservation) {
                     $_SESSION['error'] = "Reservation not found or access denied.";
-                    header('Location: index.php?action=my-reservations');
-                    exit();
+                    $this->redirect('my-reservations');
                 }
 
                 if (!in_array($reservation['status'], ['pending', 'confirmed'])) {
                     $_SESSION['error'] = "Only pending or confirmed reservations can be cancelled.";
-                    header('Location: index.php?action=my-reservations');
-                    exit();
+                    $this->redirect('my-reservations');
                 }
 
                 // Update reservation with cancellation request
@@ -256,14 +248,12 @@ class ReservationController
                 $this->logAction($userId, "Requested cancellation for reservation #$id. Reason: $reason");
 
                 $_SESSION['success'] = "Cancellation request submitted. Please wait for admin approval.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
 
             } catch (PDOException $e) {
                 error_log("Request cancellation error: " . $e->getMessage());
                 $_SESSION['error'] = "Failed to submit cancellation request.";
-                header("Location: index.php?action=my-reservations&action=view&id=$id");
-                exit();
+                $this->redirect('my-reservations', ['sub_action' => 'view', 'id' => $id]);
             }
         } else {
             // Show cancellation request form
@@ -278,26 +268,26 @@ class ReservationController
 
                 if (!$reservation) {
                     $_SESSION['error'] = "Reservation not found or access denied.";
-                    header('Location: index.php?action=my-reservations');
-                    exit();
+                    $this->redirect('my-reservations');
                 }
 
-                require_once '../app/views/customer/reservations/cancel.php';
+                $data = [
+                    'reservation' => $reservation,
+                    'page_title' => 'Cancel Reservation'
+                ];
+
+                $this->render('customer/reservations/cancel', $data);
             } catch (PDOException $e) {
                 error_log("Show cancellation form error: " . $e->getMessage());
                 $_SESSION['error'] = "Failed to load reservation.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
             }
         }
     }
 
     public function printInvoice($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('customer');
 
         $userId = $_SESSION['user_id'];
 
@@ -322,8 +312,7 @@ class ReservationController
 
             if (!$reservation) {
                 $_SESSION['error'] = "Reservation not found or access denied.";
-                header('Location: index.php?action=my-reservations');
-                exit();
+                $this->redirect('my-reservations');
             }
 
             // Get individual services
@@ -345,12 +334,21 @@ class ReservationController
             $services_total = $reservation['total_services_price'] ?: 0;
             $grand_total = $room_total + $services_total;
 
-            require_once '../app/views/customer/reservations/invoice.php';
+            $data = [
+                'reservation' => $reservation,
+                'services' => $services,
+                'nights' => $nights,
+                'room_total' => $room_total,
+                'services_total' => $services_total,
+                'grand_total' => $grand_total,
+                'page_title' => 'Invoice'
+            ];
+
+            $this->render('customer/reservations/invoice', $data);
         } catch (PDOException $e) {
             error_log("Print invoice error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to generate invoice.";
-            header('Location: index.php?action=my-reservations');
-            exit();
+            $this->redirect('my-reservations');
         }
     }
 

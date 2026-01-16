@@ -1,22 +1,17 @@
 <?php
 // app/controllers/Admin/ReportController.php
+require_once __DIR__ . '/../Path/BaseController.php';
 
-class ReportController
+class ReportController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check if user is admin
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         // Get report parameters
         $report_type = $_GET['type'] ?? 'revenue';
@@ -66,7 +61,18 @@ class ReportController
         // Calculate summary statistics
         $summary = $this->calculateSummary($reportData, $report_type);
 
-        require_once '../app/views/admin/reports/index.php';
+        $data = [
+            'reportData' => $reportData,
+            'reportTitle' => $reportTitle,
+            'report_type' => $report_type,
+            'period' => $period,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'summary' => $summary,
+            'page_title' => $reportTitle
+        ];
+
+        $this->render('admin/reports/index', $data);
     }
 
     private function generateRevenueReport($start_date, $end_date)
@@ -430,8 +436,8 @@ class ReportController
         header('Content-Disposition: attachment; filename="' . $title . '_' . date('Y-m-d') . '.pdf"');
 
         // For now, just redirect back
-        header('Location: index.php?action=admin/reports&error=PDF export not implemented');
-        exit();
+        $_SESSION['error'] = "PDF export not implemented";
+        $this->redirect('admin/reports');
     }
 
     private function exportExcel($reportData, $title)
@@ -441,24 +447,20 @@ class ReportController
         header('Content-Disposition: attachment; filename="' . $title . '_' . date('Y-m-d') . '.xls"');
 
         // For now, just redirect back
-        header('Location: index.php?action=admin/reports&error=Excel export not implemented');
-        exit();
+        $_SESSION['error'] = "Excel export not implemented";
+        $this->redirect('admin/reports');
     }
 
     public function export()
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         $type = $_GET['type'] ?? '';
         $format = $_GET['format'] ?? 'csv';
 
         if (empty($type)) {
             $_SESSION['error'] = "Export type not specified.";
-            header('Location: index.php?action=admin/reports');
-            exit();
+            $this->redirect('admin/reports');
         }
 
         switch ($type) {
@@ -473,8 +475,7 @@ class ReportController
                 break;
             default:
                 $_SESSION['error'] = "Invalid export type.";
-                header('Location: index.php?action=admin/reports');
-                exit();
+                $this->redirect('admin/reports');
         }
     }
 
@@ -508,8 +509,7 @@ class ReportController
         } catch (PDOException $e) {
             error_log("Export reservations error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to export data.";
-            header('Location: index.php?action=admin/reports');
-            exit();
+            $this->redirect('admin/reports');
         }
     }
 
@@ -538,8 +538,7 @@ class ReportController
         } catch (PDOException $e) {
             error_log("Export customers error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to export data.";
-            header('Location: index.php?action=admin/reports');
-            exit();
+            $this->redirect('admin/reports');
         }
     }
 
@@ -567,8 +566,7 @@ class ReportController
         } catch (PDOException $e) {
             error_log("Export rooms error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to export data.";
-            header('Location: index.php?action=admin/reports');
-            exit();
+            $this->redirect('admin/reports');
         }
     }
 

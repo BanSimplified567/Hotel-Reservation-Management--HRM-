@@ -1,13 +1,12 @@
 <?php
 // app/controllers/CustomerController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class CustomerController
+class CustomerController extends BaseController
 {
-  private $pdo;
-
   public function __construct($pdo)
   {
-    $this->pdo = $pdo;
+    parent::__construct($pdo);
   }
 
   // ==============================
@@ -15,11 +14,7 @@ class CustomerController
   // ==============================
   private function requireCustomerLogin()
   {
-    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'customer') {
-      $_SESSION['error'] = "Please login as a customer to access this page.";
-      header('Location: index.php?action=login');
-      exit();
-    }
+    $this->requireLogin('customer');
   }
 
   private function logAction($action)
@@ -90,12 +85,19 @@ class CustomerController
 
       $this->logAction("Accessed dashboard");
 
-      require_once '../app/views/customer/dashboard.php';
+      $data = [
+        'user' => $user,
+        'recentReservations' => $recentReservations,
+        'stats' => $stats,
+        'upcomingReservations' => $upcomingReservations,
+        'page_title' => 'Customer Dashboard'
+      ];
+
+      $this->render('customer/dashboard', $data);
     } catch (PDOException $e) {
       error_log("Dashboard error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to load dashboard. Please try again.";
-      header('Location: index.php');
-      exit();
+      $this->redirect('');
     }
   }
 
@@ -150,12 +152,20 @@ class CustomerController
 
       $this->logAction("Viewed reservations list");
 
-      require_once '../app/views/customer/reservations/index.php';
+      $data = [
+        'reservations' => $reservations,
+        'status' => $status,
+        'page' => $page,
+        'totalPages' => $totalPages,
+        'totalReservations' => $totalReservations,
+        'page_title' => 'My Reservations'
+      ];
+
+      $this->render('customer/reservations/index', $data);
     } catch (PDOException $e) {
       error_log("Reservations index error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to load reservations.";
-      header('Location: index.php?action=dashboard');
-      exit();
+      $this->redirect('dashboard');
     }
   }
 
@@ -187,18 +197,21 @@ class CustomerController
 
       if (!$reservation) {
         $_SESSION['error'] = "Reservation not found or access denied.";
-        header('Location: index.php?action=customer/reservations');
-        exit();
+        $this->redirect('customer/reservations');
       }
 
       $this->logAction("Viewed reservation #$id");
 
-      require_once '../app/views/customer/reservations/view.php';
+      $data = [
+        'reservation' => $reservation,
+        'page_title' => 'View Reservation'
+      ];
+
+      $this->render('customer/reservations/view', $data);
     } catch (PDOException $e) {
       error_log("View reservation error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to load reservation details.";
-      header('Location: index.php?action=customer/reservations');
-      exit();
+      $this->redirect('customer/reservations');
     }
   }
 
@@ -215,8 +228,7 @@ class CustomerController
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
       $_SESSION['error'] = "Invalid request method.";
-      header('Location: index.php?action=customer/reservations');
-      exit();
+      $this->redirect('customer/reservations');
     }
 
     try {
@@ -231,21 +243,18 @@ class CustomerController
 
       if (!$reservation) {
         $_SESSION['error'] = "Reservation not found or access denied.";
-        header('Location: index.php?action=customer/reservations');
-        exit();
+        $this->redirect('customer/reservations');
       }
 
       // Check if reservation can be cancelled
       if ($reservation['status'] === 'cancelled') {
         $_SESSION['error'] = "Reservation is already cancelled.";
-        header('Location: index.php?action=customer/reservations&sub_action=view&id=' . $id);
-        exit();
+        $this->redirect('customer/reservations', ['sub_action' => 'view', 'id' => $id]);
       }
 
       if ($reservation['status'] === 'completed') {
         $_SESSION['error'] = "Completed reservations cannot be cancelled.";
-        header('Location: index.php?action=customer/reservations&sub_action=view&id=' . $id);
-        exit();
+        $this->redirect('customer/reservations', ['sub_action' => 'view', 'id' => $id]);
       }
 
       // Check if check-in is within 24 hours
@@ -280,13 +289,11 @@ class CustomerController
         $_SESSION['success'] = "Reservation cancelled successfully.";
       }
 
-      header('Location: index.php?action=customer/reservations&sub_action=view&id=' . $id);
-      exit();
+      $this->redirect('customer/reservations', ['sub_action' => 'view', 'id' => $id]);
     } catch (PDOException $e) {
       error_log("Cancel reservation error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to cancel reservation. Please try again.";
-      header('Location: index.php?action=customer/reservations&sub_action=view&id=' . $id);
-      exit();
+      $this->redirect('customer/reservations', ['sub_action' => 'view', 'id' => $id]);
     }
   }
 
@@ -318,8 +325,7 @@ class CustomerController
 
       if (!$reservation) {
         $_SESSION['error'] = "Reservation not found or access denied.";
-        header('Location: index.php?action=customer/reservations');
-        exit();
+        $this->redirect('customer/reservations');
       }
 
       // Calculate total
@@ -335,12 +341,21 @@ class CustomerController
 
       $this->logAction("Generated invoice for reservation #$id");
 
-      require_once '../app/views/customer/reservations/invoice.php';
+      $data = [
+        'reservation' => $reservation,
+        'nights' => $nights,
+        'roomTotal' => $roomTotal,
+        'serviceTotal' => $serviceTotal,
+        'taxAmount' => $taxAmount,
+        'grandTotal' => $grandTotal,
+        'page_title' => 'Invoice'
+      ];
+
+      $this->render('customer/reservations/invoice', $data);
     } catch (PDOException $e) {
       error_log("Invoice generation error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to generate invoice.";
-      header('Location: index.php?action=customer/reservations&sub_action=view&id=' . $id);
-      exit();
+      $this->redirect('customer/reservations', ['sub_action' => 'view', 'id' => $id]);
     }
   }
 
@@ -407,11 +422,30 @@ class CustomerController
       $stmt->execute();
       $roomTypes = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-      require_once '../app/views/customer/booking/index.php';
+      $data = [
+        'availableRooms' => $availableRooms,
+        'roomTypes' => $roomTypes,
+        'checkIn' => $checkIn,
+        'checkOut' => $checkOut,
+        'guests' => $guests,
+        'roomType' => $roomType,
+        'page_title' => 'Book Room'
+      ];
+
+      $this->render('customer/booking/index', $data);
     } catch (PDOException $e) {
       error_log("Booking search error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to search for rooms. Please try again.";
-      require_once '../app/views/customer/booking/index.php';
+      $data = [
+        'availableRooms' => [],
+        'roomTypes' => [],
+        'checkIn' => $checkIn,
+        'checkOut' => $checkOut,
+        'guests' => $guests,
+        'roomType' => $roomType,
+        'page_title' => 'Book Room'
+      ];
+      $this->render('customer/booking/index', $data);
     }
   }
 
@@ -424,8 +458,7 @@ class CustomerController
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
       $_SESSION['error'] = "Invalid request method.";
-      header('Location: index.php?action=customer/booking');
-      exit();
+      $this->redirect('customer/booking');
     }
 
     try {
@@ -439,8 +472,7 @@ class CustomerController
       // Validate input
       if (!$roomId || !$checkIn || !$checkOut) {
         $_SESSION['error'] = "Please fill all required fields.";
-        header('Location: index.php?action=customer/booking');
-        exit();
+        $this->redirect('customer/booking');
       }
 
       // Validate dates
@@ -449,15 +481,13 @@ class CustomerController
 
       if (!$checkInDate || !$checkOutDate || $checkInDate >= $checkOutDate) {
         $_SESSION['error'] = "Invalid dates selected.";
-        header('Location: index.php?action=customer/booking');
-        exit();
+        $this->redirect('customer/booking');
       }
 
       // Check room availability
       if (!$this->isRoomAvailable($roomId, $checkIn, $checkOut)) {
         $_SESSION['error'] = "Selected room is no longer available for the chosen dates.";
-        header('Location: index.php?action=customer/booking');
-        exit();
+        $this->redirect('customer/booking');
       }
 
       // Get room details
@@ -467,8 +497,7 @@ class CustomerController
 
       if (!$room) {
         $_SESSION['error'] = "Selected room not available.";
-        header('Location: index.php?action=customer/booking');
-        exit();
+        $this->redirect('customer/booking');
       }
 
       // Calculate total price
@@ -512,13 +541,11 @@ class CustomerController
 
       // Redirect to confirmation page
       $_SESSION['success'] = "Reservation created successfully! Please complete payment to confirm your booking.";
-      header('Location: index.php?action=customer/booking&sub_action=confirmation&id=' . $reservationId);
-      exit();
+      $this->redirect('customer/booking', ['sub_action' => 'confirmation', 'id' => $reservationId]);
     } catch (PDOException $e) {
       error_log("Create reservation error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to create reservation. Please try again.";
-      header('Location: index.php?action=customer/booking');
-      exit();
+      $this->redirect('customer/booking');
     }
   }
 
@@ -548,8 +575,7 @@ class CustomerController
 
       if (!$reservation) {
         $_SESSION['error'] = "Reservation not found.";
-        header('Location: index.php?action=customer/booking');
-        exit();
+        $this->redirect('customer/booking');
       }
 
       // Calculate details
@@ -562,12 +588,19 @@ class CustomerController
 
       $this->logAction("Viewed confirmation for reservation #$id");
 
-      require_once '../app/views/customer/booking/confirmation.php';
+      $data = [
+        'reservation' => $reservation,
+        'nights' => $nights,
+        'roomTotal' => $roomTotal,
+        'serviceTotal' => $serviceTotal,
+        'page_title' => 'Booking Confirmation'
+      ];
+
+      $this->render('customer/booking/confirmation', $data);
     } catch (PDOException $e) {
       error_log("Confirmation error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to load confirmation.";
-      header('Location: index.php?action=customer/booking');
-      exit();
+      $this->redirect('customer/booking');
     }
   }
 
@@ -584,8 +617,7 @@ class CustomerController
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
       $_SESSION['error'] = "Invalid request method.";
-      header('Location: index.php?action=customer/booking&sub_action=confirmation&id=' . $id);
-      exit();
+      $this->redirect('customer/booking', ['sub_action' => 'confirmation', 'id' => $id]);
     }
 
     try {
@@ -599,8 +631,7 @@ class CustomerController
 
       if (!$reservation) {
         $_SESSION['error'] = "Reservation not found or already processed.";
-        header('Location: index.php?action=customer/booking');
-        exit();
+        $this->redirect('customer/booking');
       }
 
       $paymentMethod = $_POST['payment_method'] ?? '';
@@ -611,8 +642,7 @@ class CustomerController
       // Validate payment details
       if (!$paymentMethod || !$cardNumber || !$cardExpiry || !$cardCVC) {
         $_SESSION['error'] = "Please fill all payment details.";
-        header('Location: index.php?action=customer/booking&sub_action=confirmation&id=' . $id);
-        exit();
+        $this->redirect('customer/booking', ['sub_action' => 'confirmation', 'id' => $id]);
       }
 
       // Process payment (simulated)
@@ -653,14 +683,12 @@ class CustomerController
       $this->logAction("Completed payment for reservation #$id");
 
       $_SESSION['success'] = "Payment successful! Your reservation is now confirmed.";
-      header('Location: index.php?action=customer/reservations&sub_action=view&id=' . $id);
-      exit();
+      $this->redirect('customer/reservations', ['sub_action' => 'view', 'id' => $id]);
     } catch (PDOException $e) {
       $this->pdo->rollBack();
       error_log("Payment processing error: " . $e->getMessage());
       $_SESSION['error'] = "Payment failed. Please try again or contact support.";
-      header('Location: index.php?action=customer/booking&sub_action=confirmation&id=' . $id);
-      exit();
+      $this->redirect('customer/booking', ['sub_action' => 'confirmation', 'id' => $id]);
     }
   }
 
@@ -678,18 +706,21 @@ class CustomerController
 
       if (!$user) {
         session_destroy();
-        header('Location: index.php?action=login');
-        exit();
+        $this->redirect('login');
       }
 
       $this->logAction("Viewed profile");
 
-      require_once '../app/views/customer/profile/index.php';
+      $data = [
+        'user' => $user,
+        'page_title' => 'My Profile'
+      ];
+
+      $this->render('customer/profile/index', $data);
     } catch (PDOException $e) {
       error_log("Profile error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to load profile.";
-      header('Location: index.php?action=dashboard');
-      exit();
+      $this->redirect('dashboard');
     }
   }
 
@@ -775,18 +806,15 @@ class CustomerController
         $this->logAction("Updated profile information");
 
         $_SESSION['success'] = "Profile updated successfully!";
-        header('Location: index.php?action=customer/profile');
-        exit();
+        $this->redirect('customer/profile');
       } catch (PDOException $e) {
         error_log("Profile update error: " . $e->getMessage());
         $_SESSION['error'] = "Unable to update profile. Please try again.";
-        header('Location: index.php?action=customer/profile&sub_action=edit');
-        exit();
+        $this->redirect('customer/profile', ['sub_action' => 'edit']);
       }
     } else {
       $_SESSION['error'] = implode("<br>", $errors);
-      header('Location: index.php?action=customer/profile&sub_action=edit');
-      exit();
+      $this->redirect('customer/profile', ['sub_action' => 'edit']);
     }
   }
 
@@ -799,16 +827,19 @@ class CustomerController
 
       if (!$user) {
         session_destroy();
-        header('Location: index.php?action=login');
-        exit();
+        $this->redirect('login');
       }
 
-      require_once '../app/views/customer/profile/edit.php';
+      $data = [
+        'user' => $user,
+        'page_title' => 'Edit Profile'
+      ];
+
+      $this->render('customer/profile/edit', $data);
     } catch (PDOException $e) {
       error_log("Edit profile form error: " . $e->getMessage());
       $_SESSION['error'] = "Unable to load edit form.";
-      header('Location: index.php?action=customer/profile');
-      exit();
+      $this->redirect('customer/profile');
     }
   }
 
@@ -877,8 +908,7 @@ class CustomerController
           $this->logAction("Changed password");
 
           $_SESSION['success'] = "Password changed successfully!";
-          header('Location: index.php?action=customer/profile');
-          exit();
+          $this->redirect('customer/profile');
         }
       } catch (PDOException $e) {
         error_log("Password change error: " . $e->getMessage());
@@ -887,13 +917,16 @@ class CustomerController
     }
 
     $_SESSION['error'] = implode("<br>", $errors);
-    header('Location: index.php?action=customer/profile&sub_action=change-password');
-    exit();
+    $this->redirect('customer/profile', ['sub_action' => 'change-password']);
   }
 
   private function showChangePasswordForm()
   {
-    require_once '../app/views/customer/profile/change-password.php';
+    $data = [
+      'page_title' => 'Change Password'
+    ];
+
+    $this->render('customer/profile/change-password', $data);
   }
 
   // ==============================

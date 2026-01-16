@@ -1,22 +1,17 @@
 <?php
 // app/controllers/Admin/UserController.php
+require_once __DIR__ . '/../Path/BaseController.php';
 
-class UserController
+class UserController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check if user is admin
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         // Get search/filter parameters
         $search = $_GET['search'] ?? '';
@@ -66,15 +61,23 @@ class UserController
         $stmt->execute($params);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        require_once '../app/views/admin/users/index.php';
+        $data = [
+            'users' => $users,
+            'search' => $search,
+            'role' => $role,
+            'status' => $status,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'totalUsers' => $totalUsers,
+            'page_title' => 'Manage Users'
+        ];
+
+        $this->render('admin/users/index', $data);
     }
 
     public function create()
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handleCreateUser();
@@ -150,8 +153,7 @@ class UserController
                 $this->logAction($_SESSION['user_id'], "Created user: $email");
 
                 $_SESSION['success'] = "User created successfully.";
-                header('Location: index.php?action=admin/users');
-                exit();
+                $this->redirect('admin/users');
 
             } catch (PDOException $e) {
                 error_log("Create user error: " . $e->getMessage());
@@ -162,22 +164,22 @@ class UserController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header('Location: index.php?action=admin/users&action=create');
-            exit();
+            $this->redirect('admin/users', ['sub_action' => 'create']);
         }
     }
 
     private function showCreateForm()
     {
-        require_once '../app/views/admin/users/create.php';
+        $data = [
+            'page_title' => 'Create User'
+        ];
+
+        $this->render('admin/users/create', $data);
     }
 
     public function edit($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handleEditUser($id);
@@ -265,8 +267,7 @@ class UserController
                 $this->logAction($_SESSION['user_id'], "Updated user #$id");
 
                 $_SESSION['success'] = "User updated successfully.";
-                header('Location: index.php?action=admin/users');
-                exit();
+                $this->redirect('admin/users');
 
             } catch (PDOException $e) {
                 error_log("Edit user error: " . $e->getMessage());
@@ -277,8 +278,7 @@ class UserController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header("Location: index.php?action=admin/users&action=edit&id=$id");
-            exit();
+            $this->redirect('admin/users', ['sub_action' => 'edit', 'id' => $id]);
         }
     }
 
@@ -291,31 +291,30 @@ class UserController
 
             if (!$user) {
                 $_SESSION['error'] = "User not found.";
-                header('Location: index.php?action=admin/users');
-                exit();
+                $this->redirect('admin/users');
             }
 
-            require_once '../app/views/admin/users/edit.php';
+            $data = [
+                'user' => $user,
+                'page_title' => 'Edit User'
+            ];
+
+            $this->render('admin/users/edit', $data);
         } catch (PDOException $e) {
             error_log("Get user error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load user.";
-            header('Location: index.php?action=admin/users');
-            exit();
+            $this->redirect('admin/users');
         }
     }
 
     public function delete($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         // Prevent deleting own account
         if ($id == $_SESSION['user_id']) {
             $_SESSION['error'] = "You cannot delete your own account.";
-            header('Location: index.php?action=admin/users');
-            exit();
+            $this->redirect('admin/users');
         }
 
         try {
@@ -326,8 +325,7 @@ class UserController
 
             if ($reservationCount > 0) {
                 $_SESSION['error'] = "Cannot delete user with existing reservations. Deactivate instead.";
-                header('Location: index.php?action=admin/users');
-                exit();
+                $this->redirect('admin/users');
             }
 
             $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ?");
@@ -342,16 +340,12 @@ class UserController
             $_SESSION['error'] = "Failed to delete user.";
         }
 
-        header('Location: index.php?action=admin/users');
-        exit();
+        $this->redirect('admin/users');
     }
 
     public function toggleStatus($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         try {
             // Get current status
@@ -378,8 +372,7 @@ class UserController
             $_SESSION['error'] = "Failed to update user status.";
         }
 
-        header('Location: index.php?action=admin/users');
-        exit();
+        $this->redirect('admin/users');
     }
 
     private function logAction($userId, $action)

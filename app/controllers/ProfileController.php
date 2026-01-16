@@ -1,22 +1,17 @@
 <?php
 // app/controllers/ProfileController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class ProfileController
+class ProfileController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check if user is logged in
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: index.php?action=login');
-            exit();
-        }
+        $this->requireLogin();
 
         $userId = $_SESSION['user_id'];
 
@@ -42,19 +37,23 @@ class ProfileController
             if (!$user) {
                 // User not found, logout
                 session_destroy();
-                header('Location: index.php?action=login');
-                exit();
+                $this->redirect('login');
             }
 
             // Get user statistics
             $stats = $this->getUserStatistics($userId);
 
-            require_once '../app/views/customer/profile/index.php';
+            $data = [
+                'user' => $user,
+                'stats' => $stats,
+                'page_title' => 'My Profile'
+            ];
+
+            $this->render('customer/profile/index', $data);
         } catch (PDOException $e) {
             error_log("Show profile error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load profile.";
-            header('Location: index.php?action=dashboard');
-            exit();
+            $this->redirect('dashboard');
         }
     }
 
@@ -116,8 +115,7 @@ class ProfileController
                 $this->logAction($userId, "Updated profile");
 
                 $_SESSION['success'] = "Profile updated successfully.";
-                header('Location: index.php?action=profile');
-                exit();
+                $this->redirect('profile');
 
             } catch (PDOException $e) {
                 error_log("Profile update error: " . $e->getMessage());
@@ -128,26 +126,20 @@ class ProfileController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header('Location: index.php?action=profile');
-            exit();
+            $this->redirect('profile');
         }
     }
 
     public function changePassword()
     {
-        // Check if user is logged in
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: index.php?action=login');
-            exit();
-        }
+        $this->requireLogin();
 
         $userId = $_SESSION['user_id'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePasswordChange($userId);
         } else {
-            header('Location: index.php?action=profile');
-            exit();
+            $this->redirect('profile');
         }
     }
 
@@ -204,8 +196,7 @@ class ProfileController
                 $this->logAction($userId, "Changed password");
 
                 $_SESSION['success'] = "Password changed successfully.";
-                header('Location: index.php?action=profile');
-                exit();
+                $this->redirect('profile');
 
             } catch (PDOException $e) {
                 error_log("Password change error: " . $e->getMessage());
@@ -215,8 +206,7 @@ class ProfileController
 
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
-            header('Location: index.php?action=profile');
-            exit();
+            $this->redirect('profile');
         }
     }
 

@@ -1,13 +1,12 @@
 <?php
 // app/controllers/ContactController.php
+require_once __DIR__ . '/Path/BaseController.php';
 
-class ContactController
+class ContactController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
@@ -37,7 +36,12 @@ class ContactController
             }
         }
 
-        require_once '../app/views/public/contact.php';
+        $data = [
+            'user_data' => $user_data,
+            'page_title' => 'Contact Us'
+        ];
+
+        $this->render('public/contact', $data);
     }
 
     private function handleContactForm()
@@ -91,8 +95,7 @@ class ContactController
                 // $this->sendContactEmail($name, $email, $subject, $message);
 
                 $_SESSION['success'] = "Thank you for your message! We'll get back to you soon.";
-                header('Location: index.php?action=contact');
-                exit();
+                $this->redirect('contact');
 
             } catch (PDOException $e) {
                 error_log("Contact form submission error: " . $e->getMessage());
@@ -103,17 +106,16 @@ class ContactController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            header('Location: index.php?action=contact');
-            exit();
+            $this->redirect('contact');
         }
     }
 
     public function adminIndex()
     {
-        // Check if user is admin/staff
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         // Get filter parameters
@@ -169,14 +171,25 @@ class ContactController
         $stmt->execute($params);
         $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        require_once '../app/views/admin/contact/index.php';
+        $data = [
+            'messages' => $messages,
+            'status' => $status,
+            'search' => $search,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'totalMessages' => $totalMessages,
+            'page_title' => 'Contact Messages'
+        ];
+
+        $this->render('admin/contact/index', $data);
     }
 
     public function adminView($id)
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         try {
@@ -192,8 +205,7 @@ class ContactController
 
             if (!$message) {
                 $_SESSION['error'] = "Message not found.";
-                header('Location: index.php?action=admin/contact');
-                exit();
+                $this->redirect('admin/contact');
             }
 
             // Mark as read
@@ -211,20 +223,26 @@ class ContactController
             $stmt->execute([$id]);
             $replies = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            require_once '../app/views/admin/contact/view.php';
+            $data = [
+                'message' => $message,
+                'replies' => $replies,
+                'page_title' => 'View Contact Message'
+            ];
+
+            $this->render('admin/contact/view', $data);
         } catch (PDOException $e) {
             error_log("View contact message error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load message.";
-            header('Location: index.php?action=admin/contact');
-            exit();
+            $this->redirect('admin/contact');
         }
     }
 
     public function adminReply($id)
     {
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -232,8 +250,7 @@ class ContactController
 
             if (empty($reply_message)) {
                 $_SESSION['error'] = "Reply message is required.";
-                header("Location: index.php?action=admin/contact&action=view&id=$id");
-                exit();
+                $this->redirect('admin/contact', ['sub_action' => 'view', 'id' => $id]);
             }
 
             try {
@@ -275,28 +292,22 @@ class ContactController
                 // $this->sendReplyEmail($message['email'], $message['name'], $message['subject'], $reply_message);
 
                 $_SESSION['success'] = "Reply sent successfully.";
-                header("Location: index.php?action=admin/contact&action=view&id=$id");
-                exit();
+                $this->redirect('admin/contact', ['sub_action' => 'view', 'id' => $id]);
 
             } catch (PDOException $e) {
                 $this->pdo->rollBack();
                 error_log("Reply to contact error: " . $e->getMessage());
                 $_SESSION['error'] = "Failed to send reply.";
-                header("Location: index.php?action=admin/contact&action=view&id=$id");
-                exit();
+                $this->redirect('admin/contact', ['sub_action' => 'view', 'id' => $id]);
             }
         }
 
-        header('Location: index.php?action=admin/contact');
-        exit();
+        $this->redirect('admin/contact');
     }
 
     public function adminDelete($id)
     {
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-            header('Location: index.php?action=403');
-            exit();
-        }
+        $this->requireLogin('admin');
 
         try {
             // Delete replies first
@@ -316,8 +327,7 @@ class ContactController
             $_SESSION['error'] = "Failed to delete message.";
         }
 
-        header('Location: index.php?action=admin/contact');
-        exit();
+        $this->redirect('admin/contact');
     }
 
     private function logAction($userId, $action)

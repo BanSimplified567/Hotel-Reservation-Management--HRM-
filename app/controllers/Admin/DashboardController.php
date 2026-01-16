@@ -1,21 +1,20 @@
 <?php
 // app/controllers/Admin/DashboardController.php
+require_once __DIR__ . '/../Path/BaseController.php';
 
-class AdminDashboardController
+class AdminDashboardController extends BaseController
 {
-    private $pdo;
-
     public function __construct($pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     public function index()
     {
-        // Check if user is logged in and has admin/staff role
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'staff'])) {
-            header('Location: index.php?action=403');
-            exit();
+        $this->requireLogin();
+
+        if (!in_array($_SESSION['role'], ['admin', 'staff'])) {
+            $this->redirect('403');
         }
 
         // Get dashboard statistics
@@ -36,7 +35,16 @@ class AdminDashboardController
         // Get revenue data
         $revenueData = $this->getRevenueData();
 
-        require_once '../app/views/admin/dashboard.php';
+        $data = [
+            'stats' => $stats,
+            'recentReservations' => $recentReservations,
+            'recentUsers' => $recentUsers,
+            'roomOccupancy' => $roomOccupancy,
+            'revenueData' => $revenueData,
+            'page_title' => 'Admin Dashboard'
+        ];
+
+        $this->render('admin/dashboard', $data);
     }
 
     private function getDashboardStatistics()
