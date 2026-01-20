@@ -1,8 +1,3 @@
-<?php
-require_once '../../layout/admin-header.php';
-require_once '../../layout/admin-sidebar.php';
-?>
-
 <div class="container-fluid">
   <!-- Page Header -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -353,7 +348,3 @@ require_once '../../layout/admin-sidebar.php';
     border-bottom: none;
   }
 </style>
-
-<?php
-require_once '../../layout/admin-footer.php';
-?>

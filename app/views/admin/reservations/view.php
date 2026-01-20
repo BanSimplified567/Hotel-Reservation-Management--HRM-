@@ -1,7 +1,18 @@
 <?php
-require_once '../../layout/admin-header.php';
-require_once '../../layout/admin-sidebar.php';
+// app/views/admin/reservations/view.php
+// ADD THIS FOR DEBUGGING
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
+// app/views/admin/reservations/view.php
+
+// Check if reservation data exists
+if (!isset($reservation)) {
+    die("ERROR: Reservation data not found!");
+}
+
+$check_in = new DateTime($reservation['check_in']);
+// ... rest of your code ...
 $check_in = new DateTime($reservation['check_in']);
 $check_out = new DateTime($reservation['check_out']);
 $nights = $check_in->diff($check_out)->days;
@@ -15,7 +26,7 @@ $grand_total = $room_total + $services_total;
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Reservation Details</h1>
     <div>
-      <a href="index.php?action=admin/reservations&sub_action=edit&id=<?php echo $reservation['id']; ?>"
+    <a href="index.php?action=admin/reservations&sub_action=edit&id=<?php echo $reservation['id']; ?>"
         class="btn btn-warning shadow-sm mr-2">
         <i class="fas fa-edit fa-sm text-white-50"></i> Edit
       </a>
@@ -89,11 +100,11 @@ $grand_total = $room_total + $services_total;
                 </tr>
                 <tr>
                   <td><strong>Price per Night:</strong></td>
-                  <td>$<?php echo number_format($reservation['price_per_night'], 2); ?></td>
+                  <td>₱<?php echo number_format($reservation['price_per_night'], 2); ?></td>
                 </tr>
                 <tr>
                   <td><strong>Room Total:</strong></td>
-                  <td>$<?php echo number_format($room_total, 2); ?></td>
+                  <td>₱<?php echo number_format($room_total, 2); ?></td>
                 </tr>
               </table>
             </div>
@@ -214,13 +225,13 @@ $grand_total = $room_total + $services_total;
                     <?php endif; ?>
                   </div>
                   <span class="badge badge-primary badge-pill">
-                    $<?php echo number_format($service['service_price'], 2); ?>
+                    ₱<?php echo number_format($service['service_price'], 2); ?>
                   </span>
                 </div>
               <?php endforeach; ?>
             </div>
             <div class="mt-3 text-right">
-              <strong>Services Total: $<?php echo number_format($services_total, 2); ?></strong>
+              <strong>Services Total: ₱<?php echo number_format($services_total, 2); ?></strong>
             </div>
           <?php else: ?>
             <p class="text-center text-muted">No additional services</p>
@@ -237,29 +248,29 @@ $grand_total = $room_total + $services_total;
           <table class="table table-sm">
             <tr>
               <td>Room Charges (<?php echo $nights; ?> nights)</td>
-              <td class="text-right">$<?php echo number_format($room_total, 2); ?></td>
+              <td class="text-right">₱<?php echo number_format($room_total, 2); ?></td>
             </tr>
             <tr>
               <td>Additional Services</td>
-              <td class="text-right">$<?php echo number_format($services_total, 2); ?></td>
+              <td class="text-right">₱<?php echo number_format($services_total, 2); ?></td>
             </tr>
             <tr class="table-active">
               <td><strong>Total Amount</strong></td>
               <td class="text-right">
-                <strong>$<?php echo number_format($grand_total, 2); ?></strong>
+                <strong>₱<?php echo number_format($grand_total, 2); ?></strong>
               </td>
             </tr>
             <tr>
               <td>Paid Amount</td>
               <td class="text-right text-success">
-                <strong>$<?php echo number_format($reservation['total_amount'], 2); ?></strong>
+                <strong>₱<?php echo number_format($reservation['total_amount'], 2); ?></strong>
               </td>
             </tr>
             <?php if ($grand_total > $reservation['total_amount']): ?>
               <tr class="table-warning">
                 <td>Balance Due</td>
                 <td class="text-right text-danger">
-                  <strong>$<?php echo number_format($grand_total - $reservation['total_amount'], 2); ?></strong>
+                  <strong>₱<?php echo number_format($grand_total - $reservation['total_amount'], 2); ?></strong>
                 </td>
               </tr>
             <?php endif; ?>
@@ -318,72 +329,6 @@ $grand_total = $room_total + $services_total;
   </div>
 </div>
 
-<!-- Send Message Modal -->
-<div class="modal fade" id="sendMessageModal" tabindex="-1" role="dialog" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="sendMessageModalLabel">Send Message to Customer</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form method="POST" action="">
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="message_subject">Subject *</label>
-            <input type="text" class="form-control" id="message_subject" name="subject" required>
-          </div>
-
-          <div class="form-group">
-            <label for="message_body">Message *</label>
-            <textarea class="form-control" id="message_body" name="message" rows="5" required></textarea>
-          </div>
-
-          <div class="alert alert-info">
-            <small>
-              <i class="fas fa-info-circle"></i>
-              This message will be sent to: <?php echo htmlspecialchars($reservation['email']); ?>
-            </small>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Send Message</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Print Invoice Modal -->
-<div class="modal fade" id="printInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="printInvoiceModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="printInvoiceModalLabel">Print Invoice</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>Select invoice format:</p>
-        <div class="d-grid gap-2">
-          <a href="#" class="btn btn-outline-primary">
-            <i class="fas fa-file-pdf"></i> PDF Format
-          </a>
-          <a href="#" class="btn btn-outline-success">
-            <i class="fas fa-file-excel"></i> Excel Format
-          </a>
-          <a href="#" class="btn btn-outline-info">
-            <i class="fas fa-print"></i> Print Directly
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -403,7 +348,7 @@ $grand_total = $room_total + $services_total;
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a href="index.php?action=admin/reservations&sub_action=delete&id=<?php echo $reservation['id']; ?>"
+        <a href="index.php?action=admin/reservations/delete&id=<?php echo $reservation['id']; ?>"
           class="btn btn-danger">Delete</a>
       </div>
     </div>
@@ -431,7 +376,3 @@ $grand_total = $room_total + $services_total;
     vertical-align: middle;
   }
 </style>
-
-<?php
-require_once '../../layout/admin-footer.php';
-?>

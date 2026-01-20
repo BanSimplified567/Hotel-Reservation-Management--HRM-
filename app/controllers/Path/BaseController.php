@@ -52,7 +52,6 @@ class BaseController
     if ($isCustomer || $role === 'guest') {
       include BASE_PATH . '/app/views/layout/footer.php';
     }
-
   }
 
   protected function redirect($action, $params = [])

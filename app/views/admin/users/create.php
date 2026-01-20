@@ -1,7 +1,4 @@
 <?php
-require_once '../../layout/admin-header.php';
-require_once '../../layout/admin-sidebar.php';
-
 $old = $_SESSION['old'] ?? [];
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['old']);
@@ -238,6 +235,3 @@ unset($_SESSION['error']);
   });
 </script>
 
-<?php
-require_once '../../layout/admin-footer.php';
-?>
