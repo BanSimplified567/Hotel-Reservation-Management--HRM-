@@ -124,7 +124,7 @@ switch ($action) {
         else $controller->index();
         break;
       case 'create':
-        $controller->create(); // Make sure this line is correct
+        $controller->create();
         break;
       case 'edit':
         if ($id) $controller->edit($id);
@@ -188,6 +188,10 @@ switch ($action) {
         break;
       case 'edit':
         if ($id) $controller->edit($id);
+        else $controller->index();
+        break;
+      case 'view':  // ADD THIS CASE
+        if ($id) $controller->view($id);
         else $controller->index();
         break;
       case 'delete':

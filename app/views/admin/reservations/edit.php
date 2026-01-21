@@ -71,32 +71,24 @@ $data = !empty($old) ? $old : $reservation;
             </div>
           </div>
 
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="guests">Number of Guests *</label>
-              <input type="number" class="form-control" id="guests" name="guests" min="1"
-                value="<?php echo htmlspecialchars($data['guests'] ?? 1); ?>" required>
-              <small class="form-text text-muted">Maximum capacity: <span id="roomCapacity"><?php echo $reservation['capacity'] ?? 4; ?></span> guests</small>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="adults">Adults *</label>
+                <input type="number" class="form-control" id="adults" name="adults" min="1" max="10"
+                  value="<?php echo htmlspecialchars($data['adults'] ?? 1); ?>" required>
+              </div>
             </div>
-
-            <div class="form-group">
-              <label for="status">Status *</label>
-              <select class="form-control" id="status" name="status" required>
-                <option value="pending" <?php echo ($data['status'] ?? '') == 'pending' ? 'selected' : ''; ?>>Pending</option>
-                <option value="confirmed" <?php echo ($data['status'] ?? '') == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-                <option value="checked_in" <?php echo ($data['status'] ?? '') == 'checked_in' ? 'selected' : ''; ?>>Checked-in</option>
-                <option value="completed" <?php echo ($data['status'] ?? '') == 'completed' ? 'selected' : ''; ?>>Completed</option>
-                <option value="cancelled" <?php echo ($data['status'] ?? '') == 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Customer</label>
-              <input type="text" class="form-control"
-                value="<?php echo htmlspecialchars(($reservation['first_name'] ?? '') . ' ' . ($reservation['last_name'] ?? '') . ' (' . ($reservation['email'] ?? '') . ')'); ?>"
-                readonly>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="children">Children</label>
+                <input type="number" class="form-control" id="children" name="children" min="0" max="10"
+                  value="<?php echo htmlspecialchars($data['children'] ?? 0); ?>">
+              </div>
             </div>
           </div>
+          <small class="form-text text-muted">Maximum capacity: <span id="roomCapacity"><?php echo $reservation['capacity'] ?? 4; ?></span> guests</small>
+          <small class="form-text text-muted" id="totalGuests">Total guests: <span id="guestsCount"><?php echo ($data['adults'] ?? 1) + ($data['children'] ?? 0); ?></span></small>
         </div>
 
         <div class="row">
