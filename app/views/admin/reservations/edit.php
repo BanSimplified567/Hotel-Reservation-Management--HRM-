@@ -54,7 +54,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
             </p>
         </div>
         <div class="d-flex gap-2">
-            <a href="index.php?action=admin/reservations&sub_action=view&id=<?php echo $reservation['id'] ?? ''; ?>"
+            <a href="index.php?action=admin/reservations/view/<?php echo $reservation['id'] ?? ''; ?>"
                 class="btn btn-outline-info d-inline-flex align-items-center">
                 <i class="fas fa-eye me-2"></i> View
             </a>
@@ -86,6 +86,10 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                 </div>
                 <div class="card-body">
                     <form method="POST" action="index.php?action=admin/reservations&sub_action=edit&id=<?php echo $reservation['id'] ?? ''; ?>">
+                        <!-- Hidden fields -->
+                        <input type="hidden" name="reservation_id" value="<?php echo $reservation['id'] ?? ''; ?>">
+                        <input type="hidden" name="user_id" value="<?php echo $reservation['user_id'] ?? ''; ?>">
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="room_id" class="form-label fw-bold">
@@ -98,7 +102,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                             <option value="<?php echo $room['id']; ?>"
                                                 data-price="<?php echo $room['base_price']; ?>"
                                                 data-capacity="<?php echo $room['capacity']; ?>"
-                                                <?php echo ($data['room_id'] ?? '') == $room['id'] ? 'selected' : ''; ?>>
+                                                <?php echo (($data['room_id'] ?? $reservation['room_id'] ?? '') == $room['id']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($room['room_number'] . ' - ' . $room['room_type'] . ' (₱' . number_format($room['base_price'], 2) . '/night)'); ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -124,7 +128,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                     <i class="fas fa-sign-in-alt me-1"></i>Check-in Date *
                                 </label>
                                 <input type="date" class="form-control" id="check_in" name="check_in"
-                                    value="<?php echo htmlspecialchars($data['check_in'] ?? ''); ?>" required>
+                                    value="<?php echo htmlspecialchars($data['check_in'] ?? $reservation['check_in'] ?? ''); ?>" required>
                                 <div class="form-text">Updated check-in date</div>
                             </div>
 
@@ -133,20 +137,20 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                     <i class="fas fa-sign-out-alt me-1"></i>Check-out Date *
                                 </label>
                                 <input type="date" class="form-control" id="check_out" name="check_out"
-                                    value="<?php echo htmlspecialchars($data['check_out'] ?? ''); ?>" required>
+                                    value="<?php echo htmlspecialchars($data['check_out'] ?? $reservation['check_out'] ?? ''); ?>" required>
                                 <div class="form-text">Updated check-out date</div>
                             </div>
 
                             <div class="col-md-3">
                                 <label for="adults" class="form-label fw-bold">Adults *</label>
                                 <input type="number" class="form-control" id="adults" name="adults" min="1" max="10"
-                                    value="<?php echo htmlspecialchars($data['adults'] ?? 1); ?>" required>
+                                    value="<?php echo htmlspecialchars($data['adults'] ?? $reservation['adults'] ?? 1); ?>" required>
                             </div>
 
                             <div class="col-md-3">
                                 <label for="children" class="form-label fw-bold">Children</label>
                                 <input type="number" class="form-control" id="children" name="children" min="0" max="10"
-                                    value="<?php echo htmlspecialchars($data['children'] ?? 0); ?>">
+                                    value="<?php echo htmlspecialchars($data['children'] ?? $reservation['children'] ?? 0); ?>">
                             </div>
 
                             <div class="col-md-6">
@@ -154,11 +158,12 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                     <i class="fas fa-tag me-1"></i>Status *
                                 </label>
                                 <select class="form-select" id="status" name="status" required>
-                                    <option value="pending" <?php echo ($data['status'] ?? '') == 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                    <option value="confirmed" <?php echo ($data['status'] ?? '') == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-                                    <option value="checked_in" <?php echo ($data['status'] ?? '') == 'checked_in' ? 'selected' : ''; ?>>Checked-in</option>
-                                    <option value="completed" <?php echo ($data['status'] ?? '') == 'completed' ? 'selected' : ''; ?>>Completed</option>
-                                    <option value="cancelled" <?php echo ($data['status'] ?? '') == 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                    <option value="pending" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                    <option value="confirmed" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'confirmed') ? 'selected' : ''; ?>>Confirmed</option>
+                                    <option value="checked_in" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'checked_in') ? 'selected' : ''; ?>>Checked-in</option>
+                                    <option value="completed" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'completed') ? 'selected' : ''; ?>>Completed</option>
+                                    <option value="cancelled" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                                    <option value="no_show" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'no_show') ? 'selected' : ''; ?>>No Show</option>
                                 </select>
                                 <div class="form-text">Update reservation status</div>
                             </div>
@@ -167,7 +172,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                 <label for="special_requests" class="form-label fw-bold">
                                     <i class="fas fa-comment-alt me-1"></i>Special Requests
                                 </label>
-                                <textarea class="form-control" id="special_requests" name="special_requests" rows="3"><?php echo htmlspecialchars($data['special_requests'] ?? ''); ?></textarea>
+                                <textarea class="form-control" id="special_requests" name="special_requests" rows="3"><?php echo htmlspecialchars($data['special_requests'] ?? $reservation['special_requests'] ?? ''); ?></textarea>
                                 <div class="form-text">Customer special requests</div>
                             </div>
 
@@ -176,7 +181,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                     <i class="fas fa-sticky-note me-1"></i>Admin Notes
                                 </label>
                                 <textarea class="form-control" id="admin_notes" name="admin_notes" rows="3"
-                                    placeholder="Add internal notes..."><?php echo htmlspecialchars($data['admin_notes'] ?? ''); ?></textarea>
+                                    placeholder="Add internal notes..."><?php echo htmlspecialchars($data['admin_notes'] ?? $reservation['admin_notes'] ?? ''); ?></textarea>
                                 <div class="form-text">Internal notes (visible to staff only)</div>
                             </div>
 
@@ -192,11 +197,11 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                             <div class="col-12 mt-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
+                                        <button type="submit" name="edit_reservation" class="btn btn-primary d-inline-flex align-items-center">
                                             <i class="fas fa-save me-2"></i> Save Changes
                                         </button>
-                                        <a href="index.php?action=admin/reservations&sub_action=view&id=<?php echo $reservation['id'] ?? ''; ?>"
-                                           class="btn btn-outline-secondary">Cancel</a>
+                                        <a href="index.php?action=admin/reservations/view/<?php echo $reservation['id'] ?? ''; ?>"
+                                            class="btn btn-outline-secondary">Cancel</a>
                                     </div>
                                     <div class="text-muted small">
                                         <?php if ($updated_at !== 'N/A'): ?>
@@ -278,17 +283,39 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                     <td class="text-end">
                                         <span class="badge bg-<?php
                                             switch ($current_status) {
-                                                case 'pending': echo 'warning'; break;
-                                                case 'confirmed': echo 'info'; break;
-                                                case 'checked_in': echo 'success'; break;
-                                                case 'completed': echo 'primary'; break;
-                                                case 'cancelled': echo 'danger'; break;
-                                                default: echo 'secondary';
+                                                case 'pending':
+                                                    echo 'warning';
+                                                    break;
+                                                case 'confirmed':
+                                                    echo 'info';
+                                                    break;
+                                                case 'checked_in':
+                                                    echo 'success';
+                                                    break;
+                                                case 'completed':
+                                                    echo 'primary';
+                                                    break;
+                                                case 'cancelled':
+                                                    echo 'danger';
+                                                    break;
+                                                case 'no_show':
+                                                    echo 'secondary';
+                                                    break;
+                                                default:
+                                                    echo 'secondary';
                                             }
-                                        ?>">
+                                            ?>">
                                             <?php echo ucfirst($current_status); ?>
                                         </span>
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Reservation ID:</strong></td>
+                                    <td class="text-end">#<?php echo $reservation['id'] ?? 'N/A'; ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created:</strong></td>
+                                    <td class="text-end"><?php echo isset($reservation['created_at']) ? date('M d, Y', strtotime($reservation['created_at'])) : 'N/A'; ?></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -299,7 +326,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const roomSelect = document.getElementById('room_id');
@@ -310,7 +337,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
         const pricePerNightSpan = document.getElementById('pricePerNight');
         const numberOfNightsSpan = document.getElementById('numberOfNights');
         const roomTotalSpan = document.getElementById('roomTotal');
-        const roomCapacitySpan = document.getElementById('roomCapacity');
+        let roomCapacitySpan = document.getElementById('roomCapacity');
         const guestsCountSpan = document.getElementById('guestsCount');
 
         // Set minimum date to today
@@ -361,8 +388,12 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
             const capacity = parseInt(roomCapacitySpan.textContent) || 0;
             if (capacity > 0 && total > capacity) {
                 roomCapacitySpan.parentElement.classList.add('text-danger');
+                roomCapacitySpan.parentElement.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i><strong>Room Capacity:</strong> <span id="roomCapacity">' + capacity + '</span> guests <span class="badge bg-danger ms-2">Exceeded</span>';
             } else {
                 roomCapacitySpan.parentElement.classList.remove('text-danger');
+                roomCapacitySpan.parentElement.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Room Capacity:</strong> <span id="roomCapacity">' + capacity + '</span> guests';
+                // Re-select the element after updating HTML
+                roomCapacitySpan = document.getElementById('roomCapacity');
             }
         }
 
@@ -375,15 +406,23 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
             if (checkInInput.value && checkOutInput.value) {
                 const checkIn = new Date(checkInInput.value);
                 const checkOut = new Date(checkOutInput.value);
+
+                // Ensure check-out is after check-in
+                if (checkOut <= checkIn) {
+                    numberOfNightsSpan.textContent = '0';
+                    roomTotalSpan.textContent = '0.00';
+                    return;
+                }
+
                 const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
 
                 if (nights > 0) {
-                    const pricePerNight = parseFloat(pricePerNightSpan.textContent);
+                    const pricePerNight = parseFloat(pricePerNightSpan.textContent) || 0;
                     const total = pricePerNight * nights;
 
                     numberOfNightsSpan.textContent = nights;
                     roomTotalSpan.textContent = total.toFixed(2);
-                } else {  
+                } else {
                     numberOfNightsSpan.textContent = '0';
                     roomTotalSpan.textContent = '0.00';
                 }

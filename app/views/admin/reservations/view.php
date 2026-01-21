@@ -385,7 +385,7 @@ $grand_total = $room_total + $services_total;
           <div class="mt-3">
             <div class="d-flex justify-content-between align-items-center">
               <span><strong>Payment Status:</strong></span>
-              <span class="badge bg-<?php echo $reservation['payment_status'] == 'paid' ? 'success' : 'warning'; ?>">
+              <span class="badge bg-<?php echo ($reservation['payment_status'] ?? 'pending') == 'paid' ? 'success' : 'warning'; ?>">
                 <?php echo ucfirst($reservation['payment_status'] ?? 'pending'); ?>
               </span>
             </div>
@@ -413,7 +413,9 @@ $grand_total = $room_total + $services_total;
         <h5 class="modal-title" id="statusModalLabel">Update Reservation Status</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <!-- FIXED FORM ACTION - Use correct URL format -->
       <form method="POST" action="index.php?action=admin/reservations&sub_action=update-status&id=<?php echo $reservation['id']; ?>">
+
         <div class="modal-body">
           <div class="mb-3">
             <label for="status" class="form-label">Status *</label>
@@ -459,7 +461,8 @@ $grand_total = $room_total + $services_total;
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <a href="index.php?action=admin/reservations&sub_action=delete&id=<?php echo $reservation['id']; ?>"
+        <!-- FIXED DELETE LINK - Use correct URL format -->
+<a href="index.php?action=admin/reservations&sub_action=delete&id=<?php echo $reservation['id']; ?>"
           class="btn btn-danger">Delete</a>
       </div>
     </div>
@@ -467,7 +470,7 @@ $grand_total = $room_total + $services_total;
 </div>
 
 <!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -479,11 +482,20 @@ $grand_total = $room_total + $services_total;
         bsAlert.close();
       });
     }, 5000);
+
+    // Debug: Log form submission
+    const statusForm = document.querySelector('#statusModal form');
+    if (statusForm) {
+      statusForm.addEventListener('submit', function(e) {
+        console.log('Form submitting to:', this.action);
+        console.log('Form data:', new FormData(this));
+      });
+    }
   });
 </script>
 
 <style>
-  a .table td {
+  .table td {
     vertical-align: middle;
   }
 
@@ -511,13 +523,5 @@ $grand_total = $room_total + $services_total;
 
   .modal-content {
     border-radius: 0.5rem;
-  }
-
-  .table td {
-    vertical-align: middle;
-  }
-
-  .list-group-item:hover {
-    background-color: rgba(0, 123, 255, 0.05);
   }
 </style>

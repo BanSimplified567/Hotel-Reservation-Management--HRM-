@@ -14,7 +14,7 @@ if (!function_exists('authorize')) {
     }
 
     // Check if user's role is allowed
-    if (!in_array($_SESSION['role'], $allowedRoles)) {
+    if (!in_array(strtolower($_SESSION['role']), array_map('strtolower', $allowedRoles))) {
       $_SESSION['error'] = "Access denied. You don't have permission to view this page.";
       header("Location: index.php?action=dashboard");
       exit();

@@ -10,11 +10,22 @@ class ReservationController extends BaseController
     parent::__construct($pdo);
   }
 
+  private function getRoomStatusFromReservationStatus($status)
+  {
+    if ($status === 'checked_in') {
+      return 'occupied';
+    } elseif ($status === 'confirmed') {
+      return 'reserved';
+    } else {
+      return 'available';
+    }
+  }
+
   public function index()
   {
     // Check authorization
     $this->requireLogin();
-    if (!in_array($_SESSION['role'] ?? '', ['admin', 'staff'])) {
+    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
       $this->redirect('403');
     }
 
@@ -72,6 +83,19 @@ class ReservationController extends BaseController
     $totalReservations = $countStmt->fetchColumn();
     $totalPages = ceil($totalReservations / $perPage);
 
+    // Additional stats (total, not filtered)
+    $pendingStmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE status = 'pending'");
+    $pendingStmt->execute();
+    $pendingCount = $pendingStmt->fetchColumn();
+
+    $checkedInStmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE status = 'checked_in'");
+    $checkedInStmt->execute();
+    $checkedInCount = $checkedInStmt->fetchColumn();
+
+    $todayRevenueStmt = $this->pdo->prepare("SELECT SUM(total_amount) FROM reservations WHERE payment_status = 'paid' AND DATE(created_at) = CURDATE()");
+    $todayRevenueStmt->execute();
+    $todayRevenue = $todayRevenueStmt->fetchColumn() ?? 0;
+
     // Add pagination
     $offset = ($page - 1) * $perPage;
     $query .= " ORDER BY r.created_at DESC LIMIT ? OFFSET ?";
@@ -96,7 +120,11 @@ class ReservationController extends BaseController
       'status' => $status,
       'date_from' => $date_from,
       'date_to' => $date_to,
-      'page_title' => 'Manage Reservations'
+      'page_title' => 'Manage Reservations',
+      'pendingCount' => $pendingCount,
+      'checkedInCount' => $checkedInCount,
+      'todayRevenue' => $todayRevenue,
+      'totalReservations' => $totalReservations // Already there, but explicit
     ];
 
     $this->render('admin/reservations/index', $data);
@@ -105,7 +133,7 @@ class ReservationController extends BaseController
   public function create()
   {
     $this->requireLogin();
-    if (!in_array($_SESSION['role'] ?? '', ['admin', 'staff'])) {
+    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
       $this->redirect('403');
     }
 
@@ -316,17 +344,10 @@ class ReservationController extends BaseController
 
         $reservation_id = $this->pdo->lastInsertId();
 
-        // Update room status based on reservation status
-        if ($status == 'checked_in') {
-          $new_status = 'occupied';
-        } elseif ($status == 'confirmed') {
-          $new_status = 'reserved';
-        } else {
-          $new_status = 'available';
-        }
-
+        // Update room status
+        $room_status = $this->getRoomStatusFromReservationStatus($status);
         $stmt = $this->pdo->prepare("UPDATE rooms SET status = ? WHERE id = ?");
-        $stmt->execute([$new_status, $room_id]);
+        $stmt->execute([$room_status, $room_id]);
 
         // Commit transaction
         $this->pdo->commit();
@@ -335,7 +356,7 @@ class ReservationController extends BaseController
         $this->logAction($_SESSION['user_id'], "Created reservation #$reservation_id");
 
         $_SESSION['success'] = "Reservation created successfully (Code: $reservation_code).";
-        $this->redirect("admin/reservations/view/$reservation_id");
+        $this->redirect("admin/reservations");
       } catch (Exception $e) {
         // Rollback on error
         if ($this->pdo->inTransaction()) {
@@ -357,7 +378,7 @@ class ReservationController extends BaseController
   public function view($id)
   {
     $this->requireLogin();
-    if (!in_array($_SESSION['role'] ?? '', ['admin', 'staff'])) {
+    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
       $this->redirect('403');
     }
 
@@ -422,7 +443,7 @@ class ReservationController extends BaseController
   public function edit($id)
   {
     $this->requireLogin();
-    if (!in_array($_SESSION['role'] ?? '', ['admin', 'staff'])) {
+    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
       $this->redirect('403');
     }
 
@@ -433,8 +454,8 @@ class ReservationController extends BaseController
     }
   }
 
-  private function handleEditReservation($id)
-  {
+private function handleEditReservation($id)
+{
     $errors = [];
 
     // Collect form data
@@ -449,170 +470,181 @@ class ReservationController extends BaseController
     $admin_notes = trim($_POST['admin_notes'] ?? '');
 
     try {
-      // Get current reservation details with transaction
-      $this->pdo->beginTransaction();
+        // Get current reservation details with transaction
+        $this->pdo->beginTransaction();
 
-      $stmt = $this->pdo->prepare("SELECT room_id, status, admin_notes FROM reservations WHERE id = ? FOR UPDATE");
-      $stmt->execute([$id]);
-      $current = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare("SELECT room_id, status, admin_notes FROM reservations WHERE id = ? FOR UPDATE");
+        $stmt->execute([$id]);
+        $current = $stmt->fetch(PDO::FETCH_ASSOC);
 
-      if (!$current) {
-        $errors[] = "Reservation not found.";
-        $this->pdo->rollBack();
-      }
-
-      $current_room_id = $current['room_id'];
-      $current_status = $current['status'];
-      $current_admin_notes = $current['admin_notes'] ?? '';
-
-      // Validation
-      if ($room_id < 1) {
-        $errors[] = "Please select a room.";
-      }
-      if (empty($check_in) || empty($check_out)) {
-        $errors[] = "Check-in and check-out dates are required.";
-      }
-      if (strtotime($check_out) <= strtotime($check_in)) {
-        $errors[] = "Check-out date must be after check-in date.";
-      }
-      if ($guests < 1) {
-        $errors[] = "Number of guests must be at least 1.";
-      }
-
-      // Capacity check (for the selected room)
-      if (empty($errors) && $room_id > 0) {
-        $stmt = $this->pdo->prepare("
-                    SELECT rt.capacity FROM rooms r
-                    JOIN room_types rt ON r.room_type_id = rt.id
-                    WHERE r.id = ?
-                ");
-        $stmt->execute([$room_id]);
-        $room = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($room && $guests > $room['capacity']) {
-          $errors[] = "Number of guests exceeds room capacity ({$room['capacity']}).";
-        }
-      }
-
-      // Availability check (exclude current reservation if same room)
-      if (empty($errors) && $room_id > 0) {
-        $query = "
-                    SELECT COUNT(*) FROM reservations
-                    WHERE room_id = ?
-                    AND status IN ('confirmed', 'checked_in', 'pending')
-                    AND id != ?
-                ";
-        $params = [$room_id, $id];
-
-        $query .= " AND NOT (
-                    check_out <= ? OR
-                    check_in >= ?
-                )";
-
-        $params[] = $check_in;
-        $params[] = $check_out;
-
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($params);
-        $conflicts = $stmt->fetchColumn();
-
-        if ($conflicts > 0) {
-          $errors[] = "Room is not available for the selected dates.";
-        }
-      }
-
-      if (empty($errors)) {
-        // Get room price for new/selected room
-        $stmt = $this->pdo->prepare("
-                    SELECT rt.base_price as price_per_night
-                    FROM rooms r
-                    JOIN room_types rt ON r.room_type_id = rt.id
-                    WHERE r.id = ?
-                ");
-        $stmt->execute([$room_id]);
-        $room = $stmt->fetch(PDO::FETCH_ASSOC);
-        $price_per_night = $room['price_per_night'] ?? 0;
-
-        // Calculate nights and base total
-        $check_in_date = new DateTime($check_in);
-        $check_out_date = new DateTime($check_out);
-        $interval = $check_in_date->diff($check_out_date);
-        $nights = $interval->days;
-        $base_price = $price_per_night * $nights;
-
-        // Combine admin notes
-        $noteEntry = "\n[" . date('Y-m-d H:i:s') . "] Reservation updated.";
-        $newAdminNotes = $current_admin_notes . $noteEntry;
-
-        // Update reservation - INCLUDING admin_notes
-        $stmt = $this->pdo->prepare("
-                    UPDATE reservations SET
-                    room_id = ?, check_in = ?, check_out = ?, adults = ?, children = ?,
-                    total_nights = ?, base_price = ?, total_amount = ?,
-                    special_requests = ?, status = ?, admin_notes = ?, updated_at = NOW()
-                    WHERE id = ?
-                ");
-        $stmt->execute([
-          $room_id,
-          $check_in,
-          $check_out,
-          $adults,
-          $children,
-          $nights,
-          $base_price,
-          $base_price,
-          $special_requests,
-          $status,
-          $newAdminNotes,
-          $id
-        ]);
-
-        // Handle room status changes
-        if ($room_id != $current_room_id) {
-          // Free old room
-          $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'available' WHERE id = ?");
-          $stmt->execute([$current_room_id]);
+        if (!$current) {
+            $errors[] = "Reservation not found.";
+            $this->pdo->rollBack();
         }
 
-        // Update new room status
-        if ($status == 'checked_in') {
-          $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'occupied' WHERE id = ?");
-          $stmt->execute([$room_id]);
-        } elseif ($status == 'confirmed') {
-          $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'reserved' WHERE id = ?");
-          $stmt->execute([$room_id]);
-        } elseif ($status == 'completed' || $status == 'cancelled' || $status == 'no_show') {
-          $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'available' WHERE id = ?");
-          $stmt->execute([$room_id]);
+        $current_room_id = $current['room_id'];
+        $current_status = $current['status'];
+        $current_admin_notes = $current['admin_notes'] ?? '';
+
+        // Validation
+        if ($room_id < 1) {
+            $errors[] = "Please select a room.";
+        }
+        if (empty($check_in) || empty($check_out)) {
+            $errors[] = "Check-in and check-out dates are required.";
+        }
+        if (strtotime($check_out) <= strtotime($check_in)) {
+            $errors[] = "Check-out date must be after check-in date.";
+        }
+        if ($guests < 1) {
+            $errors[] = "Number of guests must be at least 1.";
         }
 
-        // Commit transaction
-        $this->pdo->commit();
+        // Capacity check (for the selected room)
+        if (empty($errors) && $room_id > 0) {
+            $stmt = $this->pdo->prepare("
+                SELECT rt.capacity FROM rooms r
+                JOIN room_types rt ON r.room_type_id = rt.id
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$room_id]);
+            $room = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Log the action
-        $this->logAction($_SESSION['user_id'], "Updated reservation #$id");
+            if ($room && $guests > $room['capacity']) {
+                $errors[] = "Number of guests exceeds room capacity ({$room['capacity']}).";
+            }
+        }
 
-        $_SESSION['success'] = "Reservation updated successfully.";
-        $this->redirect("admin/reservations/view/$id");
-      } else {
-        $this->pdo->rollBack();
-      }
+        // Check room status if changing room
+        if (empty($errors) && $room_id > 0 && $room_id != $current_room_id) {
+            $stmt = $this->pdo->prepare("
+                SELECT status FROM rooms WHERE id = ?
+            ");
+            $stmt->execute([$room_id]);
+            $room_status = $stmt->fetchColumn();
+
+            if (!in_array($room_status, ['available', 'cleaning'])) {
+                $errors[] = "Selected room is currently {$room_status} and not available for booking.";
+            }
+        }
+
+        // Availability check (exclude current reservation if same room)
+        if (empty($errors) && $room_id > 0) {
+            $query = "
+                SELECT COUNT(*) FROM reservations
+                WHERE room_id = ?
+                AND status IN ('confirmed', 'checked_in', 'pending')
+                AND id != ?
+            ";
+            $params = [$room_id, $id];
+
+            $query .= " AND NOT (
+                check_out <= ? OR
+                check_in >= ?
+            )";
+
+            $params[] = $check_in;
+            $params[] = $check_out;
+
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute($params);
+            $conflicts = $stmt->fetchColumn();
+
+            if ($conflicts > 0) {
+                $errors[] = "Room is not available for the selected dates.";
+            }
+        }
+
+        if (empty($errors)) {
+            // Get room price for new/selected room
+            $stmt = $this->pdo->prepare("
+                SELECT rt.base_price as price_per_night
+                FROM rooms r
+                JOIN room_types rt ON r.room_type_id = rt.id
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$room_id]);
+            $room = $stmt->fetch(PDO::FETCH_ASSOC);
+            $price_per_night = $room['price_per_night'] ?? 0;
+
+            // Calculate nights and base total
+            $check_in_date = new DateTime($check_in);
+            $check_out_date = new DateTime($check_out);
+            $interval = $check_in_date->diff($check_out_date);
+            $nights = $interval->days;
+            $base_price = $price_per_night * $nights;
+
+            // Combine admin notes
+            $noteEntry = "\n[" . date('Y-m-d H:i:s') . "] Reservation updated.";
+            if ($admin_notes) {
+                $noteEntry .= " - " . $admin_notes;
+            }
+            $newAdminNotes = $current_admin_notes . $noteEntry;
+
+            // Update reservation - INCLUDING admin_notes
+            $stmt = $this->pdo->prepare("
+                UPDATE reservations SET
+                room_id = ?, check_in = ?, check_out = ?, adults = ?, children = ?,
+                total_nights = ?, base_price = ?, total_amount = ?,
+                special_requests = ?, status = ?, admin_notes = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                $room_id,
+                $check_in,
+                $check_out,
+                $adults,
+                $children,
+                $nights,
+                $base_price,
+                $base_price,
+                $special_requests,
+                $status,
+                $newAdminNotes,
+                $id
+            ]);
+
+            // Handle room status changes
+            if ($room_id != $current_room_id) {
+                // Free old room
+                $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'available' WHERE id = ?");
+                $stmt->execute([$current_room_id]);
+            }
+
+            // Update new room status
+            $room_status = $this->getRoomStatusFromReservationStatus($status);
+            $stmt = $this->pdo->prepare("UPDATE rooms SET status = ? WHERE id = ?");
+            $stmt->execute([$room_status, $room_id]);
+
+            // Commit transaction
+            $this->pdo->commit();
+
+            // Log the action
+            $this->logAction($_SESSION['user_id'], "Updated reservation #$id");
+
+            $_SESSION['success'] = "Reservation updated successfully.";
+            header("Location: index.php?action=admin/reservations");
+            exit();
+        } else {
+            $this->pdo->rollBack();
+        }
     } catch (PDOException $e) {
-      // Rollback on error
-      if ($this->pdo->inTransaction()) {
-        $this->pdo->rollBack();
-      }
+        // Rollback on error
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
 
-      error_log("Update reservation error: " . $e->getMessage());
-      $errors[] = "Failed to update reservation: " . $e->getMessage();
+        error_log("Update reservation error: " . $e->getMessage());
+        $errors[] = "Failed to update reservation: " . $e->getMessage();
     }
 
     if (!empty($errors)) {
-      $_SESSION['error'] = implode("<br>", $errors);
-      $_SESSION['old'] = $_POST;
-      $this->redirect("admin/reservations/edit/$id");
+        $_SESSION['error'] = implode("<br>", $errors);
+        $_SESSION['old'] = $_POST;
+        header("Location: index.php?action=admin/reservations/edit/$id");
+        exit();
     }
-  }
+}
 
   private function showEditForm($id)
   {
@@ -664,28 +696,30 @@ class ReservationController extends BaseController
     }
   }
 
-  public function updateStatus($id)
+  public function updateStatus($id = null)
   {
     $this->requireLogin();
-    if (!in_array($_SESSION['role'] ?? '', ['admin', 'staff'])) {
+    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
       $this->redirect('403');
     }
+    // Get ID from parameter or POST
+    $reservation_id = $id ?? ($_POST['id'] ?? 0);
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $status = $_POST['status'] ?? '';
       $notes = trim($_POST['notes'] ?? '');
 
-      $valid_statuses = ['pending', 'confirmed', 'checked_in', 'completed', 'cancelled', 'no_show'];
-
+      $valid_statuses = ['pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled', 'no_show'];
       if (!in_array($status, $valid_statuses)) {
         $_SESSION['error'] = "Invalid status.";
-        $this->redirect("admin/reservations/view/$id");
+        $this->redirect("admin/reservations/view/$reservation_id");
       }
+
 
       try {
         // Get current reservation details
         $stmt = $this->pdo->prepare("SELECT room_id, admin_notes FROM reservations WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt->execute([$reservation_id]);
         $current = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$current) {
@@ -713,16 +747,9 @@ class ReservationController extends BaseController
 
         // Update room status based on reservation status
         if ($room_id) {
-          if ($status == 'checked_in') {
-            $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'occupied' WHERE id = ?");
-            $stmt->execute([$room_id]);
-          } elseif ($status == 'confirmed') {
-            $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'reserved' WHERE id = ?");
-            $stmt->execute([$room_id]);
-          } elseif ($status == 'completed' || $status == 'cancelled' || $status == 'no_show') {
-            $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'available' WHERE id = ?");
-            $stmt->execute([$room_id]);
-          }
+          $room_status = $this->getRoomStatusFromReservationStatus($status);
+          $stmt = $this->pdo->prepare("UPDATE rooms SET status = ? WHERE id = ?");
+          $stmt->execute([$room_status, $room_id]);
         }
 
         // Commit transaction
@@ -732,7 +759,7 @@ class ReservationController extends BaseController
         $this->logAction($_SESSION['user_id'], "Changed reservation #$id status to $status");
 
         $_SESSION['success'] = "Reservation status updated successfully.";
-        $this->redirect("admin/reservations/view/$id");
+        $this->redirect("admin/reservations");
       } catch (PDOException $e) {
         // Rollback on error
         if ($this->pdo->inTransaction()) {
@@ -749,7 +776,7 @@ class ReservationController extends BaseController
   public function delete($id)
   {
     $this->requireLogin();
-    if (($_SESSION['role'] ?? '') != 'admin') {
+    if (strtolower($_SESSION['role'] ?? '') != 'admin') {
       $this->redirect('403');
     }
 
@@ -815,7 +842,7 @@ class ReservationController extends BaseController
   public function checkout($id)
   {
     $this->requireLogin();
-    if (!in_array($_SESSION['role'] ?? '', ['admin', 'staff'])) {
+    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
       $this->redirect('403');
     }
 
@@ -836,7 +863,7 @@ class ReservationController extends BaseController
       // Update reservation status to completed
       $stmt = $this->pdo->prepare("
                 UPDATE reservations SET
-                status = 'completed',
+                status = 'checked_out',
                 updated_at = NOW()
                 WHERE id = ?
             ");

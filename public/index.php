@@ -110,39 +110,43 @@ switch ($action) {
     }
     break;
 
-  case 'admin/reservations':
-    authorize(['admin', 'staff']);
-    require_once '../app/controllers/Admin/ReservationController.php';
-    $controller = new ReservationController($pdo);
+    case 'admin/reservations':
+      authorize(['admin', 'staff']);
+      require_once '../app/controllers/Admin/ReservationController.php';
+      $controller = new ReservationController($pdo);
 
-    $sub_action = $_GET['sub_action'] ?? 'index';
-    $id = $_GET['id'] ?? 0;
+      $sub_action = $_GET['sub_action'] ?? 'index';
+      $id = $_GET['id'] ?? 0;
 
-    switch ($sub_action) {
-      case 'view':
-        if ($id) $controller->view($id);
-        else $controller->index();
-        break;
-      case 'create':
-        $controller->create();
-        break;
-      case 'edit':
-        if ($id) $controller->edit($id);
-        else $controller->index();
-        break;
-      case 'update-status':
-        if ($id) $controller->updateStatus($id);
-        else $controller->index();
-        break;
-      case 'delete':
-        if ($id) $controller->delete($id);
-        else $controller->index();
-        break;
-      default:
-        $controller->index();
-        break;
-    }
-    break;
+      switch ($sub_action) {
+        case 'view':
+          if ($id) $controller->view($id);
+          else $controller->index();
+          break;
+        case 'create':
+          $controller->create();
+          break;
+        case 'edit':
+          if ($id) $controller->edit($id);
+          else $controller->index();
+          break;
+        case 'update-status':
+          if ($id) $controller->updateStatus($id);
+          else $controller->index();
+          break;
+        case 'checkout':
+          if ($id) $controller->checkout($id);
+          else $controller->index();
+          break;
+        case 'delete':
+          if ($id) $controller->delete($id);
+          else $controller->index();
+          break;
+        default:
+          $controller->index();
+          break;
+      }
+      break;
 
   case 'admin/rooms':
     authorize(['admin', 'staff']);
