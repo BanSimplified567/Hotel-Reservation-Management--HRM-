@@ -459,4 +459,64 @@
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
   }
+
+  /* Additional consistent styling */
+  .card {
+    border: none;
+    border-radius: 0.5rem;
+  }
+
+  .border-left-primary {
+    border-left-color: #4e73df !important;
+  }
+
+  .border-left-success {
+    border-left-color: #1cc88a !important;
+  }
+
+  .border-left-warning {
+    border-left-color: #f6c23e !important;
+  }
+
+  .border-left-info {
+    border-left-color: #36b9cc !important;
+  }
+
+  .dropdown-menu {
+    font-size: 0.875rem;
+  }
+
+  .pagination-sm .page-link {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    cursor: pointer;
+  }
+
+  .card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, .125);
+  }
+
+  .badge {
+    font-weight: 500;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+  }
+
+  .table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
 </style>
