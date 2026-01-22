@@ -25,10 +25,11 @@ class RoomController extends BaseController
     $perPage = 15;
 
     // Build query with JOIN to get room type name
-    $query = "SELECT r.*, rt.name as room_type, rt.base_price as room_type_price
-                 FROM rooms r
-                 LEFT JOIN room_types rt ON r.room_type_id = rt.id
-                 WHERE 1=1";
+    $query = "SELECT r.*, rt.name as room_type, rt.base_price as room_type_price, rt.capacity
+FROM rooms r
+LEFT JOIN room_types rt ON r.room_type_id = rt.id
+WHERE 1=1";
+
     $params = [];
 
     if (!empty($search)) {
@@ -123,7 +124,7 @@ class RoomController extends BaseController
   {
     $errors = [];
 
-    // Collect form data - updated for database schema
+    // Collect form data
     $room_number = trim($_POST['room_number'] ?? '');
     $room_type_id = intval($_POST['room_type_id'] ?? 0);
     $floor = intval($_POST['floor'] ?? 1);
@@ -132,17 +133,16 @@ class RoomController extends BaseController
     $status = $_POST['status'] ?? 'available';
     $features = [];
 
-    // Build features array based on form data
-    if (isset($_POST['features_bed'])) {
+    // Build features array based on form data - CORRECTED FIELD NAMES
+    if (isset($_POST['features_bed']) && $_POST['features_bed'] !== '') {
       $features['bed'] = $_POST['features_bed'];
     }
-    if (isset($_POST['features_balcony'])) {
-      $features['balcony'] = (bool)$_POST['features_balcony'];
+    if (isset($_POST['features_balcony']) && $_POST['features_balcony'] == '1') {
+      $features['balcony'] = true;
     }
-    if (isset($_POST['features_private_pool'])) {
-      $features['private_pool'] = (bool)$_POST['features_private_pool'];
+    if (isset($_POST['features_private_pool']) && $_POST['features_private_pool'] == '1') {
+      $features['private_pool'] = true;
     }
-
     // Validation
     if (empty($room_number)) {
       $errors[] = "Room number is required.";
@@ -212,7 +212,7 @@ class RoomController extends BaseController
   private function showCreateForm()
   {
     // Get room types from database
-    $typeStmt = $this->pdo->prepare("SELECT id, name, base_price, capacity FROM room_types WHERE is_active = 1 ORDER BY name");
+    $typeStmt = $this->pdo->prepare("SELECT id, name, base_price, capacity, size, description FROM room_types ORDER BY name");
     $typeStmt->execute();
     $roomTypes = $typeStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -251,7 +251,7 @@ class RoomController extends BaseController
   {
     $errors = [];
 
-    // Collect form data - updated for database schema
+    // Collect form data
     $room_number = trim($_POST['room_number'] ?? '');
     $room_type_id = intval($_POST['room_type_id'] ?? 0);
     $floor = intval($_POST['floor'] ?? 1);
@@ -260,15 +260,15 @@ class RoomController extends BaseController
     $status = $_POST['status'] ?? 'available';
     $features = [];
 
-    // Build features array based on form data
-    if (isset($_POST['features_bed'])) {
+    // Build features array based on form data - CORRECTED FIELD NAMES
+    if (isset($_POST['features_bed']) && $_POST['features_bed'] !== '') {
       $features['bed'] = $_POST['features_bed'];
     }
-    if (isset($_POST['features_balcony'])) {
-      $features['balcony'] = (bool)$_POST['features_balcony'];
+    if (isset($_POST['features_balcony']) && $_POST['features_balcony'] == '1') {
+      $features['balcony'] = true;
     }
-    if (isset($_POST['features_private_pool'])) {
-      $features['private_pool'] = (bool)$_POST['features_private_pool'];
+    if (isset($_POST['features_private_pool']) && $_POST['features_private_pool'] == '1') {
+      $features['private_pool'] = true;
     }
 
     // Validation
@@ -299,6 +299,7 @@ class RoomController extends BaseController
     }
 
     // Check if room can be set to available (not occupied by active reservation)
+
     if ($status == 'available') {
       try {
         $stmt = $this->pdo->prepare("
@@ -364,11 +365,16 @@ class RoomController extends BaseController
   {
     try {
       $stmt = $this->pdo->prepare("
-                SELECT r.*, rt.name as room_type_name, rt.base_price as room_type_price
-                FROM rooms r
-                LEFT JOIN room_types rt ON r.room_type_id = rt.id
-                WHERE r.id = ?
-            ");
+      SELECT r.*,
+             rt.name as room_type_name,
+             rt.base_price as room_type_price,
+             rt.capacity,
+             rt.size,
+             rt.description as room_type_description
+      FROM rooms r
+      LEFT JOIN room_types rt ON r.room_type_id = rt.id
+      WHERE r.id = ?
+  ");
       $stmt->execute([$id]);
       $room = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -405,7 +411,7 @@ class RoomController extends BaseController
       $totalReservations = $stmt->fetchColumn();
 
       // Get room types from database
-      $typeStmt = $this->pdo->prepare("SELECT id, name FROM room_types WHERE is_active = 1 ORDER BY name");
+      $typeStmt = $this->pdo->prepare("SELECT id, name, base_price, capacity, size, description FROM room_types ORDER BY name");
       $typeStmt->execute();
       $roomTypes = $typeStmt->fetchAll(PDO::FETCH_ASSOC);
 

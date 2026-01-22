@@ -355,35 +355,35 @@ $room['features'] = json_decode($room['features'] ?? '[]', true);
                 <i class="fas fa-calendar-check text-success mr-2"></i>
                 <span>Confirmed</span>
               </div>
-              <span class="badge badge-success badge-pill">0</span>
+              <span class="badge badge-success badge-pill"><?php echo $reservationStats['confirmed'] ?? 0; ?></span>
             </div>
             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
               <div>
                 <i class="fas fa-user-clock text-warning mr-2"></i>
                 <span>Pending</span>
               </div>
-              <span class="badge badge-warning badge-pill">0</span>
+              <span class="badge badge-warning badge-pill"><?php echo $reservationStats['pending'] ?? 0; ?></span>
             </div>
             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
               <div>
                 <i class="fas fa-check-circle text-primary mr-2"></i>
                 <span>Checked-in</span>
               </div>
-              <span class="badge badge-primary badge-pill">0</span>
+              <span class="badge badge-primary badge-pill"><?php echo $reservationStats['checked_in'] ?? 0; ?></span>
             </div>
             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
               <div>
                 <i class="fas fa-door-closed text-secondary mr-2"></i>
                 <span>Checked-out</span>
               </div>
-              <span class="badge badge-secondary badge-pill">0</span>
+              <span class="badge badge-secondary badge-pill"><?php echo $reservationStats['checked_out'] ?? 0; ?></span>
             </div>
             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
               <div>
                 <i class="fas fa-ban text-danger mr-2"></i>
                 <span>Cancelled</span>
               </div>
-              <span class="badge badge-danger badge-pill">0</span>
+              <span class="badge badge-danger badge-pill"><?php echo $reservationStats['cancelled'] ?? 0; ?></span>
             </div>
           </div>
         </div>
@@ -404,66 +404,40 @@ $room['features'] = json_decode($room['features'] ?? '[]', true);
             </span>
           </div>
 
-          <?php
-          // Fetch additional room type details from database
-          try {
-            $stmt = $pdo->prepare("
-                            SELECT capacity, size, amenities, description
-                            FROM room_types
-                            WHERE id = ?
-                        ");
-            $stmt->execute([$room['room_type_id']]);
-            $roomType = $stmt->fetch(PDO::FETCH_ASSOC);
+          <div class="mb-2">
+            <strong>Capacity:</strong>
+            <span class="float-right"><?php echo $room['capacity'] ?? 0; ?> persons</span>
+          </div>
 
-            if ($roomType):
-          ?>
-              <div class="mb-2">
-                <strong>Capacity:</strong>
-                <span class="float-right"><?php echo $roomType['capacity']; ?> persons</span>
+          <?php if (!empty($room['size'])): ?>
+            <div class="mb-2">
+              <strong>Size:</strong>
+              <span class="float-right"><?php echo $room['size']; ?></span>
+            </div>
+          <?php endif; ?>
+
+          <?php if (!empty($room['room_type_description'])): ?>
+            <div class="mb-3">
+              <strong>Description:</strong>
+              <p class="mt-1"><?php echo nl2br(htmlspecialchars($room['room_type_description'])); ?></p>
+            </div>
+          <?php endif; ?>
+
+          <?php if (!empty($room['amenities'])): ?>
+            <div class="mt-3">
+              <strong>Amenities:</strong>
+              <div class="d-flex flex-wrap mt-2">
+                <?php foreach ($room['amenities'] as $amenity => $available):
+                  if ($available === true || $available === 'true'): ?>
+                    <span class="badge badge-light border mr-1 mb-1">
+                      <?php echo ucfirst(str_replace('_', ' ', $amenity)); ?>
+                    </span>
+                <?php
+                  endif;
+                endforeach; ?>
               </div>
-
-              <?php if (!empty($roomType['size'])): ?>
-                <div class="mb-2">
-                  <strong>Size:</strong>
-                  <span class="float-right"><?php echo $roomType['size']; ?></span>
-                </div>
-              <?php endif; ?>
-
-              <?php if (!empty($roomType['description'])): ?>
-                <div class="mb-3">
-                  <strong>Description:</strong>
-                  <p class="mt-1"><?php echo nl2br(htmlspecialchars($roomType['description'])); ?></p>
-                </div>
-              <?php endif; ?>
-
-              <?php
-              if (!empty($roomType['amenities'])):
-                $amenities = json_decode($roomType['amenities'], true);
-                if (!empty($amenities)):
-              ?>
-                  <div class="mt-3">
-                    <strong>Amenities:</strong>
-                    <div class="d-flex flex-wrap mt-2">
-                      <?php foreach ($amenities as $amenity => $available):
-                        if ($available === true || $available === 'true'): ?>
-                          <span class="badge badge-light border mr-1 mb-1">
-                            <?php echo ucfirst(str_replace('_', ' ', $amenity)); ?>
-                          </span>
-                      <?php
-                        endif;
-                      endforeach; ?>
-                    </div>
-                  </div>
-              <?php
-                endif;
-              endif;
-              ?>
-          <?php
-            endif;
-          } catch (PDOException $e) {
-            error_log("Error fetching room type details: " . $e->getMessage());
-          }
-          ?>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
     </div>

@@ -85,7 +85,7 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                     </h6>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="index.php?action=admin/reservations&sub_action=edit&id=<?php echo $reservation['id'] ?? ''; ?>">
+           <form method="POST" action="index.php?admin/reservations&sub_action=edit&id=<?php echo $reservation['id'] ?? ''; ?>">
                         <!-- Hidden fields -->
                         <input type="hidden" name="reservation_id" value="<?php echo $reservation['id'] ?? ''; ?>">
                         <input type="hidden" name="user_id" value="<?php echo $reservation['user_id'] ?? ''; ?>">
@@ -157,14 +157,15 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                 <label for="status" class="form-label fw-bold">
                                     <i class="fas fa-tag me-1"></i>Status *
                                 </label>
-                                <select class="form-select" id="status" name="status" required>
-                                    <option value="pending" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                    <option value="confirmed" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'confirmed') ? 'selected' : ''; ?>>Confirmed</option>
-                                    <option value="checked_in" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'checked_in') ? 'selected' : ''; ?>>Checked-in</option>
-                                    <option value="completed" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'completed') ? 'selected' : ''; ?>>Completed</option>
-                                    <option value="cancelled" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                                    <option value="no_show" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'no_show') ? 'selected' : ''; ?>>No Show</option>
-                                </select>
+                          <!-- Replace the status select options -->
+<select class="form-select" id="status" name="status" required>
+    <option value="pending" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'pending') ? 'selected' : ''; ?>>Pending</option>
+    <option value="confirmed" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'confirmed') ? 'selected' : ''; ?>>Confirmed</option>
+    <option value="checked_in" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'checked_in') ? 'selected' : ''; ?>>Checked-in</option>
+    <option value="checked_out" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'checked_out') ? 'selected' : ''; ?>>Checked-out</option>
+    <option value="cancelled" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+    <option value="no_show" <?php echo (($data['status'] ?? $reservation['status'] ?? '') == 'no_show') ? 'selected' : ''; ?>>No Show</option>
+</select>
                                 <div class="form-text">Update reservation status</div>
                             </div>
 

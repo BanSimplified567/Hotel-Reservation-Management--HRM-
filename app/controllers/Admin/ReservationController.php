@@ -40,7 +40,7 @@ class ReservationController extends BaseController
     $query = "
             SELECT r.*,
                    u.username, u.email, u.first_name, u.last_name,
-                   rm.room_number, rt.name as room_type, rt.base_price as price_per_night
+                   rm.room_number, rt.name as room_type
             FROM reservations r
             JOIN users u ON r.user_id = u.id
             JOIN rooms rm ON r.room_id = rm.id
@@ -378,8 +378,19 @@ class ReservationController extends BaseController
   public function view($id)
   {
     $this->requireLogin();
-    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
+    $role = strtolower($_SESSION['role'] ?? '');
+    if (!in_array($role, ['admin', 'staff', 'customer'])) {
       $this->redirect('403');
+    }
+
+    // For customers, check ownership
+    if ($role === 'customer') {
+      $stmt = $this->pdo->prepare("SELECT user_id FROM reservations WHERE id = ?");
+      $stmt->execute([$id]);
+      $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+      if (!$reservation || $reservation['user_id'] != $_SESSION['user_id']) {
+        $this->redirect('403');
+      }
     }
 
     try {
@@ -443,8 +454,19 @@ class ReservationController extends BaseController
   public function edit($id)
   {
     $this->requireLogin();
-    if (!in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'staff'])) {
+    $role = strtolower($_SESSION['role'] ?? '');
+    if (!in_array($role, ['admin', 'staff', 'customer'])) {
       $this->redirect('403');
+    }
+
+    // For customers, check ownership
+    if ($role === 'customer') {
+      $stmt = $this->pdo->prepare("SELECT user_id FROM reservations WHERE id = ?");
+      $stmt->execute([$id]);
+      $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+      if (!$reservation || $reservation['user_id'] != $_SESSION['user_id']) {
+        $this->redirect('403');
+      }
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -454,8 +476,8 @@ class ReservationController extends BaseController
     }
   }
 
-private function handleEditReservation($id)
-{
+  private function handleEditReservation($id)
+  {
     $errors = [];
 
     // Collect form data
@@ -470,181 +492,202 @@ private function handleEditReservation($id)
     $admin_notes = trim($_POST['admin_notes'] ?? '');
 
     try {
-        // Get current reservation details with transaction
-        $this->pdo->beginTransaction();
+      // Get current reservation details with transaction
+      $this->pdo->beginTransaction();
 
-        $stmt = $this->pdo->prepare("SELECT room_id, status, admin_notes FROM reservations WHERE id = ? FOR UPDATE");
+      $stmt = $this->pdo->prepare("SELECT room_id, status, admin_notes FROM reservations WHERE id = ? FOR UPDATE");
+      $stmt->execute([$id]);
+      $current = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if (!$current) {
+        $errors[] = "Reservation not found.";
+        $this->pdo->rollBack();
+      }
+
+      // Check ownership for customers
+      $role = strtolower($_SESSION['role'] ?? '');
+      if ($role === 'customer') {
+        $stmt = $this->pdo->prepare("SELECT user_id FROM reservations WHERE id = ?");
         $stmt->execute([$id]);
-        $current = $stmt->fetch(PDO::FETCH_ASSOC);
+        $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$reservation || $reservation['user_id'] != $_SESSION['user_id']) {
+          $this->pdo->rollBack();
+          $this->redirect('403');
+        }
+      }
 
-        if (!$current) {
-            $errors[] = "Reservation not found.";
-            $this->pdo->rollBack();
-        }
+      $current_room_id = $current['room_id'];
+      $current_status = $current['status'];
+      $current_admin_notes = $current['admin_notes'] ?? '';
 
-        $current_room_id = $current['room_id'];
-        $current_status = $current['status'];
-        $current_admin_notes = $current['admin_notes'] ?? '';
+      // Validation
+      if ($room_id < 1) {
+        $errors[] = "Please select a room.";
+      }
+      if (empty($check_in) || empty($check_out)) {
+        $errors[] = "Check-in and check-out dates are required.";
+      }
+      if (strtotime($check_out) <= strtotime($check_in)) {
+        $errors[] = "Check-out date must be after check-in date.";
+      }
+      if ($guests < 1) {
+        $errors[] = "Number of guests must be at least 1.";
+      }
 
-        // Validation
-        if ($room_id < 1) {
-            $errors[] = "Please select a room.";
-        }
-        if (empty($check_in) || empty($check_out)) {
-            $errors[] = "Check-in and check-out dates are required.";
-        }
-        if (strtotime($check_out) <= strtotime($check_in)) {
-            $errors[] = "Check-out date must be after check-in date.";
-        }
-        if ($guests < 1) {
-            $errors[] = "Number of guests must be at least 1.";
-        }
-
-        // Capacity check (for the selected room)
-        if (empty($errors) && $room_id > 0) {
-            $stmt = $this->pdo->prepare("
+      // Capacity check (for the selected room)
+      if (empty($errors) && $room_id > 0) {
+        $stmt = $this->pdo->prepare("
                 SELECT rt.capacity FROM rooms r
                 JOIN room_types rt ON r.room_type_id = rt.id
                 WHERE r.id = ?
             ");
-            $stmt->execute([$room_id]);
-            $room = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->execute([$room_id]);
+        $room = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($room && $guests > $room['capacity']) {
-                $errors[] = "Number of guests exceeds room capacity ({$room['capacity']}).";
-            }
+        if ($room && $guests > $room['capacity']) {
+          $errors[] = "Number of guests exceeds room capacity ({$room['capacity']}).";
         }
+      }
 
-        // Check room status if changing room
-        if (empty($errors) && $room_id > 0 && $room_id != $current_room_id) {
-            $stmt = $this->pdo->prepare("
+      // Check room status if changing room
+      if (empty($errors) && $room_id > 0 && $room_id != $current_room_id) {
+        $stmt = $this->pdo->prepare("
                 SELECT status FROM rooms WHERE id = ?
             ");
-            $stmt->execute([$room_id]);
-            $room_status = $stmt->fetchColumn();
+        $stmt->execute([$room_id]);
+        $room_status = $stmt->fetchColumn();
 
-            if (!in_array($room_status, ['available', 'cleaning'])) {
-                $errors[] = "Selected room is currently {$room_status} and not available for booking.";
-            }
+        if (!in_array($room_status, ['available', 'cleaning'])) {
+          $errors[] = "Selected room is currently {$room_status} and not available for booking.";
         }
+      }
 
-        // Availability check (exclude current reservation if same room)
-        if (empty($errors) && $room_id > 0) {
-            $query = "
+      // Availability check (exclude current reservation if same room)
+      if (empty($errors) && $room_id > 0) {
+        $query = "
                 SELECT COUNT(*) FROM reservations
                 WHERE room_id = ?
                 AND status IN ('confirmed', 'checked_in', 'pending')
                 AND id != ?
             ";
-            $params = [$room_id, $id];
+        $params = [$room_id, $id];
 
-            $query .= " AND NOT (
+        $query .= " AND NOT (
                 check_out <= ? OR
                 check_in >= ?
             )";
 
-            $params[] = $check_in;
-            $params[] = $check_out;
+        $params[] = $check_in;
+        $params[] = $check_out;
 
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute($params);
-            $conflicts = $stmt->fetchColumn();
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
+        $conflicts = $stmt->fetchColumn();
 
-            if ($conflicts > 0) {
-                $errors[] = "Room is not available for the selected dates.";
-            }
+        if ($conflicts > 0) {
+          $errors[] = "Room is not available for the selected dates.";
         }
+      }
 
-        if (empty($errors)) {
-            // Get room price for new/selected room
-            $stmt = $this->pdo->prepare("
+      if (empty($errors)) {
+        // Get room price for new/selected room
+        $stmt = $this->pdo->prepare("
                 SELECT rt.base_price as price_per_night
                 FROM rooms r
                 JOIN room_types rt ON r.room_type_id = rt.id
                 WHERE r.id = ?
             ");
-            $stmt->execute([$room_id]);
-            $room = $stmt->fetch(PDO::FETCH_ASSOC);
-            $price_per_night = $room['price_per_night'] ?? 0;
+        $stmt->execute([$room_id]);
+        $room = $stmt->fetch(PDO::FETCH_ASSOC);
+        $price_per_night = $room['price_per_night'] ?? 0;
 
-            // Calculate nights and base total
-            $check_in_date = new DateTime($check_in);
-            $check_out_date = new DateTime($check_out);
-            $interval = $check_in_date->diff($check_out_date);
-            $nights = $interval->days;
-            $base_price = $price_per_night * $nights;
+        // Calculate nights and base total
+        $check_in_date = new DateTime($check_in);
+        $check_out_date = new DateTime($check_out);
+        $interval = $check_in_date->diff($check_out_date);
+        $nights = $interval->days;
+        $base_price = $price_per_night * $nights;
 
-            // Combine admin notes
-            $noteEntry = "\n[" . date('Y-m-d H:i:s') . "] Reservation updated.";
-            if ($admin_notes) {
-                $noteEntry .= " - " . $admin_notes;
-            }
-            $newAdminNotes = $current_admin_notes . $noteEntry;
+        // Get services total
+        $servicesStmt = $this->pdo->prepare("SELECT SUM(total_price) FROM reservation_services WHERE reservation_id = ?");
+        $servicesStmt->execute([$id]);
+        $services_total = $servicesStmt->fetchColumn() ?? 0;
+        $total_amount = $base_price + $services_total;
 
-            // Update reservation - INCLUDING admin_notes
-            $stmt = $this->pdo->prepare("
+        // Combine admin notes
+        $noteEntry = "\n[" . date('Y-m-d H:i:s') . "] Reservation updated.";
+        if ($admin_notes) {
+          $noteEntry .= " - " . $admin_notes;
+        }
+        $newAdminNotes = $current_admin_notes . $noteEntry;
+
+        // Update reservation - INCLUDING admin_notes
+        $stmt = $this->pdo->prepare("
                 UPDATE reservations SET
                 room_id = ?, check_in = ?, check_out = ?, adults = ?, children = ?,
-                total_nights = ?, base_price = ?, total_amount = ?,
+                price_per_night = ?, total_nights = ?, base_price = ?, total_amount = ?,
                 special_requests = ?, status = ?, admin_notes = ?, updated_at = NOW()
                 WHERE id = ?
             ");
-            $stmt->execute([
-                $room_id,
-                $check_in,
-                $check_out,
-                $adults,
-                $children,
-                $nights,
-                $base_price,
-                $base_price,
-                $special_requests,
-                $status,
-                $newAdminNotes,
-                $id
-            ]);
+        $stmt->execute([
+          $room_id,
+          $check_in,
+          $check_out,
+          $adults,
+          $children,
+          $price_per_night,
+          $nights,
+          $base_price,
+          $total_amount,
+          $special_requests,
+          $status,
+          $newAdminNotes,
+          $id
+        ]);
 
-            // Handle room status changes
-            if ($room_id != $current_room_id) {
-                // Free old room
-                $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'available' WHERE id = ?");
-                $stmt->execute([$current_room_id]);
-            }
-
-            // Update new room status
-            $room_status = $this->getRoomStatusFromReservationStatus($status);
-            $stmt = $this->pdo->prepare("UPDATE rooms SET status = ? WHERE id = ?");
-            $stmt->execute([$room_status, $room_id]);
-
-            // Commit transaction
-            $this->pdo->commit();
-
-            // Log the action
-            $this->logAction($_SESSION['user_id'], "Updated reservation #$id");
-
-            $_SESSION['success'] = "Reservation updated successfully.";
-            header("Location: index.php?action=admin/reservations");
-            exit();
-        } else {
-            $this->pdo->rollBack();
+        // Handle room status changes
+        if ($room_id != $current_room_id) {
+          // Free old room
+          $stmt = $this->pdo->prepare("UPDATE rooms SET status = 'available' WHERE id = ?");
+          $stmt->execute([$current_room_id]);
         }
+
+        // Update new room status
+        $room_status = $this->getRoomStatusFromReservationStatus($status);
+        $stmt = $this->pdo->prepare("UPDATE rooms SET status = ? WHERE id = ?");
+        $stmt->execute([$room_status, $room_id]);
+
+        // Commit transaction
+        $this->pdo->commit();
+
+        // Log the action
+        $this->logAction($_SESSION['user_id'], "Updated reservation #$id");
+
+        $_SESSION['success'] = "Reservation updated successfully.";
+        $role = strtolower($_SESSION['role'] ?? '');
+        $redirect = ($role === 'customer') ? 'my-reservations' : 'admin/reservations';
+        $this->redirect($redirect);
+        exit();
+      } else {
+        $this->pdo->rollBack();
+      }
     } catch (PDOException $e) {
-        // Rollback on error
-        if ($this->pdo->inTransaction()) {
-            $this->pdo->rollBack();
-        }
+      // Rollback on error
+      if ($this->pdo->inTransaction()) {
+        $this->pdo->rollBack();
+      }
 
-        error_log("Update reservation error: " . $e->getMessage());
-        $errors[] = "Failed to update reservation: " . $e->getMessage();
+      error_log("Update reservation error: " . $e->getMessage());
+      $errors[] = "Failed to update reservation: " . $e->getMessage();
     }
 
     if (!empty($errors)) {
-        $_SESSION['error'] = implode("<br>", $errors);
-        $_SESSION['old'] = $_POST;
-        header("Location: index.php?action=admin/reservations/edit/$id");
-        exit();
+      $_SESSION['error'] = implode("<br>", $errors);
+      $_SESSION['old'] = $_POST;
+      $this->redirect("admin/reservations/edit/$id");
+      exit();
     }
-}
+  }
 
   private function showEditForm($id)
   {

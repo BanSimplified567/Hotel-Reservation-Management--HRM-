@@ -111,7 +111,7 @@ switch ($action) {
     break;
 
     case 'admin/reservations':
-      authorize(['admin', 'staff']);
+      authorize(['admin', 'staff', 'customer']);
       require_once '../app/controllers/Admin/ReservationController.php';
       $controller = new ReservationController($pdo);
 
