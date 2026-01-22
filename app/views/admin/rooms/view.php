@@ -7,9 +7,8 @@ if (!isset($room)) {
   return;
 }
 
-// Decode features JSON if it exists
-$room['features'] = json_decode($room['features'] ?? '[]', true);
 ?>
+
 
 <div class="container-fluid">
   <!-- Page Header -->
@@ -515,6 +514,7 @@ $room['features'] = json_decode($room['features'] ?? '[]', true);
     </div>
   </div>
 </div>
+
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">

@@ -247,120 +247,147 @@ WHERE 1=1";
     }
   }
 
-  private function handleEditRoom($id)
-  {
-    $errors = [];
+private function handleEditRoom($id)
+{
+  $errors = [];
 
-    // Collect form data
-    $room_number = trim($_POST['room_number'] ?? '');
-    $room_type_id = intval($_POST['room_type_id'] ?? 0);
-    $floor = intval($_POST['floor'] ?? 1);
-    $view_type = $_POST['view_type'] ?? 'city';
-    $description = trim($_POST['description'] ?? '');
-    $status = $_POST['status'] ?? 'available';
-    $features = [];
+  // Collect form data
+  $room_number = trim($_POST['room_number'] ?? '');
+  $room_type_id = intval($_POST['room_type_id'] ?? 0);
+  $floor = intval($_POST['floor'] ?? 1);
+  $view_type = $_POST['view_type'] ?? 'city';
+  $description = trim($_POST['description'] ?? '');
+  $status = $_POST['status'] ?? 'available';
+  $features = [];
 
-    // Build features array based on form data - CORRECTED FIELD NAMES
-    if (isset($_POST['features_bed']) && $_POST['features_bed'] !== '') {
-      $features['bed'] = $_POST['features_bed'];
-    }
-    if (isset($_POST['features_balcony']) && $_POST['features_balcony'] == '1') {
-      $features['balcony'] = true;
-    }
-    if (isset($_POST['features_private_pool']) && $_POST['features_private_pool'] == '1') {
-      $features['private_pool'] = true;
-    }
+  // Build features array based on form data - CORRECTED FIELD NAMES
+  if (isset($_POST['features_bed']) && $_POST['features_bed'] !== '') {
+    $features['bed'] = $_POST['features_bed'];
+  }
+  if (isset($_POST['features_balcony']) && $_POST['features_balcony'] == '1') {
+    $features['balcony'] = true;
+  }
+  if (isset($_POST['features_private_pool']) && $_POST['features_private_pool'] == '1') {
+    $features['private_pool'] = true;
+  }
 
-    // Validation
-    if (empty($room_number)) {
-      $errors[] = "Room number is required.";
-    }
+  // Validation
+  if (empty($room_number)) {
+    $errors[] = "Room number is required.";
+  }
 
-    if ($room_type_id <= 0) {
-      $errors[] = "Room type is required.";
-    }
+  if ($room_type_id <= 0) {
+    $errors[] = "Room type is required.";
+  }
 
-    if ($floor < 1) {
-      $errors[] = "Floor must be at least 1.";
-    }
+  if ($floor < 1) {
+    $errors[] = "Floor must be at least 1.";
+  }
 
-    // Check if room number already exists (excluding current room)
-    if (empty($errors)) {
-      try {
-        $stmt = $this->pdo->prepare("SELECT id FROM rooms WHERE room_number = ? AND id != ?");
-        $stmt->execute([$room_number, $id]);
-        if ($stmt->rowCount() > 0) {
-          $errors[] = "Room number already exists.";
-        }
-      } catch (PDOException $e) {
-        error_log("Room check error: " . $e->getMessage());
-        $errors[] = "System error. Please try again.";
+  // Check if room number already exists (excluding current room)
+  if (empty($errors)) {
+    try {
+      $stmt = $this->pdo->prepare("SELECT id FROM rooms WHERE room_number = ? AND id != ?");
+      $stmt->execute([$room_number, $id]);
+      if ($stmt->rowCount() > 0) {
+        $errors[] = "Room number already exists.";
       }
+    } catch (PDOException $e) {
+      error_log("Room check error: " . $e->getMessage());
+      $errors[] = "System error. Please try again.";
     }
+  }
 
-    // Check if room can be set to available (not occupied by active reservation)
+  // NEW CHECK: If room is currently reserved, show warning and prevent updates
+  if (empty($errors)) {
+    try {
+      // Get current room status from database
+      $stmt = $this->pdo->prepare("SELECT status FROM rooms WHERE id = ?");
+      $stmt->execute([$id]);
+      $currentRoom = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($status == 'available') {
-      try {
+      if ($currentRoom && $currentRoom['status'] == 'reserved') {
+        // Check if there are active reservations for this room
         $stmt = $this->pdo->prepare("
                     SELECT COUNT(*) FROM reservations
                     WHERE room_id = ?
-                    AND status IN ('confirmed', 'checked_in')
+                    AND status IN ('confirmed', 'checked_in', 'pending')
                     AND check_out > CURDATE()
                 ");
         $stmt->execute([$id]);
         $activeReservations = $stmt->fetchColumn();
 
         if ($activeReservations > 0) {
-          $errors[] = "Cannot set room as available. It has active reservations.";
+          $errors[] = "Cannot update room. Room is currently reserved and has active reservations.";
         }
-      } catch (PDOException $e) {
-        error_log("Room availability check error: " . $e->getMessage());
-        $errors[] = "Failed to check room availability.";
       }
-    }
-
-    if (empty($errors)) {
-      try {
-        // Convert features array to JSON string
-        $features_json = !empty($features) ? json_encode($features) : null;
-
-        $stmt = $this->pdo->prepare("
-                    UPDATE rooms SET
-                    room_number = ?, room_type_id = ?, floor = ?, view_type = ?,
-                    description = ?, status = ?, features = ?, updated_at = NOW()
-                    WHERE id = ?
-                ");
-
-        $stmt->execute([
-          $room_number,
-          $room_type_id,
-          $floor,
-          $view_type,
-          $description,
-          $status,
-          $features_json,
-          $id
-        ]);
-
-        // Log the action
-        $this->logAction($_SESSION['user_id'], "Updated room #$id: $room_number");
-
-        $_SESSION['success'] = "Room updated successfully.";
-        $this->redirect('admin/rooms');
-      } catch (PDOException $e) {
-        error_log("Update room error: " . $e->getMessage());
-        $errors[] = "Failed to update room. Please try again.";
-      }
-    }
-
-    if (!empty($errors)) {
-      $_SESSION['error'] = implode("<br>", $errors);
-      $_SESSION['old'] = $_POST;
-      $this->redirect('admin/rooms', ['sub_action' => 'edit', 'id' => $id]);
+    } catch (PDOException $e) {
+      error_log("Reservation check error: " . $e->getMessage());
+      // Continue with update if check fails
     }
   }
 
+  // Check if room can be set to available (not occupied by active reservation)
+  if (empty($errors) && $status == 'available') {
+    try {
+      $stmt = $this->pdo->prepare("
+                SELECT COUNT(*) FROM reservations
+                WHERE room_id = ?
+                AND status IN ('confirmed', 'checked_in')
+                AND check_out > CURDATE()
+            ");
+      $stmt->execute([$id]);
+      $activeReservations = $stmt->fetchColumn();
+
+      if ($activeReservations > 0) {
+        $errors[] = "Cannot set room as available. It has active reservations.";
+      }
+    } catch (PDOException $e) {
+      error_log("Room availability check error: " . $e->getMessage());
+      $errors[] = "Failed to check room availability.";
+    }
+  }
+
+  if (empty($errors)) {
+    try {
+      // Convert features array to JSON string
+      $features_json = !empty($features) ? json_encode($features) : null;
+
+      $stmt = $this->pdo->prepare("
+                UPDATE rooms SET
+                room_number = ?, room_type_id = ?, floor = ?, view_type = ?,
+                description = ?, status = ?, features = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+
+      $stmt->execute([
+        $room_number,
+        $room_type_id,
+        $floor,
+        $view_type,
+        $description,
+        $status,
+        $features_json,
+        $id
+      ]);
+
+      // Log the action
+      $this->logAction($_SESSION['user_id'], "Updated room #$id: $room_number");
+
+      $_SESSION['success'] = "Room updated successfully.";
+      $this->redirect('admin/rooms');
+    } catch (PDOException $e) {
+      error_log("Update room error: " . $e->getMessage());
+      $errors[] = "Failed to update room. Please try again.";
+    }
+  }
+
+  if (!empty($errors)) {
+    $_SESSION['error'] = implode("<br>", $errors);
+    $_SESSION['old'] = $_POST;
+    $this->redirect('admin/rooms', ['sub_action' => 'edit', 'id' => $id]);
+  }
+}
   private function showEditForm($id)
   {
     try {
