@@ -312,6 +312,10 @@ class ReservationController extends BaseController
 
         $base_price = $price_per_night * $nights;
         $total_amount = $base_price;
+        $taxes = 0;
+        $discounts = 0;
+        $discount_code = '';
+        $loyalty_points_used = 0;
 
         // Generate reservation code
         $reservation_code = 'RES' . strtoupper(substr(uniqid(), -8));
@@ -319,27 +323,71 @@ class ReservationController extends BaseController
         // Start transaction
         $this->pdo->beginTransaction();
 
-        // Insert reservation
+        // Insert reservation (schema-aligned)
         $stmt = $this->pdo->prepare("
-                    INSERT INTO reservations (
-                        reservation_code, user_id, room_id, check_in, check_out,
-                        adults, children, total_nights, base_price, total_amount,
-                        special_requests, status, payment_status, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())
-                ");
+            INSERT INTO reservations (
+                reservation_code,
+                user_id,
+                room_id,
+                check_in,
+                check_out,
+                adults,
+                children,
+                total_nights,
+                price_per_night,
+                base_price,
+                taxes,
+                discounts,
+                total_amount,
+                special_requests,
+                discount_code,
+                loyalty_points_used,
+                status,
+                payment_status,
+                created_at,
+                updated_at
+            ) VALUES (
+                :reservation_code,
+                :user_id,
+                :room_id,
+                :check_in,
+                :check_out,
+                :adults,
+                :children,
+                :total_nights,
+                :price_per_night,
+                :base_price,
+                :taxes,
+                :discounts,
+                :total_amount,
+                :special_requests,
+                :discount_code,
+                :loyalty_points_used,
+                :status,
+                'pending',
+                NOW(),
+                NOW()
+            )
+        ");
+
         $stmt->execute([
-          $reservation_code,
-          $user_id,
-          $room_id,
-          $check_in,
-          $check_out,
-          $adults,
-          $children,
-          $nights,
-          $base_price,
-          $total_amount,
-          $special_requests,
-          $status
+          ':reservation_code' => $reservation_code,
+          ':user_id' => $user_id,
+          ':room_id' => $room_id,
+          ':check_in' => $check_in,
+          ':check_out' => $check_out,
+          ':adults' => $adults,
+          ':children' => $children,
+          ':total_nights' => $nights,
+          ':price_per_night' => $price_per_night,
+          ':base_price' => $base_price,
+          ':taxes' => $taxes,
+          ':discounts' => $discounts,
+          ':total_amount' => $total_amount,
+          ':special_requests' => $special_requests,
+          ':discount_code' => $discount_code,
+          ':loyalty_points_used' => $loyalty_points_used,
+          ':status' => $status
         ]);
 
         $reservation_id = $this->pdo->lastInsertId();

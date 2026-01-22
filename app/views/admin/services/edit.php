@@ -1,3 +1,4 @@
+<!-- admin/services/edit.php -->
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-3">
         <h1 class="h3 fw-bold">
@@ -5,7 +6,7 @@
             <?php echo $data['page_title']; ?>
         </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="?route=admin/services" class="btn btn-outline-secondary">
+            <a href="?action=admin/services" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Back to Services
             </a>
         </div>
@@ -81,7 +82,7 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <form method="POST" action="?route=admin/services&sub_action=edit&id=<?php echo $data['service']['id']; ?>" class="needs-validation" novalidate>
+                    <form method="POST" action="?action=admin/services&sub_action=edit&id=<?php echo $data['service']['id']; ?>" class="needs-validation" novalidate>
                         <div class="row g-3">
                             <div class="col-12">
                                 <div class="form-floating">
@@ -141,21 +142,26 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-                                <select class="form-select" id="status" name="status" required>
-                                    <option value="active" <?php
-                                        $status = isset($_SESSION['old']['status']) ? $_SESSION['old']['status'] : $data['service']['status'];
-                                        unset($_SESSION['old']['status']);
-                                        echo $status == 'active' ? 'selected' : '';
-                                        ?>>Active</option>
-                                    <option value="inactive" <?php echo $status == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                                <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <?php foreach ($data['categories'] as $cat): ?>
+                                        <option value="<?php echo $cat; ?>" <?php echo (isset($_SESSION['old']['category']) ? $_SESSION['old']['category'] : $data['service']['category']) == $cat ? 'selected' : ''; ?>><?php echo ucfirst($cat); ?></option>
+                                    <?php endforeach; ?>
                                 </select>
-                                <div class="form-text text-muted small">Active services will be available for reservations</div>
+                                <div class="form-text text-muted small">Select the service category</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_available" name="is_available" <?php echo (isset($_SESSION['old']['is_available']) ? (($_SESSION['old']['is_available'] == 1) ? 'checked' : '') : ($data['service']['is_available'] ? 'checked' : '')); ?>>
+                                    <label class="form-check-label" for="is_available">Available</label>
+                                </div>
+                                <div class="form-text text-muted small">Toggle to make the service available for reservations</div>
                             </div>
 
                             <div class="col-12 mt-4 pt-3 border-top">
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="?route=admin/services" class="btn btn-outline-secondary me-md-2">
+                                    <a href="?action=admin/services" class="btn btn-outline-secondary me-md-2">
                                         <i class="bi bi-x-circle me-1"></i> Cancel
                                     </a>
                                     <button type="submit" class="btn btn-primary px-4">
@@ -189,4 +195,5 @@ document.addEventListener('DOMContentLoaded', function() {
             })
     })()
 });
+<?php unset($_SESSION['old']); ?>
 </script>

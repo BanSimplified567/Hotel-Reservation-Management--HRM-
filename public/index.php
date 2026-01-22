@@ -89,24 +89,28 @@ switch ($action) {
     $id = $_GET['id'] ?? 0;
 
     switch ($sub_action) {
-      case 'create':
-        $controller->create();
-        break;
-      case 'edit':
-        if ($id) $controller->edit($id);
-        else $controller->index();
-        break;
-      case 'delete':
-        if ($id) $controller->delete($id);
-        else $controller->index();
-        break;
-      case 'toggle-status':
-        if ($id) $controller->toggleStatus($id);
-        else $controller->index();
-        break;
-      default:
-        $controller->index();
-        break;
+        case 'create':
+            $controller->create();
+            break;
+        case 'edit':
+            if ($id) $controller->edit($id);
+            else $controller->index();
+            break;
+        case 'view':
+            if ($id) $controller->view($id);
+            else $controller->index();
+            break;
+        case 'delete':
+            if ($id) $controller->delete($id);
+            else $controller->index();
+            break;
+        case 'toggle-status':
+            if ($id) $controller->toggleStatus($id);
+            else $controller->index();
+            break;
+        default:
+            $controller->index();
+            break;
     }
     break;
 
@@ -178,8 +182,7 @@ switch ($action) {
     }
     break;
 
-  case 'admin/services':
-    authorize(['admin', 'staff']);
+case 'admin/services':
     require_once '../app/controllers/Admin/ServiceController.php';
     $controller = new ServiceController($pdo);
 
@@ -194,7 +197,7 @@ switch ($action) {
         if ($id) $controller->edit($id);
         else $controller->index();
         break;
-      case 'view':  // ADD THIS CASE
+      case 'view':
         if ($id) $controller->view($id);
         else $controller->index();
         break;

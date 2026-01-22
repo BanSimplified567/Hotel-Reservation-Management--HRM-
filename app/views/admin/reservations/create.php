@@ -16,68 +16,68 @@ $defaultCheckIn = date('Y-m-d', strtotime('+1 day'));
 $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
 ?>
 
-<div class="container-fluid px-4">
+<div class="container-fluid px-3">
   <!-- Page Header -->
-  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4">
-    <div class="mb-3 mb-md-0">
-      <h1 class="h3 mb-1 text-gray-800">Create New Reservation</h1>
-      <p class="text-muted mb-0">Create a new booking for a customer</p>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h5 mb-1 text-dark fw-bold">
+        <i class="fas fa-plus-circle text-primary me-2"></i>New Reservation
+      </h1>
+      <small class="text-muted">Create a new booking</small>
     </div>
-    <div class="d-flex gap-2">
-      <a href="index.php?action=admin/reservations" class="btn btn-outline-secondary d-inline-flex align-items-center">
-        <i class="fas fa-arrow-left me-2"></i> Back to Reservations
+    <div>
+      <a href="index.php?action=admin/reservations" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Back
       </a>
     </div>
   </div>
 
   <!-- Alerts -->
   <?php if ($error): ?>
-    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show p-2 mb-3" role="alert">
       <i class="fas fa-exclamation-circle me-2"></i>
-      <div class="flex-grow-1">
-        <?php echo $error; ?>
-      </div>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <small class="flex-grow-1"><?php echo $error; ?></small>
+      <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
     </div>
   <?php endif; ?>
 
   <!-- Create Form -->
   <div class="row">
     <div class="col-lg-8">
-      <div class="card shadow mb-4">
-        <div class="card-header bg-white py-3">
-          <h6 class="m-0 fw-bold text-primary d-flex align-items-center">
-            <i class="fas fa-calendar-plus me-2"></i>Reservation Details
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white py-2 border-bottom">
+          <h6 class="mb-0 text-dark">
+            <i class="fas fa-calendar-plus text-primary me-1"></i>Reservation Details
           </h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-3">
           <form method="POST" action="index.php?action=admin/reservations&sub_action=create">
-            <div class="row g-3">
+            <div class="row g-2 mb-3">
               <div class="col-md-6">
-                <label for="user_id" class="form-label fw-bold">
+                <label for="user_id" class="form-label small fw-medium">
                   <i class="fas fa-user me-1"></i>Customer *
                 </label>
-                <select class="form-select" id="user_id" name="user_id" required>
+                <select class="form-control form-control-sm" id="user_id" name="user_id" required>
                   <option value="">Select Customer</option>
                   <?php if (!empty($customers)): ?>
                     <?php foreach ($customers as $customer): ?>
                       <option value="<?php echo $customer['id']; ?>"
                         <?php echo (isset($old['user_id']) && $old['user_id'] == $customer['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'] . ' (' . $customer['email'] . ')'); ?>
+                        <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
                       </option>
                     <?php endforeach; ?>
                   <?php else: ?>
                     <option value="">No customers found</option>
                   <?php endif; ?>
                 </select>
-                <div class="form-text">Select the customer making the reservation</div>
+                <small class="text-muted">Select booking customer</small>
               </div>
 
               <div class="col-md-6">
-                <label for="room_id" class="form-label fw-bold">
+                <label for="room_id" class="form-label small fw-medium">
                   <i class="fas fa-bed me-1"></i>Room *
                 </label>
-                <select class="form-select" id="room_id" name="room_id" required>
+                <select class="form-control form-control-sm" id="room_id" name="room_id" required>
                   <option value="">Select Room</option>
                   <?php if (!empty($rooms)): ?>
                     <?php foreach ($rooms as $room): ?>
@@ -85,83 +85,80 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
                         data-price="<?php echo $room['base_price']; ?>"
                         data-capacity="<?php echo $room['capacity']; ?>"
                         <?php echo (isset($old['room_id']) && $old['room_id'] == $room['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($room['room_number'] . ' - ' . $room['room_type'] . ' (₱' . number_format($room['base_price'], 2) . '/night)'); ?>
+                        <?php echo htmlspecialchars($room['room_number'] . ' - ' . $room['room_type']); ?>
                       </option>
                     <?php endforeach; ?>
                   <?php else: ?>
-                    <option value="">No available rooms found</option>
+                    <option value="">No available rooms</option>
                   <?php endif; ?>
                 </select>
-                <div class="form-text">Available rooms for booking</div>
+                <small class="text-muted">Available rooms</small>
               </div>
 
               <div class="col-md-6">
-                <label for="check_in" class="form-label fw-bold">
-                  <i class="fas fa-sign-in-alt me-1"></i>Check-in Date *
+                <label for="check_in" class="form-label small fw-medium">
+                  <i class="fas fa-sign-in-alt me-1"></i>Check-in *
                 </label>
-                <input type="date" class="form-control" id="check_in" name="check_in"
+                <input type="date" class="form-control form-control-sm" id="check_in" name="check_in"
                   value="<?php echo htmlspecialchars($old['check_in'] ?? $defaultCheckIn); ?>" required>
-                <div class="form-text">Date when guest will check in</div>
               </div>
 
               <div class="col-md-6">
-                <label for="check_out" class="form-label fw-bold">
-                  <i class="fas fa-sign-out-alt me-1"></i>Check-out Date *
+                <label for="check_out" class="form-label small fw-medium">
+                  <i class="fas fa-sign-out-alt me-1"></i>Check-out *
                 </label>
-                <input type="date" class="form-control" id="check_out" name="check_out"
+                <input type="date" class="form-control form-control-sm" id="check_out" name="check_out"
                   value="<?php echo htmlspecialchars($old['check_out'] ?? $defaultCheckOut); ?>" required>
-                <div class="form-text">Date when guest will check out</div>
               </div>
 
               <div class="col-md-3">
-                <label for="adults" class="form-label fw-bold">Adults *</label>
-                <input type="number" class="form-control" id="adults" name="adults" min="1" max="10"
+                <label for="adults" class="form-label small fw-medium">Adults *</label>
+                <input type="number" class="form-control form-control-sm" id="adults" name="adults" min="1" max="10"
                   value="<?php echo htmlspecialchars($old['adults'] ?? 1); ?>" required>
               </div>
 
               <div class="col-md-3">
-                <label for="children" class="form-label fw-bold">Children</label>
-                <input type="number" class="form-control" id="children" name="children" min="0" max="10"
+                <label for="children" class="form-label small fw-medium">Children</label>
+                <input type="number" class="form-control form-control-sm" id="children" name="children" min="0" max="10"
                   value="<?php echo htmlspecialchars($old['children'] ?? 0); ?>">
               </div>
 
               <div class="col-md-6">
-                <label for="status" class="form-label fw-bold">
+                <label for="status" class="form-label small fw-medium">
                   <i class="fas fa-tag me-1"></i>Status *
                 </label>
-                <select class="form-select" id="status" name="status" required>
+                <select class="form-control form-control-sm" id="status" name="status" required>
                   <option value="pending" <?php echo (isset($old['status']) && $old['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
                   <option value="confirmed" <?php echo (isset($old['status']) && $old['status'] == 'confirmed') ? 'selected' : ''; ?>>Confirmed</option>
                   <option value="checked_in" <?php echo (isset($old['status']) && $old['status'] == 'checked_in') ? 'selected' : ''; ?>>Checked-in</option>
                 </select>
-                <div class="form-text">Initial reservation status</div>
-              </div>
-
-              <div class="col-md-12">
-                <label for="special_requests" class="form-label fw-bold">
-                  <i class="fas fa-comment-alt me-1"></i>Special Requests
-                </label>
-                <textarea class="form-control" id="special_requests" name="special_requests" rows="3"
-                  placeholder="Any special requests from the customer..."><?php echo htmlspecialchars($old['special_requests'] ?? ''); ?></textarea>
-                <div class="form-text">Optional special requests or notes</div>
               </div>
 
               <div class="col-12">
-                <div class="alert alert-info">
-                  <i class="fas fa-info-circle me-2"></i>
-                  <strong>Room Capacity:</strong> <span id="roomCapacity">-</span> guests
-                  <span class="mx-2">•</span>
-                  <strong>Total Guests:</strong> <span id="guestsCount">1</span>
+                <label for="special_requests" class="form-label small fw-medium">
+                  <i class="fas fa-comment-alt me-1"></i>Special Requests
+                </label>
+                <textarea class="form-control form-control-sm" id="special_requests" name="special_requests" rows="2"
+                  placeholder="Any special requests..."><?php echo htmlspecialchars($old['special_requests'] ?? ''); ?></textarea>
+              </div>
+
+              <div class="col-12 mt-2">
+                <div class="alert alert-info p-2 mb-0">
+                  <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Capacity:</strong> <span id="roomCapacity">-</span> guests •
+                    <strong>Guests:</strong> <span id="guestsCount">1</span>
+                  </small>
                 </div>
               </div>
 
-              <div class="col-12 mt-4">
-                <div class="d-flex justify-content-between align-items-center">
+              <div class="col-12 mt-3 pt-2 border-top">
+                <div class="d-flex justify-content-between">
                   <div>
-                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center">
-                      <i class="fas fa-save me-2"></i> Create Reservation
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      <i class="fas fa-save me-1"></i> Create Booking
                     </button>
-                    <a href="index.php?action=admin/reservations" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="index.php?action=admin/reservations" class="btn btn-outline-secondary btn-sm">Cancel</a>
                   </div>
                 </div>
               </div>
@@ -173,32 +170,27 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
 
     <div class="col-lg-4">
       <!-- Price Summary Card -->
-      <div class="card shadow mb-4">
-        <div class="card-header bg-white py-3">
-          <h6 class="m-0 fw-bold text-primary d-flex align-items-center">
-            <i class="fas fa-receipt me-2"></i>Price Summary
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white py-2 border-bottom">
+          <h6 class="mb-0 text-dark">
+            <i class="fas fa-receipt text-primary me-1"></i>Price Summary
           </h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-3">
           <div class="table-responsive">
-            <table class="table table-sm">
+            <table class="table table-sm mb-0">
               <tbody>
                 <tr>
-                  <td><strong>Room Price per Night:</strong></td>
-                  <td class="text-end">₱<span id="pricePerNight">0.00</span></td>
+                  <td><small class="text-muted">Price/Night:</small></td>
+                  <td class="text-end"><small>₱<span id="pricePerNight">0.00</span></small></td>
                 </tr>
                 <tr>
-                  <td><strong>Number of Nights:</strong></td>
-                  <td class="text-end"><span id="numberOfNights">0</span> nights</td>
+                  <td><small class="text-muted">Nights:</small></td>
+                  <td class="text-end"><small><span id="numberOfNights">0</span> nights</small></td>
                 </tr>
                 <tr class="table-active">
-                  <td><strong>Total Room Charges:</strong></td>
-                  <td class="text-end"><strong>₱<span id="roomTotal">0.00</span></strong></td>
-                </tr>
-                <tr>
-                  <td colspan="2">
-                    <small class="text-muted">* Additional services can be added after reservation creation</small>
-                  </td>
+                  <td><small class="fw-medium">Total:</small></td>
+                  <td class="text-end"><small class="fw-bold">₱<span id="roomTotal">0.00</span></small></td>
                 </tr>
               </tbody>
             </table>
@@ -207,29 +199,25 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
       </div>
 
       <!-- Quick Tips Card -->
-      <div class="card shadow">
-        <div class="card-header bg-white py-3">
-          <h6 class="m-0 fw-bold text-primary d-flex align-items-center">
-            <i class="fas fa-lightbulb me-2"></i>Quick Tips
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-2 border-bottom">
+          <h6 class="mb-0 text-dark">
+            <i class="fas fa-lightbulb text-primary me-1"></i>Tips
           </h6>
         </div>
-        <div class="card-body">
-          <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 px-0">
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush small">
+            <div class="list-group-item border-0 py-2 px-3">
               <i class="fas fa-check-circle text-success me-2"></i>
-              <small>Set status to "Checked-in" if guest is arriving today</small>
+              <span>Ensure room matches guest count</span>
             </div>
-            <div class="list-group-item border-0 px-0">
+            <div class="list-group-item border-0 py-2 px-3">
               <i class="fas fa-check-circle text-success me-2"></i>
-              <small>Ensure room capacity matches number of guests</small>
+              <span>Check dates are available</span>
             </div>
-            <div class="list-group-item border-0 px-0">
+            <div class="list-group-item border-0 py-2 px-3">
               <i class="fas fa-check-circle text-success me-2"></i>
-              <small>Minimum stay is 1 night (check-out must be after check-in)</small>
-            </div>
-            <div class="list-group-item border-0 px-0">
-              <i class="fas fa-check-circle text-success me-2"></i>
-              <small>Confirm room availability for selected dates</small>
+              <span>Set status based on arrival</span>
             </div>
           </div>
         </div>
@@ -238,7 +226,70 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+  /* Compact Styles */
+  .container-fluid {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .form-control-sm {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+
+  .btn-close-sm {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  /* Smaller buttons */
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  /* Compact card */
+  .card-body.p-3 {
+    padding: 1rem !important;
+  }
+
+  .card-header {
+    padding: 0.5rem 1rem;
+  }
+
+  /* Small table */
+  .table-sm {
+    font-size: 0.875rem;
+  }
+
+  .table-sm td,
+  .table-sm th {
+    padding: 0.25rem;
+  }
+
+  /* List group items */
+  .list-group-item {
+    padding: 0.5rem;
+  }
+
+  .alert {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .col-md-6, .col-md-3 {
+      margin-bottom: 0.5rem;
+    }
+  }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const roomSelect = document.getElementById('room_id');
@@ -278,7 +329,7 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
         const price = selectedOption.getAttribute('data-price');
 
         roomCapacitySpan.textContent = capacity;
-        pricePerNightSpan.textContent = parseFloat(price).toFixed(2);
+        pricePerNightSpan.textContent = parseFloat(price).toFixed(0);
 
         // Update guests max
         adultsInput.max = capacity;
@@ -288,7 +339,7 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
         updateGuestsCount();
       } else {
         roomCapacitySpan.textContent = '-';
-        pricePerNightSpan.textContent = '0.00';
+        pricePerNightSpan.textContent = '0';
         adultsInput.max = '';
         childrenInput.max = '';
       }
@@ -303,10 +354,13 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
 
       // Check capacity
       const capacity = parseInt(roomCapacitySpan.textContent) || 0;
+      const capacityAlert = roomCapacitySpan.closest('.alert');
       if (capacity > 0 && total > capacity) {
-        roomCapacitySpan.parentElement.classList.add('text-danger');
+        capacityAlert.classList.remove('alert-info');
+        capacityAlert.classList.add('alert-danger');
       } else {
-        roomCapacitySpan.parentElement.classList.remove('text-danger');
+        capacityAlert.classList.remove('alert-danger');
+        capacityAlert.classList.add('alert-info');
       }
     }
 
@@ -326,14 +380,14 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
           const total = pricePerNight * nights;
 
           numberOfNightsSpan.textContent = nights;
-          roomTotalSpan.textContent = total.toFixed(2);
+          roomTotalSpan.textContent = total.toFixed(0);
         } else {
           numberOfNightsSpan.textContent = '0';
-          roomTotalSpan.textContent = '0.00';
+          roomTotalSpan.textContent = '0';
         }
       } else {
         numberOfNightsSpan.textContent = '0';
-        roomTotalSpan.textContent = '0.00';
+        roomTotalSpan.textContent = '0';
       }
     }
 
@@ -343,7 +397,7 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
 
     // Auto-hide alerts after 5 seconds
     setTimeout(() => {
-      const alerts = document.querySelectorAll('.alert');
+      const alerts = document.querySelectorAll('.alert:not(.alert-info):not(.alert-danger)');
       alerts.forEach(alert => {
         const bsAlert = new bootstrap.Alert(alert);
         bsAlert.close();
@@ -351,37 +405,3 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
     }, 5000);
   });
 </script>
-
-<style>
-  .form-label {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-  }
-
-  .form-select,
-  .form-control {
-    border-radius: 0.375rem;
-  }
-
-  .card {
-    border: none;
-    border-radius: 0.5rem;
-  }
-
-  .card-header {
-    border-bottom: 1px solid rgba(0, 0, 0, .125);
-  }
-
-  .table-active {
-    background-color: rgba(0, 0, 0, .05);
-  }
-
-  .list-group-item {
-    padding: 0.5rem 0;
-  }
-
-  .table-sm td,
-  .table-sm th {
-    padding: 0.5rem;
-  }
-</style>
