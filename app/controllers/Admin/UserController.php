@@ -98,6 +98,7 @@ class UserController extends BaseController
         $first_name = trim($_POST['first_name'] ?? '');
         $last_name = trim($_POST['last_name'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
         $role = $_POST['role'] ?? 'customer';
         $is_active = isset($_POST['is_active']) ? 1 : 0;
 
@@ -140,13 +141,13 @@ class UserController extends BaseController
 
                 $stmt = $this->pdo->prepare("
                     INSERT INTO users
-                    (username, email, password, first_name, last_name, phone, role, is_active, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                    (username, email, password, first_name, last_name, phone, address, role, is_active, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 ");
 
                 $stmt->execute([
                     $username, $email, $hashed_password, $first_name,
-                    $last_name, $phone, $role, $is_active
+                    $last_name, $phone, $address, $role, $is_active
                 ]);
 
                 // Log the action
@@ -198,6 +199,7 @@ class UserController extends BaseController
         $first_name = trim($_POST['first_name'] ?? '');
         $last_name = trim($_POST['last_name'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
         $role = $_POST['role'] ?? 'customer';
         $is_active = isset($_POST['is_active']) ? 1 : 0;
         $change_password = isset($_POST['change_password']);
@@ -250,11 +252,11 @@ class UserController extends BaseController
             try {
                 $query = "UPDATE users SET
                           username = ?, email = ?, first_name = ?, last_name = ?,
-                          phone = ?, role = ?, is_active = ?
+                          phone = ?, address = ?, role = ?, is_active = ?
                           $passwordUpdate
                           WHERE id = ?";
 
-                $params = [$username, $email, $first_name, $last_name, $phone, $role, $is_active];
+                $params = [$username, $email, $first_name, $last_name, $phone, $address, $role, $is_active];
                 if ($change_password) {
                     $params = array_merge($params, $passwordParams);
                 }
@@ -303,6 +305,73 @@ class UserController extends BaseController
         } catch (PDOException $e) {
             error_log("Get user error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load user.";
+            $this->redirect('admin/users');
+        }
+    }
+
+    public function view($id)
+    {
+        $this->requireLogin('admin');
+
+        try {
+            // Get user details
+            $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
+            $stmt->execute([$id]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                $_SESSION['error'] = "User not found.";
+                $this->redirect('admin/users');
+            }
+
+            // Get user statistics
+            $statsStmt = $this->pdo->prepare("
+                SELECT
+                    COUNT(*) as total_reservations,
+                    SUM(total_amount) as total_spent
+                FROM reservations
+                WHERE user_id = ?
+            ");
+            $statsStmt->execute([$id]);
+            $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+            // Get recent reservations
+            $reservationsStmt = $this->pdo->prepare("
+                SELECT r.*,
+                       rm.room_number,
+                       rt.name as room_type
+                FROM reservations r
+                LEFT JOIN rooms rm ON r.room_id = rm.id
+                LEFT JOIN room_types rt ON rm.room_type_id = rt.id
+                WHERE r.user_id = ?
+                ORDER BY r.created_at DESC
+                LIMIT 5
+            ");
+            $reservationsStmt->execute([$id]);
+            $reservations = $reservationsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get recent activities
+            $activitiesStmt = $this->pdo->prepare("
+                SELECT * FROM logs
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 10
+            ");
+            $activitiesStmt->execute([$id]);
+            $activities = $activitiesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $data = [
+                'user' => $user,
+                'stats' => $stats,
+                'reservations' => $reservations,
+                'activities' => $activities,
+                'page_title' => 'View User'
+            ];
+
+            $this->render('admin/users/view', $data);
+        } catch (PDOException $e) {
+            error_log("View user error: " . $e->getMessage());
+            $_SESSION['error'] = "Failed to load user details.";
             $this->redirect('admin/users');
         }
     }
