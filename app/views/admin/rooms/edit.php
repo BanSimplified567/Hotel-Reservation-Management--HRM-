@@ -157,25 +157,36 @@ if (isset($room['features'])) {
               </div>
             </div>
 
-            <div class="mb-4">
-              <label for="status" class="form-label">Status *</label>
-              <select class="form-control" id="status" name="status" required <?php echo ($room['status'] == 'occupied' && $active_reservations > 0) ? 'disabled' : ''; ?>>
-                <option value="">Select Status</option>
-                <option value="available" <?php echo ($room['status'] ?? '') == 'available' ? 'selected' : ''; ?>>Available</option>
-                <option value="occupied" <?php echo ($room['status'] ?? '') == 'occupied' ? 'selected' : ''; ?>>Occupied</option>
-                <option value="maintenance" <?php echo ($room['status'] ?? '') == 'maintenance' ? 'selected' : ''; ?>>Under Maintenance</option>
-                <option value="cleaning" <?php echo ($room['status'] ?? '') == 'cleaning' ? 'selected' : ''; ?>>Cleaning</option>
-                <option value="reserved" <?php echo ($room['status'] ?? '') == 'reserved' ? 'selected' : ''; ?>>Reserved</option>
-              </select>
-              <?php if ($room['status'] == 'occupied' && $active_reservations > 0): ?>
-                <input type="hidden" name="status" value="occupied">
-                <small class="text-danger">
-                  <i class="fas fa-exclamation-triangle"></i>
-                  Cannot change status. Room has <?php echo $active_reservations; ?> active reservation(s).
-                </small>
-              <?php endif; ?>
-            </div>
+      <div class="mb-4">
+  <label for="status" class="form-label">Status *</label>
+  <select class="form-control" id="status" name="status" required
+    <?php echo ($room['status'] == 'occupied' && $active_reservations > 0) ? 'disabled' : ''; ?>
+    <?php echo ($room['status'] == 'reserved' && $active_reservations > 0) ? 'disabled' : ''; ?>>
+    <option value="">Select Status</option>
+    <option value="available" <?php echo ($room['status'] ?? '') == 'available' ? 'selected' : ''; ?>>Available</option>
+    <option value="occupied" <?php echo ($room['status'] ?? '') == 'occupied' ? 'selected' : ''; ?>>Occupied</option>
+    <option value="maintenance" <?php echo ($room['status'] ?? '') == 'maintenance' ? 'selected' : ''; ?>>Under Maintenance</option>
+    <option value="cleaning" <?php echo ($room['status'] ?? '') == 'cleaning' ? 'selected' : ''; ?>>Cleaning</option>
+    <option value="reserved" <?php echo ($room['status'] ?? '') == 'reserved' ? 'selected' : ''; ?>>Reserved</option>
+  </select>
 
+  <?php if ($room['status'] == 'occupied' && $active_reservations > 0): ?>
+    <input type="hidden" name="status" value="occupied">
+    <small class="text-danger">
+      <i class="fas fa-exclamation-triangle"></i>
+      Cannot change status. Room has <?php echo $active_reservations; ?> active reservation(s).
+    </small>
+  <?php endif; ?>
+
+  <?php if ($room['status'] == 'reserved' && $active_reservations > 0): ?>
+    <input type="hidden" name="status" value="reserved">
+    <small class="text-warning">
+      <i class="fas fa-exclamation-triangle"></i>
+      Room is reserved and has <?php echo $active_reservations; ?> active reservation(s).
+      Updates may be restricted.
+    </small>
+  <?php endif; ?>
+</div>
             <div class="d-flex justify-content-between">
               <a href="index.php?action=admin/rooms&sub_action=view&id=<?php echo $room['id']; ?>"
                 class="btn btn-secondary">

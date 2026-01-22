@@ -1,3 +1,4 @@
+<?php
 $old = $_SESSION['old'] ?? [];
 $error = $_SESSION['error'] ?? '';
 $user = $old ?: $user;

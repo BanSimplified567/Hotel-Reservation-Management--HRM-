@@ -1,3 +1,4 @@
+<!-- admin/services/index.php -->
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-3">
         <div>
@@ -8,7 +9,7 @@
             <p class="text-muted mb-0">Manage your hotel services and amenities</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="?route=admin/services&sub_action=create" class="btn btn-primary">
+            <a href="?action=admin/services&sub_action=create" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i> Add New Service
             </a>
         </div>
@@ -59,16 +60,19 @@
                     </select>
                 </div>
 
+                <div class="col-md-3">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <?php foreach ($data['categories'] as $cat): ?>
+                            <option value="<?php echo $cat; ?>" <?php echo ($data['category'] ?? '') == $cat ? 'selected' : ''; ?>><?php echo ucfirst($cat); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-search me-1"></i> Search
                     </button>
-                </div>
-
-                <div class="col-md-3">
-                    <a href="?route=admin/services" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-arrow-clockwise me-1"></i> Reset Filters
-                    </a>
                 </div>
             </form>
         </div>
@@ -102,7 +106,7 @@
                     </div>
                     <h5 class="text-muted mb-3">No services found</h5>
                     <p class="text-muted mb-4">Try adjusting your search or add a new service.</p>
-                    <a href="?route=admin/services&sub_action=create" class="btn btn-primary">
+                    <a href="?action=admin/services&sub_action=create" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-1"></i> Add First Service
                     </a>
                 </div>
@@ -170,21 +174,21 @@
                                     </td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="?route=admin/services&sub_action=view&id=<?php echo $service['id'] ?? ''; ?>"
+                                            <a href="?action=admin/services&sub_action=view&id=<?php echo $service['id'] ?? ''; ?>"
                                                 class="btn btn-outline-info" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="?route=admin/services&sub_action=edit&id=<?php echo $service['id'] ?? ''; ?>"
+                                            <a href="?action=admin/services&sub_action=edit&id=<?php echo $service['id'] ?? ''; ?>"
                                                 class="btn btn-outline-primary" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="?route=admin/services&sub_action=toggle-status&id=<?php echo $service['id'] ?? ''; ?>"
+                                            <a href="?action=admin/services&sub_action=toggle-status&id=<?php echo $service['id'] ?? ''; ?>"
                                                 class="btn btn-outline-warning" title="Toggle Status"
                                                 onclick="return confirm('Are you sure you want to <?php echo $status == 'active' ? 'deactivate' : 'activate'; ?> this service?')">
                                                 <i class="bi bi-power"></i>
                                             </a>
                                             <?php if ($_SESSION['role'] == 'admin'): ?>
-                                                <a href="?route=admin/services&sub_action=delete&id=<?php echo $service['id'] ?? ''; ?>"
+                                                <a href="?action=admin/services&sub_action=delete&id=<?php echo $service['id'] ?? ''; ?>"
                                                     class="btn btn-outline-danger" title="Delete"
                                                     onclick="return confirm('Are you sure you want to delete this service? This action cannot be undone.')">
                                                     <i class="bi bi-trash"></i>
@@ -204,7 +208,7 @@
                         <ul class="pagination justify-content-center mb-0">
                             <li class="page-item <?php echo $data['page'] <= 1 ? 'disabled' : ''; ?>">
                                 <a class="page-link"
-                                    href="?route=admin/services&page=<?php echo $data['page'] - 1; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>">
+                                    href="?action=admin/services&page=<?php echo $data['page'] - 1; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>&category=<?php echo urlencode($data['category']); ?>">
                                     <i class="bi bi-chevron-left"></i>
                                 </a>
                             </li>
@@ -215,7 +219,7 @@
 
                             if ($start > 1): ?>
                                 <li class="page-item">
-                                    <a class="page-link" href="?route=admin/services&page=1&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>">1</a>
+                                    <a class="page-link" href="?action=admin/services&page=1&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>&category=<?php echo urlencode($data['category']); ?>">1</a>
                                 </li>
                                 <?php if ($start > 2): ?>
                                     <li class="page-item disabled">
@@ -227,7 +231,7 @@
                             <?php for ($i = $start; $i <= $end; $i++): ?>
                                 <li class="page-item <?php echo $i == $data['page'] ? 'active' : ''; ?>">
                                     <a class="page-link"
-                                        href="?route=admin/services&page=<?php echo $i; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>">
+                                        href="?action=admin/services&page=<?php echo $i; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>&category=<?php echo urlencode($data['category']); ?>">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>
@@ -240,7 +244,7 @@
                                     </li>
                                 <?php endif; ?>
                                 <li class="page-item">
-                                    <a class="page-link" href="?route=admin/services&page=<?php echo $data['totalPages']; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>">
+                                    <a class="page-link" href="?action=admin/services&page=<?php echo $data['totalPages']; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>&category=<?php echo urlencode($data['category']); ?>">
                                         <?php echo $data['totalPages']; ?>
                                     </a>
                                 </li>
@@ -248,7 +252,7 @@
 
                             <li class="page-item <?php echo $data['page'] >= $data['totalPages'] ? 'disabled' : ''; ?>">
                                 <a class="page-link"
-                                    href="?route=admin/services&page=<?php echo $data['page'] + 1; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>">
+                                    href="?action=admin/services&page=<?php echo $data['page'] + 1; ?>&search=<?php echo urlencode($data['search']); ?>&status=<?php echo urlencode($data['status']); ?>&category=<?php echo urlencode($data['category']); ?>">
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             </li>

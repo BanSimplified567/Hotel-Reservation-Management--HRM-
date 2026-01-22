@@ -178,8 +178,7 @@ switch ($action) {
     }
     break;
 
-  case 'admin/services':
-    authorize(['admin', 'staff']);
+case 'admin/services':
     require_once '../app/controllers/Admin/ServiceController.php';
     $controller = new ServiceController($pdo);
 
@@ -194,7 +193,7 @@ switch ($action) {
         if ($id) $controller->edit($id);
         else $controller->index();
         break;
-      case 'view':  // ADD THIS CASE
+      case 'view':
         if ($id) $controller->view($id);
         else $controller->index();
         break;

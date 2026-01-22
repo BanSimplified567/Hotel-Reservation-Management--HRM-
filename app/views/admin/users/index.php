@@ -7,43 +7,56 @@
     </a>
   </div>
 
-  <!-- Search and Filter Card -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Search & Filter</h6>
-    </div>
+<!-- Search and Filter Card - Add category filter -->
+<div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-      <form method="GET" action="index.php" class="row">
-        <input type="hidden" name="action" value="admin/users">
+        <form method="GET" action="" class="row g-3">
+            <input type="hidden" name="route" value="admin/services">
 
-        <div class="col-md-4 mb-3">
-          <input type="text" name="search" class="form-control" placeholder="Search by name or email"
-            value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
-        </div>
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control" name="search"
+                        placeholder="Search by name or description"
+                        value="<?php echo htmlspecialchars($data['search'] ?? ''); ?>">
+                </div>
+            </div>
 
-        <div class="col-md-3 mb-3">
-          <select name="role" class="form-control">
-            <option value="">All Roles</option>
-            <option value="admin" <?php echo ($_GET['role'] ?? '') == 'admin' ? 'selected' : ''; ?>>Admin</option>
-            <option value="staff" <?php echo ($_GET['role'] ?? '') == 'staff' ? 'selected' : ''; ?>>Staff</option>
-            <option value="customer" <?php echo ($_GET['role'] ?? '') == 'customer' ? 'selected' : ''; ?>>Customer</option>
-          </select>
-        </div>
+            <div class="col-md-2">
+                <select class="form-select" name="status">
+                    <option value="">All Status</option>
+                    <option value="active" <?php echo ($data['status'] ?? '') == 'active' ? 'selected' : ''; ?>>Active</option>
+                    <option value="inactive" <?php echo ($data['status'] ?? '') == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                </select>
+            </div>
 
-        <div class="col-md-3 mb-3">
-          <select name="status" class="form-control">
-            <option value="">All Status</option>
-            <option value="active" <?php echo ($_GET['status'] ?? '') == 'active' ? 'selected' : ''; ?>>Active</option>
-            <option value="inactive" <?php echo ($_GET['status'] ?? '') == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
-          </select>
-        </div>
+            <div class="col-md-2">
+                <select class="form-select" name="category">
+                    <option value="">All Categories</option>
+                    <?php foreach ($data['categories'] as $cat): ?>
+                        <option value="<?php echo $cat; ?>" <?php echo ($data['category'] ?? '') == $cat ? 'selected' : ''; ?>>
+                            <?php echo ucfirst($cat); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <div class="col-md-2 mb-3">
-          <button type="submit" class="btn btn-primary btn-block">Search</button>
-        </div>
-      </form>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </div>
+
+            <div class="col-md-3">
+                <a href="?action=admin/services" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset Filters
+                </a>
+            </div>
+        </form>
     </div>
-  </div>
+</div>
 
   <!-- Users Table Card -->
   <div class="card shadow mb-4">
