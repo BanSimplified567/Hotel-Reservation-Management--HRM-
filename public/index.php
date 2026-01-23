@@ -89,68 +89,68 @@ switch ($action) {
     $id = $_GET['id'] ?? 0;
 
     switch ($sub_action) {
-        case 'create':
-            $controller->create();
-            break;
-        case 'edit':
-            if ($id) $controller->edit($id);
-            else $controller->index();
-            break;
-        case 'view':
-            if ($id) $controller->view($id);
-            else $controller->index();
-            break;
-        case 'delete':
-            if ($id) $controller->delete($id);
-            else $controller->index();
-            break;
-        case 'toggle-status':
-            if ($id) $controller->toggleStatus($id);
-            else $controller->index();
-            break;
-        default:
-            $controller->index();
-            break;
+      case 'create':
+        $controller->create();
+        break;
+      case 'edit':
+        if ($id) $controller->edit($id);
+        else $controller->index();
+        break;
+      case 'view':
+        if ($id) $controller->view($id);
+        else $controller->index();
+        break;
+      case 'delete':
+        if ($id) $controller->delete($id);
+        else $controller->index();
+        break;
+      case 'toggle-status':
+        if ($id) $controller->toggleStatus($id);
+        else $controller->index();
+        break;
+      default:
+        $controller->index();
+        break;
     }
     break;
 
-    case 'admin/reservations':
-      authorize(['admin', 'staff', 'customer']);
-      require_once '../app/controllers/Admin/ReservationController.php';
-      $controller = new ReservationController($pdo);
+  case 'admin/reservations':
+    authorize(['admin', 'staff', 'customer']);
+    require_once '../app/controllers/Admin/ReservationController.php';
+    $controller = new ReservationController($pdo);
 
-      $sub_action = $_GET['sub_action'] ?? 'index';
-      $id = $_GET['id'] ?? 0;
+    $sub_action = $_GET['sub_action'] ?? 'index';
+    $id = $_GET['id'] ?? 0;
 
-      switch ($sub_action) {
-        case 'view':
-          if ($id) $controller->view($id);
-          else $controller->index();
-          break;
-        case 'create':
-          $controller->create();
-          break;
-        case 'edit':
-          if ($id) $controller->edit($id);
-          else $controller->index();
-          break;
-        case 'update-status':
-          if ($id) $controller->updateStatus($id);
-          else $controller->index();
-          break;
-        case 'checkout':
-          if ($id) $controller->checkout($id);
-          else $controller->index();
-          break;
-        case 'delete':
-          if ($id) $controller->delete($id);
-          else $controller->index();
-          break;
-        default:
-          $controller->index();
-          break;
-      }
-      break;
+    switch ($sub_action) {
+      case 'view':
+        if ($id) $controller->view($id);
+        else $controller->index();
+        break;
+      case 'create':
+        $controller->create();
+        break;
+      case 'edit':
+        if ($id) $controller->edit($id);
+        else $controller->index();
+        break;
+      case 'update-status':
+        if ($id) $controller->updateStatus($id);
+        else $controller->index();
+        break;
+      case 'checkout':
+        if ($id) $controller->checkout($id);
+        else $controller->index();
+        break;
+      case 'delete':
+        if ($id) $controller->delete($id);
+        else $controller->index();
+        break;
+      default:
+        $controller->index();
+        break;
+    }
+    break;
 
   case 'admin/rooms':
     authorize(['admin', 'staff']);
@@ -182,7 +182,7 @@ switch ($action) {
     }
     break;
 
-case 'admin/services':
+  case 'admin/services':
     require_once '../app/controllers/Admin/ServiceController.php';
     $controller = new ServiceController($pdo);
 
@@ -221,6 +221,7 @@ case 'admin/services':
     $controller = new ReportController($pdo);
 
     $sub_action = $_GET['sub_action'] ?? 'index';
+    $report_type = $_GET['type'] ?? 'revenue';
 
     switch ($sub_action) {
       case 'export':
