@@ -33,6 +33,10 @@ $isStaff = in_array($role, ['admin', 'staff']);
             <i class="fas fa-calendar-alt me-3" style="width: 20px;"></i>
             <span>All Reservations</span>
           </a>
+          <a href="index.php?action=admin/reservation-guests" class="nav-link text-white d-flex align-items-center py-2 px-3 mb-1 rounded">
+            <i class="fas fa-users me-3" style="width: 20px;"></i>
+            <span>Reservation Guests</span>
+          </a>
         </div>
 
         <div class="mt-3">
@@ -66,7 +70,7 @@ $isStaff = in_array($role, ['admin', 'staff']);
         <?php endif; ?>
 
         <div class="mt-3">
-          <a href="index.php?action=profile" class="nav-link text-white d-flex align-items-center py-2 px-3 mb-1 rounded">
+          <a href="index.php?action=admin/profile" class="nav-link text-white d-flex align-items-center py-2 px-3 mb-1 rounded">
             <i class="fas fa-user-circle me-3" style="width: 20px;"></i>
             <span>My Profile</span>
           </a>

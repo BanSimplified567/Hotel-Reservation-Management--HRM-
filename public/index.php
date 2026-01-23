@@ -235,7 +235,7 @@ switch ($action) {
 
   case 'admin/contact':
     authorize(['admin', 'staff']);
-    require_once '../app/controllers/ContactController.php';
+    require_once '../app/controllers/Admin/ContactController.php';
     $controller = new ContactController($pdo);
 
     $sub_action = $_GET['sub_action'] ?? 'index';
@@ -260,9 +260,73 @@ switch ($action) {
     }
     break;
 
+  case 'admin/profile':
+    authorize(['admin', 'staff']);
+    require_once '../app/controllers/Admin/ProfileController.php';
+    $controller = new AdminProfileController($pdo);
+
+    $sub_action = $_GET['sub_action'] ?? 'index';
+
+    // Also handle POST requests
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['action'])) {
+            $sub_action = $_POST['action'];
+        }
+    }
+
+    switch ($sub_action) {
+        case 'edit':
+            $controller->edit();
+            break;
+        case 'change-password':
+            $controller->changePassword();
+            break;
+        case 'update':
+            $controller->update();
+            break;
+        case 'update-image':
+            $controller->updateProfileImage();
+            break;
+        default:
+            $controller->index();
+            break;
+    }
+    break;
+
+  case 'admin/reservation-guests':
+    authorize(['admin', 'staff']);
+    require_once '../app/controllers/Admin/ReservationGuestsController.php';
+    $controller = new ReservationGuestsController($pdo);
+
+    $sub_action = $_GET['sub_action'] ?? 'index';
+    $id = $_GET['id'] ?? 0;
+
+    switch ($sub_action) {
+      case 'create':
+        $controller->create();
+        break;
+      case 'edit':
+        if ($id) $controller->edit($id);
+        else $controller->index();
+        break;
+      case 'view':
+        if ($id) $controller->view($id);
+        else $controller->index();
+        break;
+      case 'delete':
+        if ($id) $controller->delete($id);
+        else $controller->index();
+        break;
+      default:
+        $controller->index();
+        break;
+    }
+    break;
+
+
   // ========== CUSTOMER ROUTES ==========
   case 'profile':
-    authorize(['admin', 'staff', 'customer']);
+    authorize(['customer']);
     require_once '../app/controllers/ProfileController.php';
     $controller = new ProfileController($pdo);
 

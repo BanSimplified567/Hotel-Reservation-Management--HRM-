@@ -83,11 +83,6 @@ c:\laragon\www\Hotel\c:\laragon\www\Hotel\
 │       │   │   ├───view.php
 │       │   │   ├───reply.php
 │       │   │   └───reply-modal.php
-│       │   └───partials\
-│       │       ├───header.php
-│       │       ├───sidebar.php
-│       │       ├───footer.php
-│       │       └───pagination.php
 │       ├───auth\
 │       │   ├───error.php
 │       │   ├───forgot-password.php
