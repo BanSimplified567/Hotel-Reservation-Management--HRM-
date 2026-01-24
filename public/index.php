@@ -64,13 +64,6 @@ switch ($action) {
     break;
 
   // ========== DASHBOARD ROUTES ==========
-  case 'dashboard':
-    authorize(['customer']);
-    require_once '../app/controllers/DashboardController.php';
-    $controller = new DashboardController($pdo);
-    $controller->index();
-    break;
-
   case 'admin/dashboard':
     authorize(['admin', 'staff']);
     require_once '../app/controllers/Admin/DashboardController.php';
@@ -325,6 +318,13 @@ switch ($action) {
 
 
   // ========== CUSTOMER ROUTES ==========
+    case 'dashboard':
+    authorize(['customer']);
+    require_once '../app/controllers/DashboardController.php';
+    $controller = new DashboardController($pdo);
+    $controller->index();
+    break;
+
   case 'profile':
     authorize(['customer']);
     require_once '../app/controllers/ProfileController.php';

@@ -37,6 +37,10 @@ class BaseController
     } else {
       echo "<div class='alert alert-danger'>View not found: $view</div>";
     }
+    // Role-specific UI
+    if ($isCustomer) {
+      include BASE_PATH . '/app/views/layout/footer.php';
+    }
 
     // Footer
     include BASE_PATH . '/app/views/layout/base-footer.php';

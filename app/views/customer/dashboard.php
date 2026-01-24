@@ -1,212 +1,426 @@
 <?php
-// app/views/customer/dashboard.php
-// Note: $user, $upcomingReservations, $pastReservations, $loyaltyInfo, $availableRooms, $stats, $page_title are passed from controller
+// Hotel Reservation Landing Page
+// app/views/hotel-reservation.php
+// Note: $availableRooms, $stats are passed from DashboardController::reservationDashboard()
 ?>
 
-<div class="container mx-auto px-4 py-8">
-  <!-- Welcome Section -->
-  <div class="mb-8">
-    <h1 class="text-4xl font-bold text-gray-800 mb-2">Welcome back, <?php echo htmlspecialchars($user['first_name'] ?? 'Guest'); ?>!</h1>
-    <p class="text-gray-600">Manage your reservations and explore our available rooms</p>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-blue-100 text-sm mb-1">Total Reservations</p>
-          <h3 class="text-3xl font-bold"><?php echo count($upcomingReservations ?? []) + count($pastReservations ?? []); ?></h3>
-        </div>
-        <div class="bg-white/20 p-4 rounded-lg">
-          <i class="fas fa-calendar-check text-2xl"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-green-100 text-sm mb-1">Upcoming Stays</p>
-          <h3 class="text-3xl font-bold"><?php echo count($upcomingReservations ?? []); ?></h3>
-        </div>
-        <div class="bg-white/20 p-4 rounded-lg">
-          <i class="fas fa-bed text-2xl"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-purple-100 text-sm mb-1">Loyalty Points</p>
-          <h3 class="text-3xl font-bold"><?php echo number_format($loyaltyInfo['loyalty_points'] ?? 0); ?></h3>
-        </div>
-        <div class="bg-white/20 p-4 rounded-lg">
-          <i class="fas fa-star text-2xl"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-orange-100 text-sm mb-1">Total Spent</p>
-          <h3 class="text-3xl font-bold">$<?php echo number_format($loyaltyInfo['total_spent'] ?? 0, 2); ?></h3>
-        </div>
-        <div class="bg-white/20 p-4 rounded-lg">
-          <i class="fas fa-dollar-sign text-2xl"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Left Column: Upcoming Reservations -->
-    <div class="lg:col-span-2">
-      <!-- Upcoming Reservations -->
-      <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Upcoming Reservations</h2>
-          <a href="index.php?action=my-reservations" class="text-primary hover:text-primary/80 font-semibold text-sm">
-            View All <i class="fas fa-arrow-right ml-1"></i>
-          </a>
-        </div>
-
-        <?php if (empty($upcomingReservations)): ?>
-          <div class="text-center py-12">
-            <i class="fas fa-calendar-times text-gray-300 text-5xl mb-4"></i>
-            <p class="text-gray-600 mb-4">No upcoming reservations</p>
-            <a href="index.php?action=book-room" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 inline-block">
-              <i class="fas fa-plus-circle mr-2"></i> Book a Room
+<!-- Hero Section -->
+<section class="hero-section py-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="hero-content">
+          <h1 class="h2 fw-bold mb-3">Experience Luxury & Comfort</h1>
+          <p class="mb-4">Welcome to Hotel Management System, where exceptional service meets unparalleled luxury.</p>
+          <?php if (isset($_SESSION['user_id'])): ?>
+            <a href="index.php?action=book-room" class="btn btn-primary px-4 py-2">
+              <i class="fas fa-calendar-check me-2"></i> Book Your Stay
             </a>
+          <?php else: ?>
+            <a href="index.php?action=register" class="btn btn-primary px-4 py-2">
+              <i class="fas fa-user-plus me-2"></i> Register to Book
+            </a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card booking-card border-0 shadow-sm">
+          <div class="card-body p-3">
+            <h3 class="h5 card-title mb-3">Find Your Perfect Room</h3>
+            <form action="index.php?action=room-search" method="GET">
+              <input type="hidden" name="action" value="room-search">
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label small">Check-in Date</label>
+                  <input type="date" class="form-control form-control-sm" name="check_in" required
+                    min="<?php echo date('Y-m-d'); ?>">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Check-out Date</label>
+                  <input type="date" class="form-control form-control-sm" name="check_out" required
+                    min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Guests</label>
+                  <select class="form-select form-select-sm" name="guests">
+                    <option value="1">1 Guest</option>
+                    <option value="2" selected>2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4">4 Guests</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small">Room Type</label>
+                  <select class="form-select form-select-sm" name="room_type">
+                    <option value="all">All Rooms</option>
+                    <?php if (!empty($availableRooms)): ?>
+                      <?php foreach ($availableRooms as $room): ?>
+                        <?php if ($room['type'] !== 'Common / Background'): ?>
+                          <option value="<?php echo htmlspecialchars($room['room_type_id'] ?? ''); ?>">
+                            <?php echo htmlspecialchars($room['type']); ?>
+                          </option>
+                        <?php endif; ?>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </select>
+                </div>
+                <div class="col-12 mt-3">
+                  <button type="submit" class="btn btn-primary btn-sm w-100 py-2">
+                    <i class="fas fa-search me-1"></i> Check Availability
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
-        <?php else: ?>
-          <div class="space-y-4">
-            <?php foreach (array_slice($upcomingReservations, 0, 3) as $reservation): ?>
-              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
-                      <h3 class="text-lg font-semibold text-gray-800"><?php echo htmlspecialchars($reservation['room_type'] ?? 'Room'); ?></h3>
-                      <span class="px-2 py-1 rounded-full text-xs font-semibold <?php
-                        echo $reservation['status'] === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                      ?>">
-                        <?php echo ucfirst($reservation['status'] ?? 'pending'); ?>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<?php if (isset($stats) && !empty($stats)): ?>
+  <section class="py-3 bg-light">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col-6 col-md-3 mb-2">
+          <div class="p-3">
+            <h3 class="h4 fw-bold text-primary mb-1"><?php echo $stats['total_reservations'] ?? 0; ?></h3>
+            <p class="small text-muted mb-0">Total Reservations</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 mb-2">
+          <div class="p-3">
+            <h3 class="h4 fw-bold text-success mb-1"><?php echo $stats['available_rooms'] ?? 0; ?></h3>
+            <p class="small text-muted mb-0">Available Rooms</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 mb-2">
+          <div class="p-3">
+            <h3 class="h4 fw-bold text-warning mb-1"><?php echo $stats['checkins_today'] ?? 0; ?></h3>
+            <p class="small text-muted mb-0">Check-ins Today</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 mb-2">
+          <div class="p-3">
+            <h3 class="h4 fw-bold text-info mb-1">$<?php echo number_format($stats['today_revenue'] ?? 0, 2); ?></h3>
+            <p class="small text-muted mb-0">Today's Revenue</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<?php endif; ?>
+
+<!-- Available Rooms Preview -->
+<section class="py-4">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-lg-10 mx-auto text-center">
+        <h2 class="h4 fw-bold mb-3">Our Room Types</h2>
+        <p class="mb-3 small">
+          Choose from our selection of luxurious rooms designed for your comfort.
+        </p>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <?php if (!empty($availableRooms)): ?>
+        <?php foreach ($availableRooms as $room): ?>
+          <?php if ($room['type'] !== 'Common / Background'): ?>
+            <div class="col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm h-100">
+                <?php if (!empty($room['images']['primary'])): ?>
+                  <img src="<?php echo htmlspecialchars($room['images']['primary']); ?>"
+                    class="card-img-top" alt="<?php echo htmlspecialchars($room['type']); ?>"
+                    style="height: 200px; object-fit: cover;">
+                <?php endif; ?>
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title h6 fw-bold mb-0"><?php echo htmlspecialchars($room['type']); ?></h5>
+                    <span class="badge bg-primary"><?php echo $room['available_count'] ?? 0; ?> Available</span>
+                  </div>
+                  <p class="card-text small text-muted mb-2">
+                    <?php echo htmlspecialchars(substr($room['description'] ?? '', 0, 80)); ?>...
+                  </p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="h5 text-primary fw-bold">$<?php echo number_format($room['price_per_night'] ?? 0, 2); ?></span>
+                      <span class="text-muted small">/night</span>
+                    </div>
+                    <div>
+                      <span class="badge bg-light text-dark me-1">
+                        <i class="fas fa-user me-1"></i><?php echo $room['capacity'] ?? 2; ?>
+                      </span>
+                      <span class="badge bg-light text-dark">
+                        <i class="fas fa-expand-arrows-alt me-1"></i><?php echo $room['size'] ?? '25 sqm'; ?>
                       </span>
                     </div>
-                    <p class="text-gray-600 text-sm mb-2">Room #<?php echo htmlspecialchars($reservation['room_number'] ?? 'N/A'); ?></p>
-                    <div class="flex flex-wrap gap-4 text-sm text-gray-600">
-                      <span><i class="fas fa-calendar-check text-primary mr-1"></i> <?php echo date('M d, Y', strtotime($reservation['check_in'] ?? 'now')); ?></span>
-                      <span><i class="fas fa-calendar-times text-primary mr-1"></i> <?php echo date('M d, Y', strtotime($reservation['check_out'] ?? 'now')); ?></span>
-                    </div>
                   </div>
-                  <div class="text-right">
-                    <p class="text-lg font-bold text-gray-800">$<?php echo number_format($reservation['total_amount'] ?? 0, 2); ?></p>
-                    <a href="index.php?action=my-reservations&sub_action=view&id=<?php echo $reservation['id']; ?>" class="text-primary hover:text-primary/80 text-sm font-semibold mt-2 inline-block">
-                      View Details <i class="fas fa-arrow-right ml-1"></i>
+                  <div class="mt-3">
+                    <a href="index.php?action=room-details&id=<?php echo $room['room_type_id'] ?? ''; ?>"
+                      class="btn btn-outline-primary btn-sm w-100">
+                      <i class="fas fa-info-circle me-1"></i> View Details
                     </a>
                   </div>
                 </div>
               </div>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-      </div>
-
-      <!-- Past Reservations -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Past Reservations</h2>
-          <a href="index.php?action=my-reservations" class="text-primary hover:text-primary/80 font-semibold text-sm">
-            View All <i class="fas fa-arrow-right ml-1"></i>
-          </a>
+            </div>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div class="col-12 text-center py-4">
+          <i class="fas fa-bed text-secondary fa-3x mb-3"></i>
+          <p class="text-muted">No rooms available at the moment.</p>
         </div>
-
-        <?php if (empty($pastReservations)): ?>
-          <div class="text-center py-8">
-            <i class="fas fa-history text-gray-300 text-4xl mb-3"></i>
-            <p class="text-gray-600">No past reservations</p>
-          </div>
-        <?php else: ?>
-          <div class="space-y-4">
-            <?php foreach (array_slice($pastReservations, 0, 3) as $reservation): ?>
-              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300 opacity-75">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2"><?php echo htmlspecialchars($reservation['room_type'] ?? 'Room'); ?></h3>
-                    <p class="text-gray-600 text-sm mb-2">Room #<?php echo htmlspecialchars($reservation['room_number'] ?? 'N/A'); ?></p>
-                    <div class="flex flex-wrap gap-4 text-sm text-gray-600">
-                      <span><i class="fas fa-calendar-check text-primary mr-1"></i> <?php echo date('M d, Y', strtotime($reservation['check_in'] ?? 'now')); ?></span>
-                      <span><i class="fas fa-calendar-times text-primary mr-1"></i> <?php echo date('M d, Y', strtotime($reservation['check_out'] ?? 'now')); ?></span>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-lg font-bold text-gray-800">$<?php echo number_format($reservation['total_amount'] ?? 0, 2); ?></p>
-                    <a href="index.php?action=my-reservations&sub_action=view&id=<?php echo $reservation['id']; ?>" class="text-primary hover:text-primary/80 text-sm font-semibold mt-2 inline-block">
-                      View Details <i class="fas fa-arrow-right ml-1"></i>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-      </div>
+      <?php endif; ?>
     </div>
 
-    <!-- Right Column: Quick Actions & Available Rooms -->
-    <div class="space-y-6">
-      <!-- Quick Actions -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-        <div class="space-y-3">
-          <a href="index.php?action=book-room" class="block w-full bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
-            <i class="fas fa-bed mr-2"></i> Book a Room
-          </a>
-          <a href="index.php?action=my-reservations" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
-            <i class="fas fa-calendar-check mr-2"></i> My Reservations
-          </a>
-          <a href="index.php?action=profile" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-semibold transition duration-300 text-center">
-            <i class="fas fa-user mr-2"></i> My Profile
-          </a>
-        </div>
+    <?php if (!empty($availableRooms)): ?>
+      <div class="text-center mt-4">
+        <a href="index.php?action=rooms" class="btn btn-primary btn-sm">
+          <i class="fas fa-door-open me-1"></i> View All Rooms
+        </a>
       </div>
+    <?php endif; ?>
+  </div>
+</section>
 
-      <!-- Available Rooms Preview -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-gray-800">Available Rooms</h2>
-          <a href="index.php?action=rooms" class="text-primary hover:text-primary/80 text-sm font-semibold">
-            View All
-          </a>
-        </div>
-        <?php if (!empty($availableRooms)): ?>
-          <div class="space-y-4">
-            <?php foreach (array_slice($availableRooms, 0, 3) as $room): ?>
-              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-300">
-                <div class="flex items-center gap-3 mb-2">
-                  <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold">
-                    <?php echo strtoupper(substr($room['type'] ?? 'R', 0, 1)); ?>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-semibold text-gray-800"><?php echo htmlspecialchars($room['type'] ?? 'Room'); ?></h3>
-                    <p class="text-sm text-gray-600"><?php echo $room['available_count'] ?? 0; ?> available</p>
-                  </div>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                  <span class="text-lg font-bold text-primary">$<?php echo number_format($room['price_per_night'] ?? 0, 2); ?>/night</span>
-                  <a href="index.php?action=book-room" class="text-primary hover:text-primary/80 text-sm font-semibold">
-                    Book Now <i class="fas fa-arrow-right ml-1"></i>
-                  </a>
-                </div>
-              </div>
-            <?php endforeach; ?>
+<!-- Description Section -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 mx-auto text-center">
+        <h2 class="h4 fw-bold mb-3">Welcome to Our Hotel</h2>
+        <p class="mb-3 small">
+          Nestled in the heart of the city, we offer a sanctuary of elegance and comfort
+          with luxurious rooms and world-class amenities.
+        </p>
+        <div class="row mt-3">
+          <div class="col-6 col-md-3 mb-3">
+            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
+              <i class="fas fa-wifi fa-lg"></i>
+            </div>
+            <h6 class="mb-0 small">Free WiFi</h6>
           </div>
-        <?php else: ?>
-          <p class="text-gray-600 text-center py-4">No rooms available</p>
-        <?php endif; ?>
+          <div class="col-6 col-md-3 mb-3">
+            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
+              <i class="fas fa-utensils fa-lg"></i>
+            </div>
+            <h6 class="mb-0 small">Fine Dining</h6>
+          </div>
+          <div class="col-6 col-md-3 mb-3">
+            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
+              <i class="fas fa-spa fa-lg"></i>
+            </div>
+            <h6 class="mb-0 small">Spa</h6>
+          </div>
+          <div class="col-6 col-md-3 mb-3">
+            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
+              <i class="fas fa-swimming-pool fa-lg"></i>
+            </div>
+            <h6 class="mb-0 small">Pool</h6>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- About Section -->
+<section class="py-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-5 mb-3 mb-md-0">
+        <img src="https://images.unsplash.com/photo-1564501049418-3c27787d01e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+          alt="Hotel Lobby" class="img-fluid rounded shadow-sm">
+      </div>
+      <div class="col-md-7">
+        <h2 class="h4 fw-bold mb-3">About Our Hotel</h2>
+        <p class="mb-3 small">
+          Our hotel has been redefining luxury hospitality for years.
+          Our commitment to excellence has earned us numerous awards and guest loyalty.
+        </p>
+        <div class="row mt-2">
+          <div class="col-6 mb-2">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle text-primary me-2"></i>
+              <div>
+                <h6 class="mb-0 small fw-bold">Award-Winning</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 mb-2">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle text-primary me-2"></i>
+              <div>
+                <h6 class="mb-0 small fw-bold">Prime Location</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 mb-2">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle text-primary me-2"></i>
+              <div>
+                <h6 class="mb-0 small fw-bold">Eco-Friendly</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 mb-2">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle text-primary me-2"></i>
+              <div>
+                <h6 class="mb-0 small fw-bold">24/7 Service</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <h2 class="h4 fw-bold text-center mb-3">What Our Guests Say</h2>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card testimonial-card h-100 border-0 shadow-sm">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+              <div class="rounded-circle overflow-hidden me-2" style="width: 40px; height: 40px;">
+                <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Guest" class="img-fluid">
+              </div>
+              <div>
+                <h6 class="mb-0 small fw-bold">Sarah Johnson</h6>
+                <div class="text-warning small">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+            <p class="card-text small mb-0">
+              "Absolutely breathtaking! The service was impeccable. We'll definitely be returning."
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card testimonial-card h-100 border-0 shadow-sm">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+              <div class="rounded-circle overflow-hidden me-2" style="width: 40px; height: 40px;">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Guest" class="img-fluid">
+              </div>
+              <div>
+                <h6 class="mb-0 small fw-bold">Michael Chen</h6>
+                <div class="text-warning small">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+            <p class="card-text small mb-0">
+              "Perfect for business travel. Conference facilities are state-of-the-art."
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card testimonial-card h-100 border-0 shadow-sm">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+              <div class="rounded-circle overflow-hidden me-2" style="width: 40px; height: 40px;">
+                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Guest" class="img-fluid">
+              </div>
+              <div>
+                <h6 class="mb-0 small fw-bold">Roberta Williams</h6>
+                <div class="text-warning small">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+            <p class="card-text small mb-0">
+              "Our anniversary stay was magical! Attention to detail is outstanding."
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section {
+    background: linear-gradient(rgba(13, 59, 102, 0.9), rgba(13, 59, 102, 0.95)),
+      url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .booking-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 8px;
+  }
+
+  .testimonial-card {
+    transition: transform 0.2s ease;
+    height: 100%;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .feature-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .feature-icon:hover {
+    transform: scale(1.05);
+  }
+
+  .btn-primary {
+    background-color: #0d3b66;
+    border-color: #0d3b66;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0a2d4d;
+    border-color: #0a2d4d;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    .hero-section {
+      min-height: 50vh;
+      padding: 30px 0;
+    }
+
+    .hero-content h1 {
+      font-size: 1.5rem;
+    }
+
+    .hero-content p {
+      font-size: 0.9rem;
+    }
+  }
+</style>

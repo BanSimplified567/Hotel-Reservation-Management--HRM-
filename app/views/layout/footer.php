@@ -4,53 +4,52 @@
 </div> <!-- Close main content div -->
 
 <!-- Footer -->
-<footer class="mt-auto bg-gray-900 text-white py-12">
-  <div class="container mx-auto px-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
+<footer class="bg-dark text-white py-4 mt-4">
+  <div class="container">
+    <div class="row">
       <!-- Company Info -->
-      <div>
-        <h5 class="text-xl font-bold mb-4 text-white">Hotel Management System</h5>
-        <p class="text-gray-300 mb-4">
+      <div class="col-md-6 col-lg-3 mb-4">
+        <h5 class="h6 fw-bold mb-3">Hotel Management System</h5>
+        <p class="small text-white-50 mb-3">
           Experience luxury and comfort at our premier hotel. Book your perfect stay today.
         </p>
-        <div class="flex space-x-4">
-          <a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">
-            <i class="fab fa-facebook-f text-lg"></i>
+        <div class="d-flex gap-3">
+          <a href="#" class="text-white-50 hover:text-white">
+            <i class="fab fa-facebook-f"></i>
           </a>
-          <a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">
-            <i class="fab fa-twitter text-lg"></i>
+          <a href="#" class="text-white-50 hover:text-white">
+            <i class="fab fa-twitter"></i>
           </a>
-          <a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">
-            <i class="fab fa-instagram text-lg"></i>
+          <a href="#" class="text-white-50 hover:text-white">
+            <i class="fab fa-instagram"></i>
           </a>
-          <a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">
-            <i class="fab fa-linkedin text-lg"></i>
+          <a href="#" class="text-white-50 hover:text-white">
+            <i class="fab fa-linkedin"></i>
           </a>
         </div>
       </div>
 
       <!-- Quick Links -->
-      <div>
-        <h5 class="text-xl font-bold mb-4 text-white">Quick Links</h5>
-        <ul class="space-y-2">
-          <li>
-            <a href="index.php" class="text-gray-300 hover:text-white transition-colors duration-200">
+      <div class="col-md-6 col-lg-2 mb-4">
+        <h5 class="h6 fw-bold mb-3">Quick Links</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2">
+            <a href="index.php" class="text-white-50 small text-decoration-none hover:text-white">
               Home
             </a>
           </li>
-          <li>
-            <a href="index.php?action=rooms" class="text-gray-300 hover:text-white transition-colors duration-200">
+          <li class="mb-2">
+            <a href="index.php?action=rooms" class="text-white-50 small text-decoration-none hover:text-white">
               Rooms
             </a>
           </li>
-          <li>
-            <a href="index.php?action=about" class="text-gray-300 hover:text-white transition-colors duration-200">
+          <li class="mb-2">
+            <a href="index.php?action=about" class="text-white-50 small text-decoration-none hover:text-white">
               About Us
             </a>
           </li>
-          <li>
-            <a href="index.php?action=contact" class="text-gray-300 hover:text-white transition-colors duration-200">
+          <li class="mb-2">
+            <a href="index.php?action=contact" class="text-white-50 small text-decoration-none hover:text-white">
               Contact
             </a>
           </li>
@@ -58,39 +57,39 @@
       </div>
 
       <!-- Contact Info -->
-      <div>
-        <h5 class="text-xl font-bold mb-4 text-white">Contact Info</h5>
-        <ul class="space-y-3">
-          <li class="flex items-center">
-            <i class="fas fa-phone mr-3 text-blue-400"></i>
-            <a href="tel:09619839317" class="text-gray-300 hover:text-white transition-colors duration-200">
+      <div class="col-md-6 col-lg-3 mb-4">
+        <h5 class="h6 fw-bold mb-3">Contact Info</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2 d-flex align-items-center">
+            <i class="fas fa-phone me-2 text-primary small"></i>
+            <a href="tel:09619839317" class="text-white-50 small text-decoration-none hover:text-white">
               0961 983 9317
             </a>
           </li>
-          <li class="flex items-center">
-            <i class="fas fa-envelope mr-3 text-blue-400"></i>
-            <a href="mailto:bansimplified567@gmail.com" class="text-gray-300 hover:text-white transition-colors duration-200">
+          <li class="mb-2 d-flex align-items-center">
+            <i class="fas fa-envelope me-2 text-primary small"></i>
+            <a href="mailto:bansimplified567@gmail.com" class="text-white-50 small text-decoration-none hover:text-white">
               bansimplified567@gmail.com
             </a>
           </li>
-          <li class="flex items-center">
-            <i class="fas fa-map-marker-alt mr-3 text-blue-400"></i>
-            <span class="text-gray-300">123 Hotel Street, City, Country</span>
+          <li class="mb-2 d-flex align-items-center">
+            <i class="fas fa-map-marker-alt me-2 text-primary small"></i>
+            <span class="text-white-50 small">123 Hotel Street, City, Country</span>
           </li>
         </ul>
       </div>
 
-      <!-- Newsletter - FIXED VERSION -->
-      <div>
-        <h5 class="text-xl font-bold mb-4 text-white">Newsletter</h5>
-        <p class="text-gray-300 mb-4">Subscribe to get special offers and updates.</p>
-        <form class="flex flex-col sm:flex-row">
+      <!-- Newsletter -->
+      <div class="col-md-6 col-lg-4 mb-4">
+        <h5 class="h6 fw-bold mb-3">Newsletter</h5>
+        <p class="text-white-50 small mb-3">Subscribe to get special offers and updates.</p>
+        <form class="input-group">
           <input type="email"
-            class="flex-grow px-4 py-2 rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 w-full"
+            class="form-control form-control-sm"
             placeholder="Your email"
             required>
           <button type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-b-lg sm:rounded-r-lg sm:rounded-bl-none transition-colors duration-200 font-medium mt-2 sm:mt-0 sm:w-auto w-full">
+            class="btn btn-primary btn-sm">
             Subscribe
           </button>
         </form>
@@ -98,23 +97,23 @@
     </div>
 
     <!-- Divider -->
-    <div class="border-t border-gray-700 my-8"></div>
+    <div class="border-top border-secondary my-3"></div>
 
     <!-- Copyright and Links -->
-    <div class="flex flex-col md:flex-row justify-between items-center">
-      <div class="mb-4 md:mb-0">
-        <span class="text-gray-400">
+    <div class="row">
+      <div class="col-md-6 mb-2 mb-md-0">
+        <span class="text-white-50 small">
           &copy; <?php echo date('Y'); ?> Hotel Management System. All rights reserved.
         </span>
       </div>
-      <div class="flex space-x-6">
-        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+      <div class="col-md-6 text-md-end">
+        <a href="#" class="text-white-50 small text-decoration-none me-3 hover:text-white">
           Privacy Policy
         </a>
-        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+        <a href="#" class="text-white-50 small text-decoration-none me-3 hover:text-white">
           Terms of Service
         </a>
-        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+        <a href="#" class="text-white-50 small text-decoration-none hover:text-white">
           Help Center
         </a>
       </div>
@@ -125,24 +124,20 @@
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 <script src="../../public/assets/js/main.js"></script>
 
 <!-- Toast Notifications -->
 <?php if (isset($_SESSION['success'])): ?>
-  <div class="fixed bottom-4 right-4 z-50">
-    <div class="bg-green-600 text-white rounded-lg shadow-lg max-w-sm">
-      <div class="flex items-center justify-between p-4">
-        <div class="flex items-center">
-          <i class="fas fa-check-circle mr-2"></i>
-          <strong>Success</strong>
-        </div>
-        <button type="button" onclick="this.parentElement.parentElement.remove()"
-          class="text-white hover:text-gray-200 ml-4">
-          <i class="fas fa-times"></i>
-        </button>
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-success text-white">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong class="me-auto">Success</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
-      <div class="px-4 pb-4">
+      <div class="toast-body">
         <?php echo $_SESSION['success'];
         unset($_SESSION['success']); ?>
       </div>
@@ -151,19 +146,14 @@
 <?php endif; ?>
 
 <?php if (isset($_SESSION['error'])): ?>
-  <div class="fixed bottom-4 right-4 z-50">
-    <div class="bg-red-600 text-white rounded-lg shadow-lg max-w-sm">
-      <div class="flex items-center justify-between p-4">
-        <div class="flex items-center">
-          <i class="fas fa-exclamation-triangle mr-2"></i>
-          <strong>Error</strong>
-        </div>
-        <button type="button" onclick="this.parentElement.parentElement.remove()"
-          class="text-white hover:text-gray-200 ml-4">
-          <i class="fas fa-times"></i>
-        </button>
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-danger text-white">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong class="me-auto">Error</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
-      <div class="px-4 pb-4">
+      <div class="toast-body">
         <?php echo $_SESSION['error'];
         unset($_SESSION['error']); ?>
       </div>
@@ -173,9 +163,9 @@
 
 <script>
   $(document).ready(function() {
-    // Initialize all DataTables
+    // Initialize DataTables
     $('.data-table').DataTable({
-      "pageLength": 25,
+      "pageLength": 10,
       "language": {
         "search": "Search:",
         "lengthMenu": "Show _MENU_ entries",
@@ -183,24 +173,23 @@
         "info": "Showing _START_ to _END_ of _TOTAL_ entries",
         "infoEmpty": "No records available",
         "infoFiltered": "(filtered from _MAX_ total entries)"
-      }
+      },
+      "responsive": true
     });
 
-    // Auto-dismiss alerts after 5 seconds
-    setTimeout(function() {
-      $('.alert').remove();
-    }, 5000);
+    // Initialize Bootstrap toasts
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    var toastList = toastElList.map(function(toastEl) {
+      return new bootstrap.Toast(toastEl, {
+        autohide: true,
+        delay: 5000
+      })
+    });
 
-    // Auto-dismiss toast notifications after 5 seconds
-    setTimeout(function() {
-      const toasts = document.querySelectorAll('.fixed.bottom-4.right-4 > div');
-      toasts.forEach(toast => {
-        toast.remove();
-      });
-    }, 5000);
+    // Auto-hide toasts after 5 seconds
+    toastList.forEach(function(toast) {
+      toast.show();
+    });
   });
 </script>
 
-</body>
-
-</html>
