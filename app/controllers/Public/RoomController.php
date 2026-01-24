@@ -1,6 +1,6 @@
 <?php
 // app/controllers/RoomController.php
-require_once __DIR__ . '/Path/BaseController.php';
+require_once __DIR__ . '/../Path/BaseController.php';
 
 class RoomController extends BaseController
 {

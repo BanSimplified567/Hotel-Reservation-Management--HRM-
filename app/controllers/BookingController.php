@@ -98,13 +98,19 @@ class BookingController extends BaseController
     $check_in = $_POST['check_in'] ?? '';
     $check_out = $_POST['check_out'] ?? '';
     $guests = intval($_POST['guests'] ?? 1);
+
+    // If no room selected, treat as date update
+    if ($room_id <= 0) {
+      $params = [];
+      if (!empty($check_in)) $params['check_in'] = $check_in;
+      if (!empty($check_out)) $params['check_out'] = $check_out;
+      if ($guests > 1) $params['guests'] = $guests;
+      $query = http_build_query($params);
+      $this->redirect('book-room' . (!empty($query) ? '?' . $query : ''));
+    }
+
     $special_requests = trim($_POST['special_requests'] ?? '');
     $services = $_POST['services'] ?? [];
-
-    // Validation
-    if ($room_id <= 0) {
-      $errors[] = "Please select a room.";
-    }
 
     if (empty($check_in) || empty($check_out)) {
       $errors[] = "Please select check-in and check-out dates.";

@@ -19,15 +19,15 @@
       <div>
         <h2 class="text-3xl font-bold mb-6 text-gray-800">Send us a Message</h2>
 
-        <?php if (isset($_SESSION['error'])): ?>
+        <?php if (!empty($error)): ?>
           <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+            <?php echo htmlspecialchars($error); ?>
           </div>
         <?php endif; ?>
 
-        <?php if (isset($_SESSION['success'])): ?>
+        <?php if (!empty($success)): ?>
           <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+            Thank you for your message. We will get back to you soon.
           </div>
         <?php endif; ?>
 

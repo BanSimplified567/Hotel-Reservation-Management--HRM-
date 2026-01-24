@@ -124,9 +124,34 @@
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-<script src="../../public/assets/js/main.js"></script>
+
+<!-- Your custom scripts -->
+<script>
+  // Fix for navbar dropdown on mobile
+  document.addEventListener('DOMContentLoaded', function() {
+    // Fix dropdown toggle on mobile
+    var dropdownToggleList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
+    dropdownToggleList.map(function(dropdownToggleEl) {
+      return new bootstrap.Dropdown(dropdownToggleEl)
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.matches('.dropdown-toggle')) {
+        var dropdowns = document.getElementsByClassName('dropdown-menu');
+        for (var i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    });
+  });
+</script>
+
 
 <!-- Toast Notifications -->
 <?php if (isset($_SESSION['success'])): ?>
@@ -192,4 +217,3 @@
     });
   });
 </script>
-

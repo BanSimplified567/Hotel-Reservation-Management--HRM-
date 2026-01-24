@@ -11,23 +11,73 @@ require_once '../app/middleware/auth.php';
 // Get action from query parameter
 $action = $_GET['action'] ?? '';
 
-// Special handling for empty action
+// Special handling for empty action - Redirect to home page
 if (empty($action)) {
-  if (isset($_SESSION['user_id'])) {
-    // Redirect authenticated users to appropriate dashboard
-    if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'staff') {
-      header('Location: index.php?action=admin/dashboard');
-    } else {
-      header('Location: index.php?action=dashboard');
-    }
-  } else {
-    // Redirect guests to login
-    header('Location: index.php?action=login');
-  }
+  header('Location: index.php?action=home');
   exit;
 }
+
 // Route handling
 switch ($action) {
+  // ========== PUBLIC HOMEPAGE ROUTE ==========
+  case 'home':
+    require_once '../app/controllers/Public/HomeController.php';
+    $controller = new HomeController($pdo);
+    $controller->index();
+    break;
+
+  // ========== OTHER PUBLIC ROUTES ==========
+  case 'room-search':
+    require_once '../app/controllers/RoomSearchController.php';
+    $controller = new RoomSearchController($pdo);
+    $controller->index();
+    break;
+
+  case 'rooms':
+    require_once '../app/controllers/Public/RoomController.php';
+    $controller = new RoomController($pdo);
+
+    $sub_action = $_GET['sub_action'] ?? 'index';
+    $id = $_GET['id'] ?? 0;
+
+    switch ($sub_action) {
+      case 'details':
+        if ($id) $controller->details($id);
+        else $controller->index();
+        break;
+      case 'compare':
+        $controller->compare();
+        break;
+      default:
+        $controller->index();
+        break;
+    }
+    break;
+
+  case 'amenities':
+    require_once '../app/controllers/Public/AmenitiesController.php';
+    $controller = new AmenitiesController($pdo);
+    $controller->index();
+    break;
+
+  case 'gallery':
+    require_once '../app/controllers/Public/GalleryController.php';
+    $controller = new GalleryController($pdo);
+    $controller->index();
+    break;
+
+  case 'about':
+    require_once '../app/controllers/Public/AboutController.php';
+    $controller = new AboutController($pdo);
+    $controller->index();
+    break;
+
+  case 'contact':
+    require_once '../app/controllers/Public/ContactController.php';
+    $controller = new ContactController($pdo);
+    $controller->index();
+    break;
+
   // ========== AUTHENTICATION ROUTES ==========
   case 'login':
     guest_only();
@@ -71,13 +121,19 @@ switch ($action) {
     $controller->index();
     break;
 
+  case 'dashboard':
+    authorize(['customer']);
+    require_once '../app/controllers/DashboardController.php';
+    $controller = new DashboardController($pdo);
+    $controller->index();
+    break;
+
   // ========== ADMIN ROUTES ==========
   case 'admin/users':
     authorize(['admin']);
     require_once '../app/controllers/Admin/UserController.php';
     $controller = new UserController($pdo);
 
-    // Handle sub-actions
     $sub_action = $_GET['sub_action'] ?? 'index';
     $id = $_GET['id'] ?? 0;
 
@@ -176,6 +232,7 @@ switch ($action) {
     break;
 
   case 'admin/services':
+    authorize(['admin', 'staff']);
     require_once '../app/controllers/Admin/ServiceController.php';
     $controller = new ServiceController($pdo);
 
@@ -260,29 +317,28 @@ switch ($action) {
 
     $sub_action = $_GET['sub_action'] ?? 'index';
 
-    // Also handle POST requests
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (isset($_POST['action'])) {
-            $sub_action = $_POST['action'];
-        }
+      if (isset($_POST['action'])) {
+        $sub_action = $_POST['action'];
+      }
     }
 
     switch ($sub_action) {
-        case 'edit':
-            $controller->edit();
-            break;
-        case 'change-password':
-            $controller->changePassword();
-            break;
-        case 'update':
-            $controller->update();
-            break;
-        case 'update-image':
-            $controller->updateProfileImage();
-            break;
-        default:
-            $controller->index();
-            break;
+      case 'edit':
+        $controller->edit();
+        break;
+      case 'change-password':
+        $controller->changePassword();
+        break;
+      case 'update':
+        $controller->update();
+        break;
+      case 'update-image':
+        $controller->updateProfileImage();
+        break;
+      default:
+        $controller->index();
+        break;
     }
     break;
 
@@ -316,15 +372,7 @@ switch ($action) {
     }
     break;
 
-
   // ========== CUSTOMER ROUTES ==========
-    case 'dashboard':
-    authorize(['customer']);
-    require_once '../app/controllers/DashboardController.php';
-    $controller = new DashboardController($pdo);
-    $controller->index();
-    break;
-
   case 'profile':
     authorize(['customer']);
     require_once '../app/controllers/ProfileController.php';
@@ -389,78 +437,6 @@ switch ($action) {
         break;
       case 'calculate-price':
         $controller->calculatePrice();
-        break;
-      default:
-        $controller->index();
-        break;
-    }
-    break;
-
-  case 'room-search':
-    require_once '../app/controllers/RoomSearchController.php';
-    $controller = new RoomSearchController($pdo);
-
-    $sub_action = $_GET['sub_action'] ?? 'index';
-    $room_id = $_GET['room_id'] ?? 0;
-
-    switch ($sub_action) {
-      case 'quick-search':
-        $controller->quickSearch();
-        break;
-      case 'get-room-details':
-        if ($room_id) $controller->getRoomDetails($room_id);
-        else $controller->index();
-        break;
-      default:
-        $controller->index();
-        break;
-    }
-    break;
-
-  // ========== PUBLIC ROUTES ==========
-  case 'contact':
-    require_once '../app/controllers/ContactController.php';
-    $controller = new ContactController($pdo);
-    $controller->index();
-    break;
-
-  case 'about':
-    require_once '../app/controllers/AboutController.php';
-    $controller = new AboutController($pdo);
-
-    $sub_action = $_GET['sub_action'] ?? 'index';
-
-    switch ($sub_action) {
-      case 'amenities':
-        $controller->amenities();
-        break;
-      case 'gallery':
-        $controller->gallery();
-        break;
-      default:
-        $controller->index();
-        break;
-    }
-    break;
-
-  case 'rooms':
-    require_once '../app/controllers/RoomController.php';
-    $controller = new RoomController($pdo);
-
-    $sub_action = $_GET['sub_action'] ?? 'index';
-    $id = $_GET['id'] ?? 0;
-
-    switch ($sub_action) {
-      case 'view':
-        if ($id) $controller->view($id);
-        else $controller->index();
-        break;
-      case 'submit-review':
-        if ($id) $controller->submitReview($id);
-        else $controller->index();
-        break;
-      case 'compare':
-        $controller->compare();
         break;
       default:
         $controller->index();

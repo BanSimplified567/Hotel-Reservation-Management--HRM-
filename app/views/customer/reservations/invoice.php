@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice #<?php echo str_pad($reservation['id'], 6, '0', STR_PAD_LEFT); ?> - Hotel Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     @media print {
       .no-print {
@@ -65,9 +58,7 @@
       white-space: nowrap;
     }
   </style>
-</head>
 
-<body>
   <div class="container-fluid py-4">
     <div class="row justify-content-center">
       <div class="col-lg-10">
@@ -171,47 +162,39 @@
 
                 <!-- Service Charges -->
                 <?php if ($serviceTotal > 0): ?>
-                  <tr>
-                    <td>
-                      <strong><?php echo htmlspecialchars($reservation['service_name']); ?></strong><br>
-                      <small class="text-muted">Additional service</small>
-                    </td>
-                    <td class="text-center">1</td>
-                    <td class="text-center">$<?php echo number_format($reservation['service_price'], 2); ?></td>
-                    <td class="text-end">$<?php echo number_format($serviceTotal, 2); ?></td>
-                  </tr>
-                <?php endif; ?>
+               <!-- In the invoice table section, update variable names: -->
+<tr>
+  <td class="text-center"><?php echo $nights; ?> nights</td>
+  <td class="text-center">$<?php echo number_format($reservation['price_per_night'], 2); ?></td>
+  <td class="text-end">$<?php echo number_format($roomTotal, 2); ?></td> <!-- Changed from $room_total -->
+</tr>
 
-                <!-- Subtotal -->
-                <tr>
-                  <td colspan="3" class="text-end"><strong>Subtotal</strong></td>
-                  <td class="text-end">$<?php echo number_format($roomTotal + $serviceTotal, 2); ?></td>
-                </tr>
+<!-- Later in the same file: -->
+<?php if ($servicesTotal > 0): ?> <!-- Changed from $serviceTotal -->
+  <tr>
+    <td class="text-center">1</td>
+    <td class="text-center">$<?php echo number_format($reservation['service_price'], 2); ?></td>
+    <td class="text-end">$<?php echo number_format($servicesTotal, 2); ?></td> <!-- Changed from $serviceTotal -->
+  </tr>
+<?php endif; ?>
 
-                <!-- Tax -->
-                <tr>
-                  <td colspan="3" class="text-end"><strong>Tax (10%)</strong></td>
-                  <td class="text-end">$<?php echo number_format($taxAmount, 2); ?></td>
-                </tr>
+<!-- Subtotal row: -->
+<tr>
+  <td colspan="3" class="text-end"><strong>Subtotal</strong></td>
+  <td class="text-end">$<?php echo number_format($roomTotal + $servicesTotal, 2); ?></td>
+</tr>
 
-                <!-- Total -->
-                <tr class="total-row table-active">
-                  <td colspan="3" class="text-end"><strong>TOTAL</strong></td>
-                  <td class="text-end"><strong>$<?php echo number_format($grandTotal, 2); ?></strong></td>
-                </tr>
+<!-- Tax row: -->
+<tr>
+  <td colspan="3" class="text-end"><strong>Tax (10%)</strong></td>
+  <td class="text-end">$<?php echo number_format($taxAmount, 2); ?></td> <!-- Changed from $tax_amount -->
+</tr>
 
-                <!-- Deposit Paid -->
-                <?php if ($reservation['deposit_amount'] > 0): ?>
-                  <tr class="table-success">
-                    <td colspan="3" class="text-end"><strong>Deposit Paid</strong></td>
-                    <td class="text-end"><strong>-$<?php echo number_format($reservation['deposit_amount'], 2); ?></strong></td>
-                  </tr>
-
-                  <!-- Balance Due -->
-                  <tr class="table-warning">
-                    <td colspan="3" class="text-end"><strong>BALANCE DUE</strong></td>
-                    <td class="text-end"><strong>$<?php echo number_format($grandTotal - $reservation['deposit_amount'], 2); ?></strong></td>
-                  </tr>
+<!-- Total row: -->
+<tr class="total-row table-active">
+  <td colspan="3" class="text-end"><strong>TOTAL</strong></td>
+  <td class="text-end"><strong>$<?php echo number_format($grandTotal, 2); ?></strong></td> <!-- Changed from $grand_total -->
+</tr>
                 <?php endif; ?>
               </tbody>
             </table>
@@ -277,13 +260,3 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Auto-print option (optional)
-    // window.addEventListener('DOMContentLoaded', (event) => {
-    //     window.print();
-    // });
-  </script>
-</body>
-
-</html>

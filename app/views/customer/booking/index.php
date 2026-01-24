@@ -3,44 +3,43 @@
 // Note: $rooms, $services, $selectedRoom, $room_id, $page_title are passed from controller
 ?>
 
-<div class="container mx-auto px-4 py-8">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold mb-2 text-gray-800">Book a Room</h1>
-    <p class="text-gray-600">Find and book the perfect room for your stay</p>
+<div class="container py-5">
+  <div class="mb-4">
+    <h1 class="h2 fw-bold mb-2">Book a Room</h1>
+    <p class="text-muted">Find and book the perfect room for your stay</p>
   </div>
 
-  <!-- Booking Form (Updated for POST submission) -->
-  <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+  <!-- Booking Form (Updated for POST submission to update dates) -->
+  <div class="bg-white rounded shadow p-4 mb-4">
     <form method="POST" action="index.php?action=book-room">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Check-in Date</label>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Check-in Date</label>
           <input type="date" name="check_in" required
-            value="<?php echo htmlspecialchars($_POST['check_in'] ?? (isset($_GET['check_in']) ? $_GET['check_in'] : '')); ?>"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+            value="<?php echo htmlspecialchars($_POST['check_in'] ?? $_GET['check_in'] ?? ''); ?>"
+            class="form-control"
             min="<?php echo date('Y-m-d'); ?>">
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Check-out Date</label>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Check-out Date</label>
           <input type="date" name="check_out" required
-            value="<?php echo htmlspecialchars($_POST['check_out'] ?? (isset($_GET['check_out']) ? $_GET['check_out'] : '')); ?>"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+            value="<?php echo htmlspecialchars($_POST['check_out'] ?? $_GET['check_out'] ?? ''); ?>"
+            class="form-control"
             min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Guests</label>
-          <select name="guests" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary" required>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Guests</label>
+          <select name="guests" class="form-select" required>
             <?php for ($i = 1; $i <= 6; $i++): ?>
-              <option value="<?php echo $i; ?>" <?php echo (($_POST['guests'] ?? (isset($_GET['guests']) ? $_GET['guests'] : 1)) == $i) ? 'selected' : ''; ?>>
+              <option value="<?php echo $i; ?>" <?php echo (($_POST['guests'] ?? $_GET['guests'] ?? 1) == $i) ? 'selected' : ''; ?>>
                 <?php echo $i; ?> <?php echo $i == 1 ? 'Guest' : 'Guests'; ?>
               </option>
             <?php endfor; ?>
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
-          <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition duration-300">
-            <i class="fas fa-search mr-2"></i> Check Availability
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-search me-2"></i> Update
           </button>
         </div>
       </div>
@@ -49,23 +48,23 @@
 
   <?php if (!empty($rooms)): ?>
     <!-- Services Section -->
-    <div class="mb-6 bg-white rounded-lg p-6 shadow-md">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">Additional Services</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="mb-4 bg-white rounded shadow p-4">
+      <h2 class="h4 fw-bold mb-3">Additional Services</h2>
+      <div class="row g-3">
         <?php foreach ($services as $service): ?>
-          <div class="border rounded-lg p-4 hover:border-primary transition duration-300">
-            <div class="flex items-start">
-              <input type="checkbox"
-                name="services[]"
-                value="<?php echo $service['id']; ?>"
-                id="service_<?php echo $service['id']; ?>"
-                class="mt-1 mr-3">
-              <div>
-                <label for="service_<?php echo $service['id']; ?>" class="font-medium text-gray-800 cursor-pointer">
+          <div class="col-md-6 col-lg-3">
+            <div class="border rounded p-3">
+              <div class="form-check">
+                <input type="checkbox"
+                  name="services[]"
+                  value="<?php echo $service['id']; ?>"
+                  id="service_<?php echo $service['id']; ?>"
+                  class="form-check-input">
+                <label for="service_<?php echo $service['id']; ?>" class="form-check-label fw-semibold">
                   <?php echo htmlspecialchars($service['name']); ?>
                 </label>
-                <p class="text-sm text-gray-600 mt-1"><?php echo htmlspecialchars($service['description'] ?? ''); ?></p>
-                <p class="text-primary font-bold mt-2">$<?php echo number_format($service['price'], 2); ?></p>
+                <p class="small text-muted mt-1"><?php echo htmlspecialchars($service['description'] ?? ''); ?></p>
+                <p class="text-primary fw-bold mt-2">$<?php echo number_format($service['price'], 2); ?></p>
               </div>
             </div>
           </div>
@@ -74,85 +73,89 @@
     </div>
 
     <!-- Special Requests -->
-    <div class="mb-6 bg-white rounded-lg p-6 shadow-md">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">Special Requests</h2>
+    <div class="mb-4 bg-white rounded shadow p-4">
+      <h2 class="h4 fw-bold mb-3">Special Requests</h2>
       <textarea name="special_requests"
         rows="3"
-        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+        class="form-control"
         placeholder="Any special requests or requirements..."><?php echo htmlspecialchars($_POST['special_requests'] ?? ''); ?></textarea>
     </div>
 
     <!-- Rooms Selection -->
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-800 mb-2"><?php echo count($rooms); ?> Rooms Available</h2>
-      <p class="text-gray-600 mb-4">Select a room to proceed with booking</p>
+    <div class="mb-4">
+      <h2 class="h4 fw-bold mb-2"><?php echo count($rooms); ?> Rooms Available</h2>
+      <p class="text-muted mb-3">Select a room to proceed with booking</p>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="row g-4">
         <?php foreach ($rooms as $room): ?>
-          <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300 border-2 <?php echo ($room_id == $room['id']) ? 'border-primary' : 'border-transparent'; ?>">
-            <div class="relative h-48 bg-gradient-to-br from-primary to-secondary">
-              <div class="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-lg">
-                <span class="text-primary font-bold">$<?php echo number_format($room['price_per_night'] ?? 0, 2); ?>/night</span>
-              </div>
-              <?php if ($room_id == $room['id']): ?>
-                <div class="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-lg">
-                  <i class="fas fa-check mr-1"></i> Selected
-                </div>
-              <?php endif; ?>
-            </div>
-            <div class="p-6">
-              <h3 class="text-xl font-semibold mb-2 text-gray-800"><?php echo htmlspecialchars($room['type'] ?? 'Room'); ?></h3>
-              <p class="text-gray-600 mb-4 text-sm line-clamp-2"><?php echo htmlspecialchars($room['description'] ?? ''); ?></p>
-
-              <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                <span><i class="fas fa-users mr-1"></i> <?php echo $room['capacity'] ?? 2; ?> Guests</span>
-                <?php if (isset($room['size'])): ?>
-                  <span><i class="fas fa-expand-arrows-alt mr-1"></i> <?php echo $room['size']; ?></span>
-                <?php endif; ?>
-              </div>
-
-              <?php if (!empty($room['amenities'])):
-                $amenities = is_string($room['amenities']) ? json_decode($room['amenities'], true) : $room['amenities'];
-                if ($amenities): ?>
-                  <div class="flex flex-wrap gap-1 mb-4">
-                    <?php foreach (array_slice($amenities, 0, 3) as $key => $value):
-                      if ($value === true || $value === 'true' || $value === 1):
-                        $amenityIcons = [
-                          'tv' => 'fa-tv',
-                          'wifi' => 'fa-wifi',
-                          'aircon' => 'fa-snowflake',
-                          'balcony' => 'fa-door-open',
-                          'minibar' => 'fa-wine-bottle',
-                          'private_pool' => 'fa-swimming-pool'
-                        ];
-                    ?>
-                        <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
-                          <i class="fas <?php echo $amenityIcons[$key] ?? 'fa-check'; ?> mr-1"></i>
-                          <?php echo ucfirst(str_replace('_', ' ', $key)); ?>
-                        </span>
-                    <?php endif;
-                    endforeach; ?>
+          <div class="col-lg-4 col-md-6">
+            <div class="card h-100 <?php echo ($room_id == $room['id']) ? 'border-primary' : ''; ?>">
+              <div class="card-body p-0">
+                <div class="bg-primary text-white p-3 position-relative" style="height: 200px;">
+                  <div class="position-absolute top-0 end-0 bg-white bg-opacity-90 px-3 py-2 rounded m-3">
+                    <span class="text-primary fw-bold">$<?php echo number_format($room['price_per_night'] ?? 0, 2); ?>/night</span>
                   </div>
-              <?php endif;
-              endif; ?>
+                  <?php if ($room_id == $room['id']): ?>
+                    <div class="position-absolute top-0 start-0 bg-success text-white px-3 py-2 rounded m-3">
+                      <i class="fas fa-check me-1"></i> Selected
+                    </div>
+                  <?php endif; ?>
+                </div>
+                <div class="p-4">
+                  <h5 class="card-title fw-semibold"><?php echo htmlspecialchars($room['type'] ?? 'Room'); ?></h5>
+                  <p class="card-text text-muted small"><?php echo htmlspecialchars($room['description'] ?? ''); ?></p>
 
-              <form method="POST" action="index.php?action=book-room" class="room-booking-form">
-                <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
-                <input type="hidden" name="check_in" value="<?php echo htmlspecialchars($_POST['check_in'] ?? (isset($_GET['check_in']) ? $_GET['check_in'] : '')); ?>">
-                <input type="hidden" name="check_out" value="<?php echo htmlspecialchars($_POST['check_out'] ?? (isset($_GET['check_out']) ? $_GET['check_out'] : '')); ?>">
-                <input type="hidden" name="guests" value="<?php echo htmlspecialchars($_POST['guests'] ?? (isset($_GET['guests']) ? $_GET['guests'] : 1)); ?>">
-                <input type="hidden" name="special_requests" value="<?php echo htmlspecialchars($_POST['special_requests'] ?? ''); ?>">
+                  <div class="d-flex gap-3 mb-3 small text-muted">
+                    <span><i class="fas fa-users me-1"></i> <?php echo $room['capacity'] ?? 2; ?> Guests</span>
+                    <?php if (isset($room['size'])): ?>
+                      <span><i class="fas fa-expand-arrows-alt me-1"></i> <?php echo $room['size']; ?></span>
+                    <?php endif; ?>
+                  </div>
 
-                <?php if (!empty($_POST['services'])): ?>
-                  <?php foreach ($_POST['services'] as $service_id): ?>
-                    <input type="hidden" name="services[]" value="<?php echo $service_id; ?>">
-                  <?php endforeach; ?>
-                <?php endif; ?>
+                  <?php if (!empty($room['amenities'])):
+                    $amenities = is_string($room['amenities']) ? json_decode($room['amenities'], true) : $room['amenities'];
+                    if ($amenities): ?>
+                      <div class="d-flex flex-wrap gap-1 mb-3">
+                        <?php foreach (array_slice($amenities, 0, 3) as $key => $value):
+                          if ($value === true || $value === 'true' || $value === 1):
+                            $amenityIcons = [
+                              'tv' => 'fa-tv',
+                              'wifi' => 'fa-wifi',
+                              'aircon' => 'fa-snowflake',
+                              'balcony' => 'fa-door-open',
+                              'minibar' => 'fa-wine-bottle',
+                              'private_pool' => 'fa-swimming-pool'
+                            ];
+                        ?>
+                            <span class="badge bg-light text-dark">
+                              <i class="fas <?php echo $amenityIcons[$key] ?? 'fa-check'; ?> me-1"></i>
+                              <?php echo ucfirst(str_replace('_', ' ', $key)); ?>
+                            </span>
+                        <?php endif;
+                        endforeach; ?>
+                      </div>
+                  <?php endif;
+                  endif; ?>
 
-                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-lg font-semibold transition duration-300">
-                  <i class="fas fa-calendar-check mr-2"></i> Book Now
-                </button>
-              </form>
+                  <form method="POST" action="index.php?action=book-room" class="room-booking-form">
+                    <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
+                    <input type="hidden" name="check_in" value="<?php echo htmlspecialchars($_POST['check_in'] ?? $_GET['check_in'] ?? ''); ?>">
+                    <input type="hidden" name="check_out" value="<?php echo htmlspecialchars($_POST['check_out'] ?? $_GET['check_out'] ?? ''); ?>">
+                    <input type="hidden" name="guests" value="<?php echo htmlspecialchars($_POST['guests'] ?? $_GET['guests'] ?? 1); ?>">
+                    <input type="hidden" name="special_requests" value="<?php echo htmlspecialchars($_POST['special_requests'] ?? ''); ?>">
+
+                    <?php if (!empty($_POST['services'])): ?>
+                      <?php foreach ($_POST['services'] as $service_id): ?>
+                        <input type="hidden" name="services[]" value="<?php echo $service_id; ?>">
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                      <i class="fas fa-calendar-check me-2"></i> Book Now
+                    </button>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         <?php endforeach; ?>
@@ -160,15 +163,15 @@
     </div>
   <?php else: ?>
     <!-- No Rooms Available -->
-    <div class="bg-white rounded-lg shadow-md p-12 text-center">
-      <i class="fas fa-calendar-alt text-gray-400 text-6xl mb-4"></i>
-      <h3 class="text-2xl font-semibold text-gray-800 mb-2">Start Your Booking</h3>
-      <p class="text-gray-600 mb-6">Select your check-in and check-out dates to see available rooms</p>
-      <div class="max-w-2xl mx-auto">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
-          <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-          <strong class="text-blue-800">Need help choosing?</strong>
-          <ul class="mt-2 text-blue-700 text-sm space-y-1">
+    <div class="bg-white rounded shadow p-5 text-center">
+      <i class="fas fa-calendar-alt text-muted fs-1 mb-3"></i>
+      <h3 class="h3 fw-semibold mb-2">Start Your Booking</h3>
+      <p class="text-muted mb-4">Select your check-in and check-out dates to see available rooms</p>
+      <div class="mx-auto" style="max-width: 500px;">
+        <div class="bg-light border rounded p-3 text-start">
+          <i class="fas fa-info-circle text-primary me-2"></i>
+          <strong class="text-dark">Need help choosing?</strong>
+          <ul class="mt-2 text-muted small mb-0">
             <li>• Standard rooms: Perfect for solo travelers or couples</li>
             <li>• Deluxe rooms: Extra space with premium amenities</li>
             <li>• Suite: Spacious living area with separate bedroom</li>

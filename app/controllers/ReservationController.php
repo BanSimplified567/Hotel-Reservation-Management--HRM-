@@ -20,12 +20,12 @@ class ReservationController extends BaseController
         $page = max(1, intval($_GET['page'] ?? 1));
         $perPage = 10;
 
-        // Build query
+        // Build query - FIXED: Removed duplicate price_per_night column
         $query = "
             SELECT r.*,
                    rm.room_number,
                    rt.name as room_type,
-                   rt.base_price as price_per_night,
+                   rt.base_price,
                    rt.description as room_description
             FROM reservations r
             JOIN rooms rm ON r.room_id = rm.id
@@ -40,7 +40,7 @@ class ReservationController extends BaseController
         }
 
         // Get total count
-        $countQuery = "SELECT COUNT(*) FROM (" . $query . ") as total";
+        $countQuery = "SELECT COUNT(*) FROM (" . str_replace("SELECT r.*,", "SELECT r.id,", $query) . ") as total";
         $countStmt = $this->pdo->prepare($countQuery);
         $countStmt->execute($params);
         $totalReservations = $countStmt->fetchColumn();
@@ -65,13 +65,14 @@ class ReservationController extends BaseController
         foreach ($reservations as $res) {
             if ($res['check_in'] >= $today && in_array($res['status'], ['pending', 'confirmed'])) {
                 $upcomingCount++;
-            } else {
+            } elseif (in_array($res['status'], ['checked_out', 'cancelled'])) {
                 $pastCount++;
             }
         }
 
         $data = [
             'reservations' => $reservations,
+            'totalReservations' => $totalReservations, // Added this missing variable
             'status' => $status,
             'page' => $page,
             'totalPages' => $totalPages,
@@ -153,55 +154,87 @@ class ReservationController extends BaseController
 
         $userId = $_SESSION['user_id'];
 
-        try {
-            // Check if reservation exists and belongs to user
-            $stmt = $this->pdo->prepare("
-                SELECT status, check_in FROM reservations
-                WHERE id = ? AND user_id = ?
-            ");
-            $stmt->execute([$id, $userId]);
-            $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $reason = trim($_POST['reason'] ?? '');
 
-            if (!$reservation) {
-                $_SESSION['error'] = "Reservation not found or access denied.";
+            try {
+                // Check if reservation exists and belongs to user
+                $stmt = $this->pdo->prepare("
+                    SELECT status, check_in FROM reservations
+                    WHERE id = ? AND user_id = ?
+                ");
+                $stmt->execute([$id, $userId]);
+                $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$reservation) {
+                    $_SESSION['error'] = "Reservation not found or access denied.";
+                    $this->redirect('my-reservations');
+                }
+
+                // Check if reservation can be cancelled
+                if (!in_array($reservation['status'], ['pending', 'confirmed'])) {
+                    $_SESSION['error'] = "Only pending or confirmed reservations can be cancelled.";
+                    $this->redirect('my-reservations');
+                }
+
+                // Check cancellation policy (e.g., at least 24 hours before check-in)
+                $check_in = new DateTime($reservation['check_in']);
+                $now = new DateTime();
+                $hours_diff = ($check_in->getTimestamp() - $now->getTimestamp()) / 3600;
+
+                if ($hours_diff < 24) {
+                    $_SESSION['error'] = "Cannot cancel within 24 hours of check-in.";
+                    $this->redirect('my-reservations');
+                }
+
+                // Update reservation status with reason
+                $stmt = $this->pdo->prepare("
+                    UPDATE reservations SET
+                    status = 'cancelled',
+                    cancellation_reason = ?,
+                    updated_at = NOW()
+                    WHERE id = ?
+                ");
+                $stmt->execute([$reason, $id]);
+
+                // Log the action
+                $this->logAction($userId, "Cancelled reservation #$id. Reason: $reason");
+
+                $_SESSION['success'] = "Reservation cancelled successfully.";
+                $this->redirect('my-reservations');
+
+            } catch (PDOException $e) {
+                error_log("Cancel reservation error: " . $e->getMessage());
+                $_SESSION['error'] = "Failed to cancel reservation.";
                 $this->redirect('my-reservations');
             }
+        } else {
+            // Show cancellation form
+            try {
+                $stmt = $this->pdo->prepare("
+                    SELECT id, reservation_code, check_in, total_amount
+                    FROM reservations
+                    WHERE id = ? AND user_id = ?
+                ");
+                $stmt->execute([$id, $userId]);
+                $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Check if reservation can be cancelled
-            if (!in_array($reservation['status'], ['pending', 'confirmed'])) {
-                $_SESSION['error'] = "Only pending or confirmed reservations can be cancelled.";
+                if (!$reservation) {
+                    $_SESSION['error'] = "Reservation not found or access denied.";
+                    $this->redirect('my-reservations');
+                }
+
+                $data = [
+                    'reservation' => $reservation,
+                    'page_title' => 'Cancel Reservation'
+                ];
+
+                $this->render('customer/reservations/cancel', $data);
+            } catch (PDOException $e) {
+                error_log("Show cancellation form error: " . $e->getMessage());
+                $_SESSION['error'] = "Failed to load reservation.";
                 $this->redirect('my-reservations');
             }
-
-            // Check cancellation policy (e.g., at least 24 hours before check-in)
-            $check_in = new DateTime($reservation['check_in']);
-            $now = new DateTime();
-            $hours_diff = ($check_in->getTimestamp() - $now->getTimestamp()) / 3600;
-
-            if ($hours_diff < 24) {
-                $_SESSION['error'] = "Cannot cancel within 24 hours of check-in.";
-                $this->redirect('my-reservations');
-            }
-
-            // Update reservation status
-            $stmt = $this->pdo->prepare("
-                UPDATE reservations SET
-                status = 'cancelled',
-                updated_at = NOW()
-                WHERE id = ?
-            ");
-            $stmt->execute([$id]);
-
-            // Log the action
-            $this->logAction($userId, "Cancelled reservation #$id");
-
-            $_SESSION['success'] = "Reservation cancelled successfully.";
-            $this->redirect('my-reservations');
-
-        } catch (PDOException $e) {
-            error_log("Cancel reservation error: " . $e->getMessage());
-            $_SESSION['error'] = "Failed to cancel reservation.";
-            $this->redirect('my-reservations');
         }
     }
 
@@ -241,19 +274,20 @@ class ReservationController extends BaseController
                 // Update reservation with cancellation request
                 $stmt = $this->pdo->prepare("
                     UPDATE reservations SET
-                    status = 'cancellation_requested',
+                    status = 'cancelled',
+                    cancellation_reason = ?,
                     admin_notes = CONCAT(COALESCE(admin_notes, ''), ?),
                     updated_at = NOW()
                     WHERE id = ?
                 ");
 
                 $note = "\n[" . date('Y-m-d H:i:s') . "] Cancellation requested by customer. Reason: $reason";
-                $stmt->execute([$note, $id]);
+                $stmt->execute([$reason, $note, $id]);
 
                 // Log the action
                 $this->logAction($userId, "Requested cancellation for reservation #$id. Reason: $reason");
 
-                $_SESSION['success'] = "Cancellation request submitted. Please wait for admin approval.";
+                $_SESSION['success'] = "Cancellation request submitted successfully.";
                 $this->redirect('my-reservations');
 
             } catch (PDOException $e) {
@@ -262,10 +296,10 @@ class ReservationController extends BaseController
                 $this->redirect('my-reservations', ['sub_action' => 'view', 'id' => $id]);
             }
         } else {
-            // Show cancellation request form
+            // Show cancellation request form - same as cancel form
             try {
                 $stmt = $this->pdo->prepare("
-                    SELECT id, check_in, total_amount
+                    SELECT id, reservation_code, check_in, total_amount
                     FROM reservations
                     WHERE id = ? AND user_id = ?
                 ");
@@ -279,7 +313,7 @@ class ReservationController extends BaseController
 
                 $data = [
                     'reservation' => $reservation,
-                    'page_title' => 'Cancel Reservation'
+                    'page_title' => 'Request Cancellation'
                 ];
 
                 $this->render('customer/reservations/cancel', $data);
@@ -339,20 +373,20 @@ class ReservationController extends BaseController
             $nights = $check_in->diff($check_out)->days;
             if ($nights == 0) $nights = 1; // Minimum 1 night
 
-            $room_total = $reservation['price_per_night'] * $nights;
-            $services_total = $reservation['total_services_price'] ?: 0;
+            $roomTotal = $reservation['price_per_night'] * $nights;
+            $servicesTotal = $reservation['total_services_price'] ?: 0;
             $tax_rate = 0.10; // 10% tax
-            $tax_amount = ($room_total + $services_total) * $tax_rate;
-            $grand_total = $room_total + $services_total + $tax_amount;
+            $taxAmount = ($roomTotal + $servicesTotal) * $tax_rate;
+            $grandTotal = $roomTotal + $servicesTotal + $taxAmount;
 
             $data = [
                 'reservation' => $reservation,
                 'services' => $services,
                 'nights' => $nights,
-                'room_total' => $room_total,
-                'services_total' => $services_total,
-                'tax_amount' => $tax_amount,
-                'grand_total' => $grand_total,
+                'roomTotal' => $roomTotal, // Fixed variable name
+                'servicesTotal' => $servicesTotal, // Fixed variable name
+                'taxAmount' => $taxAmount, // Fixed variable name
+                'grandTotal' => $grandTotal, // Fixed variable name
                 'page_title' => 'Invoice'
             ];
 

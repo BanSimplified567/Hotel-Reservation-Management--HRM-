@@ -22,9 +22,9 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
           <select name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary">
             <option value="">All Types</option>
-            <?php foreach ($room_types ?? [] as $type): ?>
-              <option value="<?php echo htmlspecialchars($type); ?>" <?php echo ($_GET['type'] ?? '') === $type ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($type); ?>
+            <?php foreach ($room_types ?? [] as $room_type): ?>
+              <option value="<?php echo $room_type['id']; ?>" <?php echo ($_GET['type'] ?? '') == $room_type['id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($room_type['name']); ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -90,13 +90,17 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php foreach ($rooms as $room): ?>
           <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-            <div class="relative h-48 bg-gradient-to-br from-primary to-secondary">
+            <div class="relative h-48">
+              <img src="uploads/rooms/<?php echo $room['primary_image'] ?? 'default-room.jpg'; ?>"
+                   alt="<?php echo htmlspecialchars($room['name'] ?? 'Room'); ?>"
+                   class="w-full h-full object-cover"
+                   onerror="this.src='images/default-room.jpg'">
               <div class="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-lg">
-                <span class="text-primary font-bold">$<?php echo number_format($room['price_per_night'] ?? 0, 2); ?>/night</span>
+                <span class="text-primary font-bold">$<?php echo number_format($room['base_price'] ?? 0, 2); ?>/night</span>
               </div>
             </div>
             <div class="p-6">
-              <h3 class="text-xl font-semibold mb-2 text-gray-800"><?php echo htmlspecialchars($room['type'] ?? 'Room'); ?></h3>
+              <h3 class="text-xl font-semibold mb-2 text-gray-800"><?php echo htmlspecialchars($room['name'] ?? 'Room'); ?></h3>
               <p class="text-gray-600 mb-4 text-sm"><?php echo htmlspecialchars($room['description'] ?? ''); ?></p>
 
               <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">
@@ -106,11 +110,11 @@
               </div>
 
               <div class="flex items-center justify-between">
-                <a href="index.php?action=rooms&sub_action=view&id=<?php echo $room['id']; ?>"
+                <a href="index.php?action=rooms&sub_action=details&id=<?php echo $room['id']; ?>"
                   class="text-primary hover:underline font-semibold">
                   View Details
                 </a>
-                <a href="index.php?action=room-search&room_id=<?php echo $room['id']; ?>"
+                <a href="index.php?action=room-search&room_type_id=<?php echo $room['id']; ?>"
                   class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold transition duration-300">
                   Book Now
                 </a>
@@ -131,17 +135,21 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <?php foreach ($featured_rooms as $room): ?>
         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-          <div class="relative h-64 bg-gradient-to-br from-primary to-secondary">
+          <div class="relative h-64">
+            <img src="uploads/rooms/<?php echo $room['primary_image'] ?? 'default-room.jpg'; ?>"
+                 alt="<?php echo htmlspecialchars($room['name'] ?? 'Room'); ?>"
+                 class="w-full h-full object-cover"
+                 onerror="this.src='images/default-room.jpg'">
             <div class="absolute top-4 left-4 bg-yellow-400 text-gray-800 px-3 py-1 rounded-lg font-semibold">
               Featured
             </div>
           </div>
           <div class="p-6">
-            <h3 class="text-xl font-semibold mb-2 text-gray-800"><?php echo htmlspecialchars($room['type'] ?? 'Room'); ?></h3>
+            <h3 class="text-xl font-semibold mb-2 text-gray-800"><?php echo htmlspecialchars($room['name'] ?? 'Room'); ?></h3>
             <p class="text-gray-600 mb-4"><?php echo htmlspecialchars($room['description'] ?? ''); ?></p>
             <div class="flex items-center justify-between">
-              <span class="text-primary font-bold text-lg">$<?php echo number_format($room['price_per_night'] ?? 0, 2); ?>/night</span>
-              <a href="index.php?action=rooms&sub_action=view&id=<?php echo $room['id']; ?>"
+              <span class="text-primary font-bold text-lg">$<?php echo number_format($room['base_price'] ?? 0, 2); ?>/night</span>
+              <a href="index.php?action=rooms&sub_action=details&id=<?php echo $room['id']; ?>"
                 class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold transition duration-300">
                 View Details
               </a>
