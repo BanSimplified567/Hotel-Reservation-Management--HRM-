@@ -1,11 +1,11 @@
-# public/.htaccess
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Pass through existing files and directories
+    # Route root request to public/index.php
+    RewriteRule ^$ public/index.php [L]
+
+    # Forward all non-existing files/directories to public/index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-
-    # Route everything else to index.php
-    RewriteRule ^ index.php [L]
+    RewriteRule . public/index.php [L]
 </IfModule>

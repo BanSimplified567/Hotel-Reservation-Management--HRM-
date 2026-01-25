@@ -454,22 +454,22 @@ class AuthController
     // ==============================
     private function showLoginForm()
     {
-        require_once '../app/views/Auth/login.php';
+        require_once '../app/views/auth/login.php';
     }
 
     private function showRegistrationForm()
     {
-        require_once '../app/views/Auth/register.php';
+        require_once '../app/views/auth/register.php';
     }
 
     private function showForgotPasswordForm()
     {
-        require_once '../app/views/Auth/forgot-password.php';
+        require_once '../app/views/auth/forgot-password.php';
     }
 
     private function showResetPasswordForm($token, $email)
     {
-        require_once '../app/views/Auth/reset-password.php';
+        require_once '../app/views/auth/reset-password.php';
     }
 
     private function logAction($userId, $action)

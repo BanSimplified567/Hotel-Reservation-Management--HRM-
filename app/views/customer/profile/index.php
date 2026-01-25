@@ -183,8 +183,8 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="text-center p-3 bg-purple bg-opacity-10 rounded">
-                                    <p class="display-6 fw-bold text-purple mb-0"><?php echo $stats['upcoming_reservations'] ?? 0; ?></p>
-                                    <p class="small text-muted mb-0">Upcoming</p>
+                                    <p class="display-6 fw-bold text-white mb-0"><?php echo $stats['upcoming_reservations'] ?? 0; ?></p>
+                                    <p class="small text-white mb-0">Upcoming</p>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
