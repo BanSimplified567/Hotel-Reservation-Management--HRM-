@@ -37,10 +37,12 @@ class BaseController
     } else {
       echo "<div class='alert alert-danger'>View not found: $view</div>";
     }
+
     // Role-specific UI
-    if ($isCustomer) {
-      include BASE_PATH . '/app/views/layout/footer.php';
-    }
+// Role-specific UI
+if ($role === 'customer' || $role === 'guest' || !isset($_SESSION['user_id'])) {
+  include BASE_PATH . '/app/views/layout/footer.php';
+}
 
     // Footer
     include BASE_PATH . '/app/views/layout/base-footer.php';
@@ -53,6 +55,16 @@ class BaseController
     exit;
   }
 
+protected function requireRole($allowedRoles = ['customer'])
+{
+    $this->requireLogin();
+    $userRole = $_SESSION['role'] ?? 'guest';
+
+    if (!in_array($userRole, $allowedRoles)) {
+        $_SESSION['error'] = "You don't have permission to access this page.";
+        $this->redirect('dashboard');
+    }
+}
   protected function isLoggedIn()
   {
     return isset($_SESSION['user_id']);

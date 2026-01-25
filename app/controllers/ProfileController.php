@@ -11,29 +11,38 @@ class ProfileController extends BaseController
 
     public function index()
     {
-        $this->requireLogin();
         $userId = $_SESSION['user_id'];
-        $this->showProfile($userId);
+        $userRole = $_SESSION['role'] ?? 'customer';
+
+        // Check if user has permission to view profile
+        if (!in_array($userRole, ['customer', 'guest'])) {
+            $_SESSION['error'] = "You don't have permission to access this page.";
+            $this->redirect('dashboard');
+        }
+
+        $this->showProfile($userId, $userRole);
     }
 
     public function edit()
     {
-        $this->requireLogin();
         $userId = $_SESSION['user_id'];
+        $userRole = $_SESSION['role'] ?? 'customer';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->handleProfileUpdate($userId);
+            $this->handleProfileUpdate($userId, $userRole);
         } else {
-            $this->showEditForm($userId);
+            $this->showEditForm($userId, $userRole);
         }
     }
 
-    private function showEditForm($userId)
+    private function showEditForm($userId, $userRole)
     {
         try {
             $stmt = $this->pdo->prepare("
                 SELECT id, username, email, first_name, last_name,
-                       phone, address, date_of_birth, role, created_at
+                       phone, address, date_of_birth, role, created_at,
+                       city, state, country, postal_code, profile_image,
+                       loyalty_points, membership_tier, preferred_payment_method
                 FROM users
                 WHERE id = ?
             ");
@@ -50,7 +59,12 @@ class ProfileController extends BaseController
                 'page_title' => 'Edit Profile'
             ];
 
-            $this->render('customer/profile/edit', $data);
+            // Check if we should show guest-specific view or customer view
+            if ($userRole === 'guest' && file_exists('../app/views/guest/profile/edit.php')) {
+                $this->render('guest/profile/edit', $data);
+            } else {
+                $this->render('customer/profile/edit', $data);
+            }
         } catch (PDOException $e) {
             error_log("Show edit form error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load edit form.";
@@ -58,12 +72,14 @@ class ProfileController extends BaseController
         }
     }
 
-    private function showProfile($userId)
+    private function showProfile($userId, $userRole)
     {
         try {
             $stmt = $this->pdo->prepare("
                 SELECT id, username, email, first_name, last_name,
-                       phone, address, role, created_at
+                       phone, address, city, state, country, postal_code,
+                       role, created_at, updated_at, profile_image,
+                       loyalty_points, membership_tier
                 FROM users
                 WHERE id = ?
             ");
@@ -76,8 +92,11 @@ class ProfileController extends BaseController
                 $this->redirect('login');
             }
 
-            // Get user statistics
-            $stats = $this->getUserStatistics($userId);
+            // Get user statistics (only for customers)
+            $stats = [];
+            if ($userRole === 'customer') {
+                $stats = $this->getUserStatistics($userId);
+            }
 
             $data = [
                 'user' => $user,
@@ -85,7 +104,12 @@ class ProfileController extends BaseController
                 'page_title' => 'My Profile'
             ];
 
-            $this->render('customer/profile/index', $data);
+            // Check if we should show guest-specific view or customer view
+            if ($userRole === 'guest' && file_exists('../app/views/guest/profile/index.php')) {
+                $this->render('guest/profile/index', $data);
+            } else {
+                $this->render('customer/profile/index', $data);
+            }
         } catch (PDOException $e) {
             error_log("Show profile error: " . $e->getMessage());
             $_SESSION['error'] = "Failed to load profile.";
@@ -93,7 +117,7 @@ class ProfileController extends BaseController
         }
     }
 
-    private function handleProfileUpdate($userId)
+    private function handleProfileUpdate($userId, $userRole)
     {
         $errors = [];
 
@@ -103,6 +127,11 @@ class ProfileController extends BaseController
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
         $address = trim($_POST['address'] ?? '');
+        $date_of_birth = $_POST['date_of_birth'] ?? null;
+        $city = trim($_POST['city'] ?? '');
+        $state = trim($_POST['state'] ?? '');
+        $country = trim($_POST['country'] ?? '');
+        $postal_code = trim($_POST['postal_code'] ?? '');
 
         // Validation
         if (empty($first_name)) {
@@ -137,10 +166,16 @@ class ProfileController extends BaseController
             try {
                 $stmt = $this->pdo->prepare("
                     UPDATE users SET
-                    first_name = ?, last_name = ?, email = ?, phone = ?, address = ?, updated_at = NOW()
+                    first_name = ?, last_name = ?, email = ?, phone = ?,
+                    address = ?, date_of_birth = ?, city = ?, state = ?,
+                    country = ?, postal_code = ?, updated_at = NOW()
                     WHERE id = ?
                 ");
-                $stmt->execute([$first_name, $last_name, $email, $phone, $address, $userId]);
+                $stmt->execute([
+                    $first_name, $last_name, $email, $phone,
+                    $address, $date_of_birth, $city, $state,
+                    $country, $postal_code, $userId
+                ]);
 
                 // Update session
                 $_SESSION['email'] = $email;
@@ -162,19 +197,52 @@ class ProfileController extends BaseController
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
             $_SESSION['old'] = $_POST;
-            $this->redirect('profile');
+            $this->redirect('profile&sub_action=edit');
         }
     }
 
     public function changePassword()
     {
-        $this->requireLogin();
-
         $userId = $_SESSION['user_id'];
+        $userRole = $_SESSION['role'] ?? 'customer';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePasswordChange($userId);
         } else {
+            $this->showChangePasswordForm($userId, $userRole);
+        }
+    }
+
+    private function showChangePasswordForm($userId, $userRole)
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT id, username, email, first_name, last_name
+                FROM users
+                WHERE id = ?
+            ");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                session_destroy();
+                $this->redirect('login');
+            }
+
+            $data = [
+                'user' => $user,
+                'page_title' => 'Change Password'
+            ];
+
+            // Check if we should show guest-specific view or customer view
+            if ($userRole === 'guest' && file_exists('../app/views/guest/profile/change-password.php')) {
+                $this->render('guest/profile/change-password', $data);
+            } else {
+                $this->render('customer/profile/change-password', $data);
+            }
+        } catch (PDOException $e) {
+            error_log("Show change password form error: " . $e->getMessage());
+            $_SESSION['error'] = "Failed to load form.";
             $this->redirect('profile');
         }
     }
@@ -242,29 +310,36 @@ class ProfileController extends BaseController
 
         if (!empty($errors)) {
             $_SESSION['error'] = implode("<br>", $errors);
-            $this->redirect('profile');
+            $this->redirect('profile&sub_action=change-password');
         }
     }
 
     private function getUserStatistics($userId)
     {
-        $stats = [];
+        $stats = [
+            'total_reservations' => 0,
+            'completed_reservations' => 0,
+            'total_spent' => 0,
+            'upcoming_reservations' => 0,
+            'favorite_room_type' => 'None'
+        ];
 
         try {
             // Total reservations
             $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE user_id = ?");
             $stmt->execute([$userId]);
-            $stats['total_reservations'] = $stmt->fetchColumn();
+            $stats['total_reservations'] = (int)$stmt->fetchColumn();
 
-            // Completed reservations
-            $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE user_id = ? AND status = 'completed'");
+            // Completed reservations (checked_out status)
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE user_id = ? AND status = 'checked_out'");
             $stmt->execute([$userId]);
-            $stats['completed_reservations'] = $stmt->fetchColumn();
+            $stats['completed_reservations'] = (int)$stmt->fetchColumn();
 
             // Total spent
-            $stmt = $this->pdo->prepare("SELECT SUM(total_amount) FROM reservations WHERE user_id = ? AND status = 'completed'");
+            $stmt = $this->pdo->prepare("SELECT SUM(total_amount) FROM reservations WHERE user_id = ? AND status = 'checked_out'");
             $stmt->execute([$userId]);
-            $stats['total_spent'] = $stmt->fetchColumn() ?: 0;
+            $total = $stmt->fetchColumn();
+            $stats['total_spent'] = $total ? (float)$total : 0;
 
             // Upcoming reservations
             $today = date('Y-m-d');
@@ -275,33 +350,28 @@ class ProfileController extends BaseController
                 AND check_in >= ?
             ");
             $stmt->execute([$userId, $today]);
-            $stats['upcoming_reservations'] = $stmt->fetchColumn();
+            $stats['upcoming_reservations'] = (int)$stmt->fetchColumn();
 
-            // Favorite room type
-            $stmt = $this->pdo->prepare("
-                SELECT rt.name as type, COUNT(*) as count
-                FROM reservations r
-                JOIN rooms rm ON r.room_id = rm.id
-                JOIN room_types rt ON rm.room_type_id = rt.id
-                WHERE r.user_id = ?
-                GROUP BY rt.name
-                ORDER BY count DESC
-                LIMIT 1
-            ");
-            $stmt->execute([$userId]);
-            $favorite = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['favorite_room_type'] = $favorite ? $favorite['type'] : 'None';
+            // Favorite room type (only if user has reservations)
+            if ($stats['total_reservations'] > 0) {
+                $stmt = $this->pdo->prepare("
+                    SELECT rt.name as type, COUNT(*) as count
+                    FROM reservations r
+                    JOIN rooms rm ON r.room_id = rm.id
+                    JOIN room_types rt ON rm.room_type_id = rt.id
+                    WHERE r.user_id = ?
+                    GROUP BY rt.name
+                    ORDER BY count DESC
+                    LIMIT 1
+                ");
+                $stmt->execute([$userId]);
+                $favorite = $stmt->fetch(PDO::FETCH_ASSOC);
+                $stats['favorite_room_type'] = $favorite ? $favorite['type'] : 'None';
+            }
 
         } catch (PDOException $e) {
             error_log("User statistics error: " . $e->getMessage());
             // Return empty stats if there's an error
-            $stats = [
-                'total_reservations' => 0,
-                'completed_reservations' => 0,
-                'total_spent' => 0,
-                'upcoming_reservations' => 0,
-                'favorite_room_type' => 'None'
-            ];
         }
 
         return $stats;

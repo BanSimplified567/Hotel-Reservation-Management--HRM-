@@ -1,131 +1,138 @@
-<?php
-// app/views/customer/reservations/index.php
-// Note: $reservations, $status, $page, $totalPages, $totalReservations, $page_title are passed from controller
-?>
-
-<div class="container mx-auto px-4 py-8">
-  <div class="flex justify-between items-center mb-6">
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="text-3xl font-bold mb-2 text-gray-800">My Reservations</h1>
-      <p class="text-gray-600">Manage and view all your bookings</p>
+      <h1 class="display-5 fw-bold mb-2 text-dark">My Reservations</h1>
+      <p class="lead text-muted">Manage and view all your bookings</p>
     </div>
-    <a href="index.php?action=book-room" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 flex items-center">
-      <i class="fas fa-plus-circle mr-2"></i> New Booking
+    <a href="index.php?action=book-room" class="btn btn-primary btn-lg fw-semibold">
+      <i class="fas fa-plus-circle me-2"></i> New Booking
     </a>
   </div>
 
   <!-- Filters -->
-  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <h6 class="font-semibold text-gray-800 mb-3">Filter by Status:</h6>
-        <div class="flex flex-wrap gap-2">
-          <a href="index.php?action=my-reservations"
-            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo !$status ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
-            All (<?php echo $totalReservations ?? 0; ?>)
-          </a>
-          <a href="index.php?action=my-reservations&status=confirmed"
-            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'confirmed' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
-            Confirmed
-          </a>
-          <a href="index.php?action=my-reservations&status=pending"
-            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
-            Pending
-          </a>
-          <a href="index.php?action=my-reservations&status=cancelled"
-            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
-            Cancelled
-          </a>
-          <a href="index.php?action=my-reservations&status=checked_out"
-            class="px-4 py-2 rounded-lg font-semibold text-sm transition duration-300 <?php echo $status === 'checked_out' ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'; ?>">
-            Completed
-          </a>
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <h6 class="fw-semibold text-dark mb-3">Filter by Status:</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="index.php?action=my-reservations"
+              class="btn btn-sm px-3 py-2 fw-semibold <?php echo !$status ? 'btn-primary' : 'btn-outline-primary'; ?>">
+              All (<?php echo $totalReservations ?? 0; ?>)
+            </a>
+            <a href="index.php?action=my-reservations&status=confirmed"
+              class="btn btn-sm px-3 py-2 fw-semibold <?php echo $status === 'confirmed' ? 'btn-success' : 'btn-outline-success'; ?>">
+              Confirmed
+            </a>
+            <a href="index.php?action=my-reservations&status=pending"
+              class="btn btn-sm px-3 py-2 fw-semibold <?php echo $status === 'pending' ? 'btn-warning' : 'btn-outline-warning'; ?>">
+              Pending
+            </a>
+            <a href="index.php?action=my-reservations&status=cancelled"
+              class="btn btn-sm px-3 py-2 fw-semibold <?php echo $status === 'cancelled' ? 'btn-danger' : 'btn-outline-danger'; ?>">
+              Cancelled
+            </a>
+            <a href="index.php?action=my-reservations&status=checked_out"
+              class="btn btn-sm px-3 py-2 fw-semibold <?php echo $status === 'checked_out' ? 'btn-secondary' : 'btn-outline-secondary'; ?>">
+              Completed
+            </a>
+          </div>
         </div>
-      </div>
-      <div>
-        <form method="GET" class="flex gap-2">
-          <input type="hidden" name="action" value="my-reservations">
-          <?php if ($status): ?>
-            <input type="hidden" name="status" value="<?php echo htmlspecialchars($status); ?>">
-          <?php endif; ?>
-          <input type="text" name="search" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="Search reservations..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
-          <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-semibold transition duration-300">
-            <i class="fas fa-search"></i>
-          </button>
-        </form>
+        <div class="col-lg-6">
+          <form method="GET" class="d-flex gap-2">
+            <input type="hidden" name="action" value="my-reservations">
+            <?php if ($status): ?>
+              <input type="hidden" name="status" value="<?php echo htmlspecialchars($status); ?>">
+            <?php endif; ?>
+            <input type="text" name="search"
+                   class="form-control"
+                   placeholder="Search reservations..."
+                   value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Reservations List -->
   <?php if (empty($reservations)): ?>
-    <div class="bg-white rounded-lg shadow-md p-12 text-center">
-      <i class="fas fa-calendar-times text-gray-400 text-6xl mb-4"></i>
-      <h4 class="text-2xl font-semibold text-gray-800 mb-2">No reservations found</h4>
-      <p class="text-gray-600 mb-6">You haven't made any reservations yet.</p>
-      <a href="index.php?action=book-room" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 inline-block">
-        <i class="fas fa-plus-circle mr-2"></i> Make Your First Booking
-      </a>
+    <div class="card border-0 shadow-sm text-center py-5">
+      <div class="card-body p-5">
+        <i class="fas fa-calendar-times text-muted display-1 mb-4"></i>
+        <h4 class="display-6 fw-semibold text-dark mb-3">No reservations found</h4>
+        <p class="text-muted mb-4">You haven't made any reservations yet.</p>
+        <a href="index.php?action=book-room" class="btn btn-primary btn-lg fw-semibold">
+          <i class="fas fa-plus-circle me-2"></i> Make Your First Booking
+        </a>
+      </div>
     </div>
   <?php else: ?>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
       <?php foreach ($reservations as $reservation): ?>
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300 border-l-4 <?php
-                                                                                                                      echo $reservation['status'] === 'confirmed' ? 'border-green-500' : ($reservation['status'] === 'pending' ? 'border-yellow-500' : ($reservation['status'] === 'cancelled' ? 'border-red-500' : 'border-gray-500'));
-                                                                                                                      ?>">
-          <div class="p-6">
-            <div class="flex justify-between items-start mb-4">
-              <div>
-                <h5 class="text-xl font-semibold mb-1 text-gray-800">
-                  <?php echo htmlspecialchars($reservation['room_type'] ?? 'Room'); ?>
-                </h5>
-                <p class="text-gray-600 text-sm">
-                  Room #<?php echo htmlspecialchars($reservation['room_number'] ?? 'N/A'); ?>
-                </p>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-semibold <?php
-                                                                        echo $reservation['status'] === 'confirmed' ? 'bg-green-100 text-green-800' : ($reservation['status'] === 'pending' ? 'bg-yellow-100 text-yellow-800' : ($reservation['status'] === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'));
-                                                                        ?>">
-                <?php echo ucfirst($reservation['status'] ?? 'Unknown'); ?>
-              </span>
-            </div>
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="card-body p-4 border-start border-5
+              <?php echo $reservation['status'] === 'confirmed' ? 'border-success' :
+                ($reservation['status'] === 'pending' ? 'border-warning' :
+                ($reservation['status'] === 'cancelled' ? 'border-danger' : 'border-secondary')); ?>">
 
-            <div class="space-y-2 mb-4">
-              <div class="flex items-center text-gray-600">
-                <i class="fas fa-calendar-check text-primary mr-2"></i>
-                <span class="text-sm"><?php echo date('M d, Y', strtotime($reservation['check_in'] ?? 'now')); ?></span>
-              </div>
-              <div class="flex items-center text-gray-600">
-                <i class="fas fa-calendar-times text-primary mr-2"></i>
-                <span class="text-sm"><?php echo date('M d, Y', strtotime($reservation['check_out'] ?? 'now')); ?></span>
-              </div>
-              <div class="flex items-center text-gray-600">
-                <i class="fas fa-users text-primary mr-2"></i>
-                <span class="text-sm"><?php echo ($reservation['adults'] ?? 1) + ($reservation['children'] ?? 0); ?> guests</span>
-              </div>
-            </div>
-
-            <div class="border-t pt-4 mb-4">
-              <div class="flex justify-between items-center">
+              <div class="d-flex justify-content-between align-items-start mb-4">
                 <div>
-                  <h6 class="text-lg font-bold text-gray-800">$<?php echo number_format($reservation['total_amount'] ?? 0, 2); ?></h6>
-                  <small class="text-gray-600">Total amount</small>
+                  <h5 class="card-title fw-bold mb-2 text-dark">
+                    <?php echo htmlspecialchars($reservation['room_type'] ?? 'Room'); ?>
+                  </h5>
+                  <p class="text-muted small mb-0">
+                    Room #<?php echo htmlspecialchars($reservation['room_number'] ?? 'N/A'); ?>
+                  </p>
+                </div>
+                <span class="badge
+                  <?php echo $reservation['status'] === 'confirmed' ? 'bg-success' :
+                    ($reservation['status'] === 'pending' ? 'bg-warning' :
+                    ($reservation['status'] === 'cancelled' ? 'bg-danger' : 'bg-secondary')); ?>">
+                  <?php echo ucfirst($reservation['status'] ?? 'Unknown'); ?>
+                </span>
+              </div>
+
+              <div class="mb-4">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-calendar-check text-primary me-3"></i>
+                  <span class="text-muted"><?php echo date('M d, Y', strtotime($reservation['check_in'] ?? 'now')); ?></span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-calendar-times text-primary me-3"></i>
+                  <span class="text-muted"><?php echo date('M d, Y', strtotime($reservation['check_out'] ?? 'now')); ?></span>
+                </div>
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-users text-primary me-3"></i>
+                  <span class="text-muted"><?php echo ($reservation['adults'] ?? 1) + ($reservation['children'] ?? 0); ?> guests</span>
                 </div>
               </div>
-            </div>
 
-            <div class="flex gap-2">
-              <a href="index.php?action=my-reservations&sub_action=view&id=<?php echo $reservation['id']; ?>"
-                class="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold transition duration-300 text-center text-sm">
-                <i class="fas fa-eye mr-1"></i> View
-              </a>
-              <?php if (in_array($reservation['status'] ?? '', ['pending', 'confirmed'])): ?>
-                <a href="index.php?action=my-reservations&sub_action=cancel&id=<?php echo $reservation['id']; ?>"
-                  class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition duration-300 text-sm">
-                  <i class="fas fa-times mr-1"></i> Cancel
+              <div class="border-top pt-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="fw-bold text-dark mb-0">$<?php echo number_format($reservation['total_amount'] ?? 0, 2); ?></h6>
+                    <small class="text-muted">Total amount</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <a href="index.php?action=my-reservations&sub_action=view&id=<?php echo $reservation['id']; ?>"
+                  class="btn btn-primary btn-sm flex-grow-1">
+                  <i class="fas fa-eye me-1"></i> View
                 </a>
-              <?php endif; ?>
+                <?php if (in_array($reservation['status'] ?? '', ['pending', 'confirmed'])): ?>
+                  <a href="index.php?action=my-reservations&sub_action=cancel&id=<?php echo $reservation['id']; ?>"
+                    class="btn btn-danger btn-sm">
+                    <i class="fas fa-times me-1"></i> Cancel
+                  </a>
+                <?php endif; ?>
+              </div>
             </div>
           </div>
         </div>
@@ -134,24 +141,52 @@
 
     <!-- Pagination -->
     <?php if (($totalPages ?? 1) > 1): ?>
-      <div class="mt-8 flex justify-center">
-        <div class="flex gap-2">
-          <a href="index.php?action=my-reservations&page=<?php echo max(1, ($page ?? 1) - 1); ?><?php echo $status ? '&status=' . urlencode($status) : ''; ?>"
-            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold <?php echo ($page ?? 1) == 1 ? 'opacity-50 cursor-not-allowed' : ''; ?>">
-            Previous
-          </a>
-          <?php for ($i = 1; $i <= ($totalPages ?? 1); $i++): ?>
-            <a href="index.php?action=my-reservations&page=<?php echo $i; ?><?php echo $status ? '&status=' . urlencode($status) : ''; ?>"
-              class="px-4 py-2 rounded-lg font-semibold transition duration-300 <?php echo ($page ?? 1) == $i ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'; ?>">
-              <?php echo $i; ?>
+      <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+          <li class="page-item <?php echo ($page ?? 1) == 1 ? 'disabled' : ''; ?>">
+            <a class="page-link"
+               href="index.php?action=my-reservations&page=<?php echo max(1, ($page ?? 1) - 1); ?><?php echo $status ? '&status=' . urlencode($status) : ''; ?>">
+              Previous
             </a>
+          </li>
+
+          <?php for ($i = 1; $i <= ($totalPages ?? 1); $i++): ?>
+            <li class="page-item <?php echo ($page ?? 1) == $i ? 'active' : ''; ?>">
+              <a class="page-link"
+                 href="index.php?action=my-reservations&page=<?php echo $i; ?><?php echo $status ? '&status=' . urlencode($status) : ''; ?>">
+                <?php echo $i; ?>
+              </a>
+            </li>
           <?php endfor; ?>
-          <a href="index.php?action=my-reservations&page=<?php echo min(($totalPages ?? 1), ($page ?? 1) + 1); ?><?php echo $status ? '&status=' . urlencode($status) : ''; ?>"
-            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold <?php echo ($page ?? 1) == ($totalPages ?? 1) ? 'opacity-50 cursor-not-allowed' : ''; ?>">
-            Next
-          </a>
-        </div>
-      </div>
+
+          <li class="page-item <?php echo ($page ?? 1) == ($totalPages ?? 1) ? 'disabled' : ''; ?>">
+            <a class="page-link"
+               href="index.php?action=my-reservations&page=<?php echo min(($totalPages ?? 1), ($page ?? 1) + 1); ?><?php echo $status ? '&status=' . urlencode($status) : ''; ?>">
+              Next
+            </a>
+          </li>
+        </ul>
+      </nav>
     <?php endif; ?>
   <?php endif; ?>
 </div>
+
+<style>
+.hover-card {
+  transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.card-body.border-start {
+  border-left-width: 5px !important;
+}
+
+.badge {
+  padding: 0.5em 0.8em;
+  font-size: 0.85em;
+}
+</style>

@@ -78,6 +78,155 @@
   </div>
 </section>
 
+<!-- Browse by Property Type Section (From Image) -->
+<section class="py-4">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2 class="h4 fw-bold mb-3">Browse by property type</h2>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="h5 fw-bold text-primary mb-3">Hotels</h3>
+            <p class="text-muted mb-4">Explore these popular destinations that have a lot to offer</p>
+
+            <div class="row g-3">
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="destination-card text-center">
+                  <div class="destination-icon mb-2">
+                    <i class="fas fa-city fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Manila</h6>
+                  <p class="text-muted small mb-0">14,250 properties</p>
+                </div>
+              </div>
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="destination-card text-center">
+                  <div class="destination-icon mb-2">
+                    <i class="fas fa-umbrella-beach fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Cebu City</h6>
+                  <p class="text-muted small mb-0">2,181 properties</p>
+                </div>
+              </div>
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="destination-card text-center">
+                  <div class="destination-icon mb-2">
+                    <i class="fas fa-mountain fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Tagaytay</h6>
+                  <p class="text-muted small mb-0">870 properties</p>
+                </div>
+              </div>
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="destination-card text-center">
+                  <div class="destination-icon mb-2">
+                    <i class="fas fa-tree fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Baguio</h6>
+                  <p class="text-muted small mb-0">1,554 properties</p>
+                </div>
+              </div>
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="destination-card text-center">
+                  <div class="destination-icon mb-2">
+                    <i class="fas fa-water fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Boracay</h6>
+                  <p class="text-muted small mb-0">505 properties</p>
+                </div>
+              </div>
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="destination-card text-center">
+                  <div class="destination-icon mb-2">
+                    <i class="fas fa-building fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Davao City</h6>
+                  <p class="text-muted small mb-0">1,531 properties</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <a href="index.php?action=destinations" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-compass me-1"></i> Explore More Destinations
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick and Easy Trip Planner (From Image) -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2 class="h4 fw-bold mb-3">Quick and easy trip planner</h2>
+        <p class="text-muted mb-4">Pick a vibe and explore the top destinations</p>
+
+        <!-- Vibe Categories -->
+        <div class="row g-2 mb-4">
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Cultural Exploration</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">City Tours</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Festivals</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Adventures & Water</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Beach Getaways</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Wellness</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Photography</a>
+          </div>
+          <div class="col-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Island Exploration</a>
+          </div>
+        </div>
+
+        <!-- Destination Distances -->
+        <div class="row g-3">
+          <?php
+          $destinations = [
+            ['name' => 'Cebu City', 'distance' => '3.2 km away', 'icon' => 'city'],
+            ['name' => 'Bacolod', 'distance' => '110 km away', 'icon' => 'landmark'],
+            ['name' => 'Siquijor', 'distance' => '132 km away', 'icon' => 'island'],
+            ['name' => 'Ilolo City', 'distance' => '151 km away', 'icon' => 'city'],
+            ['name' => 'Davao City', 'distance' => '410 km away', 'icon' => 'building'],
+            ['name' => 'Manila', 'distance' => '570 km away', 'icon' => 'metropolis']
+          ];
+          ?>
+
+          <?php foreach ($destinations as $destination): ?>
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-3">
+                  <div class="mb-2">
+                    <i class="fas fa-<?php echo $destination['icon']; ?> fa-2x text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1"><?php echo $destination['name']; ?></h6>
+                  <p class="text-muted small mb-0"><?php echo $destination['distance']; ?></p>
+                  <a href="#" class="btn btn-link btn-sm mt-2">Explore</a>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Stats Section -->
 <?php if (isset($stats) && !empty($stats)): ?>
   <section class="py-3 bg-light">
@@ -111,6 +260,73 @@
     </div>
   </section>
 <?php endif; ?>
+
+<!-- Weekend Deals Section (From Image) -->
+<section class="py-4">
+  <div class="container">
+    <h2 class="h4 fw-bold mb-3">Deals for the weekend</h2>
+    <p class="text-muted mb-4">Save on trips for <?php echo date('d F', strtotime('next Friday')); ?> - <?php echo date('d F', strtotime('next Sunday')); ?></p>
+
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold mb-0">Kaua Beach Park Capital</h6>
+              <span class="badge bg-warning">Luxury Resort</span>
+            </div>
+            <p class="text-muted small mb-3">Experience premium beachfront living</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="h5 text-primary fw-bold">₱2,800</span>
+                <span class="text-muted small">for 2 nights</span>
+              </div>
+              <a href="#" class="btn btn-primary btn-sm">View More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold mb-0">Pearl Resort Mactan</h6>
+              <span class="badge bg-warning">Beachfront Resort</span>
+            </div>
+            <p class="text-muted small mb-3">Luxury meets nature at this beautiful resort</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="h5 text-primary fw-bold">₱3,200</span>
+                <span class="text-muted small">for 2 nights</span>
+              </div>
+              <a href="#" class="btn btn-primary btn-sm">View More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold mb-0">Private Villas Collection</h6>
+              <span class="badge bg-warning">Private Villa</span>
+            </div>
+            <p class="text-muted small mb-3">Exclusive villas with private amenities</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="h5 text-primary fw-bold">₱4,500</span>
+                <span class="text-muted small">for 2 nights</span>
+              </div>
+              <a href="#" class="btn btn-primary btn-sm">View More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Available Rooms Preview -->
 <section class="py-4">
@@ -186,40 +402,200 @@
   </div>
 </section>
 
-<!-- Description Section -->
+<!-- Explore Our Rooms Section with Carousel and Grid Fallback -->
 <section class="py-4 bg-light">
   <div class="container">
-    <div class="row">
-      <div class="col-lg-10 mx-auto text-center">
-        <h2 class="h4 fw-bold mb-3">Welcome to Our Hotel</h2>
-        <p class="mb-3 small">
-          Nestled in the heart of the city, we offer a sanctuary of elegance and comfort
-          with luxurious rooms and world-class amenities.
+    <div class="row mb-3">
+      <div class="col text-center">
+        <h2 class="h4 fw-bold mb-2">Explore Our Rooms</h2>
+        <p class="text-muted small">
+          A visual preview of our premium accommodations
         </p>
-        <div class="row mt-3">
-          <div class="col-6 col-md-3 mb-3">
-            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
-              <i class="fas fa-wifi fa-lg"></i>
+      </div>
+    </div>
+
+    <?php
+    // Get carousel images from available rooms or use default images
+    $carouselImages = isset($carouselImages) ? $carouselImages : [];
+
+    // If no carousel images are provided, create from available rooms
+    if (empty($carouselImages) && !empty($availableRooms)) {
+        foreach ($availableRooms as $room) {
+            if ($room['type'] !== 'Common / Background' && !empty($room['images']['primary'])) {
+                $carouselImages[] = $room['images']['primary'];
+            }
+            // Limit to 5 images for carousel
+            if (count($carouselImages) >= 5) break;
+        }
+    }
+
+    // If still no images, use default hotel room images
+    if (empty($carouselImages)) {
+        $carouselImages = [
+            'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1591088398332-8a7791972843?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'
+        ];
+    }
+    ?>
+
+    <?php if (count($carouselImages) > 1): ?>
+      <!-- Carousel for multiple images -->
+      <div id="roomCarousel" class="carousel slide shadow-sm rounded overflow-hidden" data-bs-ride="carousel">
+        <!-- Indicators -->
+        <div class="carousel-indicators">
+          <?php foreach ($carouselImages as $index => $img): ?>
+            <button type="button"
+                    data-bs-target="#roomCarousel"
+                    data-bs-slide-to="<?php echo $index; ?>"
+                    class="<?php echo $index === 0 ? 'active' : ''; ?>"
+                    aria-label="Slide <?php echo $index + 1; ?>">
+            </button>
+          <?php endforeach; ?>
+        </div>
+
+        <!-- Slides -->
+        <div class="carousel-inner">
+          <?php foreach ($carouselImages as $index => $img): ?>
+            <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
+              <img
+                src="<?php echo htmlspecialchars($img); ?>"
+                class="d-block w-100 carousel-img"
+                alt="Room Image <?php echo $index + 1; ?>"
+                style="height: 400px; object-fit: cover;">
             </div>
-            <h6 class="mb-0 small">Free WiFi</h6>
+          <?php endforeach; ?>
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+
+        <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    <?php else: ?>
+      <!-- Grid Layout Fallback if only one image or carousel fails -->
+      <div class="row g-3 image-grid-4">
+        <?php
+        // Use the first 4 images from carouselImages or available rooms
+        $gridImages = array_slice($carouselImages, 0, 4);
+        foreach ($gridImages as $index => $img): ?>
+          <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+              <img src="<?php echo htmlspecialchars($img); ?>"
+                   class="card-img-top"
+                   alt="Room Preview <?php echo $index + 1; ?>"
+                   style="height: 200px; object-fit: cover;">
+              <div class="card-body">
+                <h6 class="fw-bold mb-1">Premium Room <?php echo $index + 1; ?></h6>
+                <p class="text-muted small mb-0">Luxury accommodations</p>
+              </div>
+            </div>
           </div>
-          <div class="col-6 col-md-3 mb-3">
-            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
-              <i class="fas fa-utensils fa-lg"></i>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
+
+<!-- Homes Guests Love (From Image) -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <h2 class="h4 fw-bold mb-3">Homes guests love</h2>
+    <p class="text-muted mb-4">Discover unique homes and apartments</p>
+
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            class="card-img-top" alt="Apartment" style="height: 150px; object-fit: cover;">
+          <div class="card-body">
+            <h6 class="fw-bold mb-1">Apartment in Madai</h6>
+            <p class="text-muted small mb-2">Modern 2-bedroom apartment</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge bg-light text-dark">
+                <i class="fas fa-bed me-1"></i> 2 Bedrooms
+              </span>
+              <a href="#" class="btn btn-link btn-sm">View More</a>
             </div>
-            <h6 class="mb-0 small">Fine Dining</h6>
           </div>
-          <div class="col-6 col-md-3 mb-3">
-            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
-              <i class="fas fa-spa fa-lg"></i>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <img src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            class="card-img-top" alt="House" style="height: 150px; object-fit: cover;">
+          <div class="card-body">
+            <h6 class="fw-bold mb-1">Gema Ledes Villa</h6>
+            <p class="text-muted small mb-2">Spacious 3-bedroom villa</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge bg-light text-dark">
+                <i class="fas fa-bed me-1"></i> 3 Bedrooms
+              </span>
+              <a href="#" class="btn btn-link btn-sm">View More</a>
             </div>
-            <h6 class="mb-0 small">Spa</h6>
           </div>
-          <div class="col-6 col-md-3 mb-3">
-            <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 50px; height: 50px;">
-              <i class="fas fa-swimming-pool fa-lg"></i>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+            class="card-img-top" alt="Penthouse" style="height: 150px; object-fit: cover;">
+          <div class="card-body">
+            <h6 class="fw-bold mb-1">Thomas Apartments</h6>
+            <p class="text-muted small mb-2">Luxury 2-bedroom penthouse</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge bg-light text-dark">
+                <i class="fas fa-bed me-1"></i> 2 Bedrooms
+              </span>
+              <a href="#" class="btn btn-link btn-sm">View More</a>
             </div>
-            <h6 class="mb-0 small">Pool</h6>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-start mb-2">
+              <div class="me-3">
+                <i class="fas fa-home fa-2x text-primary"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0">Hana Florentine Villa</h6>
+                <p class="text-muted small mb-2">Elegant 2-bedroom villa with garden</p>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-light text-dark">
+                <i class="fas fa-bed me-1"></i> 2 Bedrooms
+              </span>
+              <span class="badge bg-light text-dark">
+                <i class="fas fa-bath me-1"></i> 2 Bathrooms
+              </span>
+            </div>
+            <div class="border-top pt-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="h5 text-primary fw-bold">₱9,452</div>
+                  <div class="text-muted small">Total price</div>
+                </div>
+                <div class="text-end">
+                  <div class="h6 fw-bold">₱4,611</div>
+                  <div class="text-muted small">Per night</div>
+                </div>
+              </div>
+              <a href="#" class="btn btn-primary btn-sm w-100 mt-2">Book Now</a>
+            </div>
           </div>
         </div>
       </div>
@@ -227,53 +603,49 @@
   </div>
 </section>
 
-<!-- About Section -->
+<!-- Why Choose Us Section (From Booking.com style) -->
 <section class="py-4">
   <div class="container">
-    <div class="row align-items-center">
-      <div class="col-md-5 mb-3 mb-md-0">
-        <img src="https://images.unsplash.com/photo-1564501049418-3c27787d01e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-          alt="Hotel Lobby" class="img-fluid rounded shadow-sm">
+    <h2 class="h4 fw-bold text-center mb-4">Why Choose Our Platform?</h2>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="text-center p-3">
+          <div class="mb-3">
+            <i class="fas fa-calendar-times fa-3x text-primary"></i>
+          </div>
+          <h5 class="h6 fw-bold mb-2">Free Cancellation</h5>
+          <p class="small text-muted mb-0">Book now, pay at the property with FREE cancellation on most rooms</p>
+        </div>
       </div>
-      <div class="col-md-7">
-        <h2 class="h4 fw-bold mb-3">About Our Hotel</h2>
-        <p class="mb-3 small">
-          Our hotel has been redefining luxury hospitality for years.
-          Our commitment to excellence has earned us numerous awards and guest loyalty.
-        </p>
-        <div class="row mt-2">
-          <div class="col-6 mb-2">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-check-circle text-primary me-2"></i>
-              <div>
-                <h6 class="mb-0 small fw-bold">Award-Winning</h6>
-              </div>
-            </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="text-center p-3">
+          <div class="mb-3">
+            <i class="fas fa-star fa-3x text-primary"></i>
           </div>
-          <div class="col-6 mb-2">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-check-circle text-primary me-2"></i>
-              <div>
-                <h6 class="mb-0 small fw-bold">Prime Location</h6>
-              </div>
-            </div>
+          <h5 class="h6 fw-bold mb-2">Verified Reviews</h5>
+          <p class="small text-muted mb-0">Thousands of verified reviews from fellow travellers</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="text-center p-3">
+          <div class="mb-3">
+            <i class="fas fa-globe-asia fa-3x text-primary"></i>
           </div>
-          <div class="col-6 mb-2">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-check-circle text-primary me-2"></i>
-              <div>
-                <h6 class="mb-0 small fw-bold">Eco-Friendly</h6>
-              </div>
-            </div>
+          <h5 class="h6 fw-bold mb-2">Wide Selection</h5>
+          <p class="small text-muted mb-0">Hotels, resorts, apartments, villas, and unique properties worldwide</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="text-center p-3">
+          <div class="mb-3">
+            <i class="fas fa-headset fa-3x text-primary"></i>
           </div>
-          <div class="col-6 mb-2">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-check-circle text-primary me-2"></i>
-              <div>
-                <h6 class="mb-0 small fw-bold">24/7 Service</h6>
-              </div>
-            </div>
-          </div>
+          <h5 class="h6 fw-bold mb-2">24/7 Support</h5>
+          <p class="small text-muted mb-0">Trusted customer service you can rely on, available around the clock</p>
         </div>
       </div>
     </div>
@@ -396,6 +768,18 @@
     transform: scale(1.05);
   }
 
+  .destination-card {
+    padding: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .destination-card:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-5px);
+  }
+
   .btn-primary {
     background-color: #0d3b66;
     border-color: #0d3b66;
@@ -409,18 +793,39 @@
     transform: translateY(-1px);
   }
 
-  @media (max-width: 768px) {
-    .hero-section {
-      min-height: 50vh;
-      padding: 30px 0;
-    }
+  .btn-outline-primary {
+    color: #0d3b66;
+    border-color: #0d3b66;
+  }
 
-    .hero-content h1 {
-      font-size: 1.5rem;
-    }
+  .btn-outline-primary:hover {
+    background-color: #0d3b66;
+    border-color: #0d3b66;
+  }
 
-    .hero-content p {
-      font-size: 0.9rem;
-    }
+  .carousel-img {
+    height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .carousel {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .carousel-indicators button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin: 0 5px;
+  }
+
+  .image-grid-4 .card {
+    transition: transform 0.3s ease;
+  }
+
+  .image-grid-4 .card:hover {
+    transform: translateY(-5px);
   }
 </style>

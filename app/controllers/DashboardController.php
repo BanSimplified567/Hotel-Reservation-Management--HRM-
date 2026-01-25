@@ -7,38 +7,44 @@ class DashboardController extends BaseController
   // app/controllers/DashboardController.php
   public function index()
   {
-    $this->requireLogin('customer');
-
-    $userId = $_SESSION['user_id'];
-
-    // Get user details
-    $user = $this->getUserDetails($userId);
-
-    // Get upcoming reservations
-    $upcomingReservations = $this->getUpcomingReservations($userId);
-
-    // Get past reservations
-    $pastReservations = $this->getPastReservations($userId);
-
-    // Get loyalty points or rewards if applicable
-    $loyaltyInfo = $this->getLoyaltyInfo($userId);
-
     // Get available rooms for display
     $availableRooms = $this->getAvailableRooms();
 
     // Get statistics for display
     $stats = $this->getReservationStats();
 
-    // Prepare data for view
+    // Get carousel images
+    $carouselImages = $this->getCarouselImages();
+
+    // Prepare base data for view
     $data = [
-      'user' => $user,
-      'upcomingReservations' => $upcomingReservations,
-      'pastReservations' => $pastReservations,
-      'loyaltyInfo' => $loyaltyInfo,
       'availableRooms' => $availableRooms,
       'stats' => $stats,
-      'page_title' => 'Customer Dashboard'
+      'carouselImages' => $carouselImages,
+      'page_title' => 'Hotel Management System'
     ];
+
+    // Add user-specific data if customer is logged in
+    if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'customer') {
+      $userId = $_SESSION['user_id'];
+
+      // Get user details
+      $user = $this->getUserDetails($userId);
+
+      // Get upcoming reservations
+      $upcomingReservations = $this->getUpcomingReservations($userId);
+
+      // Get past reservations
+      $pastReservations = $this->getPastReservations($userId);
+
+      // Get loyalty points or rewards if applicable
+      $loyaltyInfo = $this->getLoyaltyInfo($userId);
+
+      $data['user'] = $user;
+      $data['upcomingReservations'] = $upcomingReservations;
+      $data['pastReservations'] = $pastReservations;
+      $data['loyaltyInfo'] = $loyaltyInfo;
+    }
 
     // Render the view
     $this->render('customer/dashboard', $data);
@@ -305,6 +311,24 @@ class DashboardController extends BaseController
     // If no images found, use a default image
     if (empty($images)) {
       $images['primary'] = $imagePath . 'default-room.jpg';
+    }
+
+    return $images;
+  }
+
+  private function getCarouselImages()
+  {
+    $images = [];
+    $imageDir = __DIR__ . '/../../public/images/rooms/';
+
+    if (is_dir($imageDir)) {
+      $files = array_diff(scandir($imageDir), array('.', '..'));
+      foreach ($files as $file) {
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+          $images[] = 'images/rooms/' . $file;
+        }
+      }
     }
 
     return $images;

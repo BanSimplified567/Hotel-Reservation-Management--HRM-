@@ -4,118 +4,302 @@
 </div> <!-- Close main content div -->
 
 <!-- Footer -->
-<footer class="bg-dark text-white py-4 mt-4">
+<footer class="bg-light text-dark py-4 mt-5">
   <div class="container">
-    <div class="row">
-      <!-- Company Info -->
-      <div class="col-md-6 col-lg-3 mb-4">
-        <h5 class="h6 fw-bold mb-3">Hotel Management System</h5>
-        <p class="small text-white-50 mb-3">
-          Experience luxury and comfort at our premier hotel. Book your perfect stay today.
-        </p>
-        <div class="d-flex gap-3">
-          <a href="#" class="text-white-50 hover:text-white">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a href="#" class="text-white-50 hover:text-white">
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a href="#" class="text-white-50 hover:text-white">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="#" class="text-white-50 hover:text-white">
-            <i class="fab fa-linkedin"></i>
-          </a>
+    <!-- Popular with travellers from the Philippines -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h6 class="fw-bold mb-3">Popular with travellers from the Philippines</h6>
+
+        <div class="row">
+          <!-- Domestic cities -->
+          <div class="col-md-3 mb-3">
+            <h6 class="small fw-bold mb-2">Domestic cities</h6>
+            <ul class="list-unstyled mb-0">
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Oslo hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Cagayan de Oro hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Boracay hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Surigao hotels</a></li>
+            </ul>
+          </div>
+
+          <!-- International cities -->
+          <div class="col-md-3 mb-3">
+            <h6 class="small fw-bold mb-2">International cities</h6>
+            <ul class="list-unstyled mb-0">
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Baguio hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Dumaguete hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Manila hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Tagaytay hotels</a></li>
+            </ul>
+          </div>
+
+          <!-- Regions -->
+          <div class="col-md-3 mb-3">
+            <h6 class="small fw-bold mb-2">Regions</h6>
+            <ul class="list-unstyled mb-0">
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Cebu City hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Coron hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Butuan hotels</a></li>
+            </ul>
+          </div>
+
+          <!-- Countries -->
+          <div class="col-md-3 mb-3">
+            <h6 class="small fw-bold mb-2">Countries</h6>
+            <ul class="list-unstyled mb-0">
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">El Nido hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">Baler hotels</a></li>
+              <li><a href="#" class="text-decoration-none text-muted small hover:text-primary">General Santos hotels</a></li>
+            </ul>
+          </div>
         </div>
-      </div>
 
-      <!-- Quick Links -->
-      <div class="col-md-6 col-lg-2 mb-4">
-        <h5 class="h6 fw-bold mb-3">Quick Links</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="index.php" class="text-white-50 small text-decoration-none hover:text-white">
-              Home
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="index.php?action=rooms" class="text-white-50 small text-decoration-none hover:text-white">
-              Rooms
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="index.php?action=about" class="text-white-50 small text-decoration-none hover:text-white">
-              About Us
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="index.php?action=contact" class="text-white-50 small text-decoration-none hover:text-white">
-              Contact
-            </a>
-          </li>
-        </ul>
-      </div>
+        <!-- Places to stay -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <h6 class="small fw-bold mb-2">Places to stay</h6>
+            <div class="d-flex flex-wrap gap-3">
+              <a href="#" class="text-decoration-none text-muted small hover:text-primary">Bacolor hotels</a>
+              <a href="#" class="text-decoration-none text-muted small hover:text-primary">Maya hotels</a>
+              <a href="#" class="text-decoration-none text-muted small hover:text-primary">Ilolio City hotels</a>
+            </div>
+          </div>
+        </div>
 
-      <!-- Contact Info -->
-      <div class="col-md-6 col-lg-3 mb-4">
-        <h5 class="h6 fw-bold mb-3">Contact Info</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2 d-flex align-items-center">
-            <i class="fas fa-phone me-2 text-primary small"></i>
-            <a href="tel:09619839317" class="text-white-50 small text-decoration-none hover:text-white">
-              0961 983 9317
-            </a>
-          </li>
-          <li class="mb-2 d-flex align-items-center">
-            <i class="fas fa-envelope me-2 text-primary small"></i>
-            <a href="mailto:bansimplified567@gmail.com" class="text-white-50 small text-decoration-none hover:text-white">
-              bansimplified567@gmail.com
-            </a>
-          </li>
-          <li class="mb-2 d-flex align-items-center">
-            <i class="fas fa-map-marker-alt me-2 text-primary small"></i>
-            <span class="text-white-50 small">123 Hotel Street, City, Country</span>
-          </li>
-        </ul>
-      </div>
+        <!-- Filter tags -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="text-muted small">
+              Countries: <a href="#" class="text-decoration-none text-primary hover:underline">Regions</a>;
+              Cities: <a href="#" class="text-decoration-none text-primary hover:underline">Districts</a>;
+              Airports: <a href="#" class="text-decoration-none text-primary hover:underline">Hotels</a>;
+              Places of interest: <a href="#" class="text-decoration-none text-primary hover:underline">Holiday Homes</a>;
+              Apartments: <a href="#" class="text-decoration-none text-primary hover:underline">Resorts</a>;
+              Villas: <a href="#" class="text-decoration-none text-primary hover:underline">Hotels</a>;
+              <a href="#" class="text-decoration-none text-primary hover:underline">B&Bs</a>;
+              Guest Houses: <a href="#" class="text-decoration-none text-primary hover:underline">Unique places to stay</a>;
+              All destinations: <a href="#" class="text-decoration-none text-primary hover:underline">*</a>
+            </div>
+          </div>
+        </div>
 
-      <!-- Newsletter -->
-      <div class="col-md-6 col-lg-4 mb-4">
-        <h5 class="h6 fw-bold mb-3">Newsletter</h5>
-        <p class="text-white-50 small mb-3">Subscribe to get special offers and updates.</p>
-        <form class="input-group">
-          <input type="email"
-            class="form-control form-control-sm"
-            placeholder="Your email"
-            required>
-          <button type="submit"
-            class="btn btn-primary btn-sm">
-            Subscribe
-          </button>
-        </form>
+        <!-- Additional links -->
+        <div class="row mt-2">
+          <div class="col-12">
+            <div class="text-muted small">
+              All flight destinations: <a href="#" class="text-decoration-none text-primary hover:underline">*</a>
+              All car hire locations: <a href="#" class="text-decoration-none text-primary hover:underline">*</a>
+              All holiday destinations: <a href="#" class="text-decoration-none text-primary hover:underline">*</a>
+              <a href="#" class="text-decoration-none text-primary hover:underline">Guides</a>;
+              <a href="#" class="text-decoration-none text-primary hover:underline">Discover</a>;
+              <a href="#" class="text-decoration-none text-primary hover:underline">Discover monthly stays</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Divider -->
-    <div class="border-top border-secondary my-3"></div>
+    <div class="border-top my-4"></div>
 
-    <!-- Copyright and Links -->
+    <!-- Main footer sections -->
     <div class="row">
-      <div class="col-md-6 mb-2 mb-md-0">
-        <span class="text-white-50 small">
-          &copy; <?php echo date('Y'); ?> Hotel Management System. All rights reserved.
-        </span>
+      <!-- Support -->
+      <div class="col-md-3 mb-4">
+        <h6 class="fw-bold mb-3">Support</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Manage your trips
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Contact Customer Service
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Safety resource centre
+            </a>
+          </li>
+        </ul>
       </div>
-      <div class="col-md-6 text-md-end">
-        <a href="#" class="text-white-50 small text-decoration-none me-3 hover:text-white">
-          Privacy Policy
-        </a>
-        <a href="#" class="text-white-50 small text-decoration-none me-3 hover:text-white">
-          Terms of Service
-        </a>
-        <a href="#" class="text-white-50 small text-decoration-none hover:text-white">
-          Help Center
-        </a>
+
+      <!-- Discover -->
+      <div class="col-md-3 mb-4">
+        <h6 class="fw-bold mb-3">Discover</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Genius loyalty programme
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Seasonal and holiday deals
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Travel articles
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Booking.com for Business
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Traveller Review Awards
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Car hire
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Flight finder
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Restaurant reservations
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Booking.com for Travel Agents
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Terms and settings -->
+      <div class="col-md-3 mb-4">
+        <h6 class="fw-bold mb-3">Terms and settings</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Privacy Notice
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Terms of Service
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Accessibility Statement
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Partner dispute
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Modern Slavery Statement
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Human Rights Statement
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Partners and About -->
+      <div class="col-md-3 mb-4">
+        <h6 class="fw-bold mb-3">Partners</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Extranet login
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Partner help
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              List your property
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Become an affiliate
+            </a>
+          </li>
+        </ul>
+
+        <h6 class="fw-bold mb-3 mt-4">About</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              About Booking.com
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              How we work
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Sustainability
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Press centre
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Careers
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Investor relations
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Corporate contact
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" class="text-decoration-none text-muted small hover:text-primary">
+              Content guidelines and reporting
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="border-top my-4"></div>
+
+    <!-- Copyright and branding -->
+    <div class="row">
+      <div class="col-12">
+        <p class="text-muted small mb-2">
+          Booking.com is part of Booking Holdings Inc. the world leader in online travel and related services.
+        </p>
+        <p class="text-muted small mb-0">
+          Copyright © 1996–<?php echo date('Y'); ?> Hotel Management System™. All rights reserved.
+        </p>
       </div>
     </div>
   </div>

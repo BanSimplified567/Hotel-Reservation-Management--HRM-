@@ -1,139 +1,206 @@
 # Hotel Management System
 
-This project is a web-based application for a hotel management system, developed in PHP. It features a complete user authentication system, including user registration, login, logout, and password reset functionalities. Once authenticated, users are redirected to a personal dashboard.
+A comprehensive web-based hotel management system built with PHP, featuring user authentication, room bookings, reservations management, and administrative controls.
 
-The application follows a Model-View-Controller (MVC) like architecture, with a clear separation of concerns between the business logic, the presentation layer, and the request handling.
+## Features
+
+- **User Authentication**: Registration, login, logout, password reset
+- **Role-based Access**: Admin, Staff, Customer, and Guest roles
+- **Room Management**: View, search, and book rooms
+- **Reservation System**: Create, edit, cancel reservations
+- **Admin Dashboard**: Manage users, rooms, services, reports
+- **Customer Dashboard**: View reservations, profile management
+- **Public Pages**: Room listings, contact forms, about page
+- **Responsive Design**: Bootstrap-based UI
 
 ## Technologies Used
 
-*   **Backend:** PHP
-*   **Frontend:** HTML, CSS
-*   **Database:** MySQL / MariaDB (inferred)
-*   **Web Server:** Apache (inferred from `.htaccess`)
-*   **Development Environment:** Laragon
+- **Backend**: PHP 7.4+
+- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
+- **Database**: MySQL/MariaDB
+- **Web Server**: Apache/Nginx
+- **Development Environment**: Laragon/XAMPP
+- **Icons**: FontAwesome
+- **Charts**: (if applicable)
+
+## Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd Hotel
+   ```
+
+2. **Set up environment**:
+   - Copy `.env.example` to `.env` and configure database settings
+   - Ensure PHP, MySQL, and Apache are running
+
+3. **Database Setup**:
+   - Import `reservation.sql` and `reservation_guests.sql` into your MySQL database
+   - Update database credentials in `config/dbconn.php` or via environment variables
+
+4. **Dependencies**:
+   - The project uses Composer for PHP dependencies (if applicable)
+   - Run `composer install` if `composer.json` is present
+
+5. **Web Server Configuration**:
+   - Point your web server to the `public/` directory
+   - Ensure `public/index.php` is the entry point
+
+6. **Access the Application**:
+   - Open `http://localhost/Hotel/public/` in your browser
+   - Default admin credentials: (set during installation or check database)
 
 ## Folder Structure
 
 ```
-c:\laragon\www\Hotel\c:\laragon\www\Hotel\
-├───.gitignore
-├───README.md
-├───reservation.sql
-├───.env.example
-├───composer.json
-├───phpunit.xml
-├───app\
-│   ├───controllers\
-│   │   ├───Admin\
-│   │   │   ├───DashboardController.php
-│   │   │   ├───UserController.php
-│   │   │   ├───ReservationController.php
-│   │   │   ├───RoomController.php
-│   │   │   ├───ServiceController.php
-│   │   │   └───ReportController.php
-│   │   ├───Auth\
-│   │   │   └───AuthController.php
-│   │   ├───DashboardController.php
-│   │   ├───ProfileController.php
-│   │   ├───ReservationController.php
-│   │   ├───BookingController.php
-│   │   ├───RoomSearchController.php
-│   │   ├───ContactController.php
-│   │   ├───AboutController.php
-│   │   ├───RoomController.php
-│   │   └───Path\
-│   │       ├───BaseController.php
-│   │       └───Controller.php
-│   ├───middleware\
-│   │   └───auth.php
-│   └───views\
-│       ├───admin\
-│       │   ├───dashboard.php
-│       │   ├───users\
-│       │   │   ├───index.php
-│       │   │   ├───create.php
-│       │   │   ├───edit.php
-│       │   │   └───view.php
-│       │   ├───reservations\
-│       │   │   ├───index.php
-│       │   │   ├───view.php
-│       │   │   ├───edit.php
-│       │   │   └───status-modal.php
-│       │   ├───rooms\
-│       │   │   ├───index.php
-│       │   │   ├───create.php
-│       │   │   ├───edit.php
-│       │   │   ├───view.php
-│       │   │   └───availability-calendar.php
-│       │   ├───services\
-│       │   │   ├───index.php
-│       │   │   ├───create.php
-│       │   │   ├───edit.php
-│       │   │   └───status-modal.php
-│       │   ├───reports\
-│       │   │   ├───index.php
-│       │   │   ├───revenue.php
-│       │   │   ├───occupancy.php
-│       │   │   ├───reservations.php
-│       │   │   ├───customers.php
-│       │   │   ├───services.php
-│       │   │   └───export-modal.php
-│       │   ├───contact\
-│       │   │   ├───index.php
-│       │   │   ├───view.php
-│       │   │   ├───reply.php
-│       │   │   └───reply-modal.php
-│       ├───auth\
-│       │   ├───error.php
-│       │   ├───forgot-password.php
-│       │   ├───login.php
-│       │   ├───logout.php
-│       │   ├───register.php
-│       │   └───reset-password.php
-│       ├───customer\
-│       │   ├───dashboard.php
-│       │   ├───reservations\
-│       │   │   ├───index.php
-│       │   │   ├───view.php
-│       │   │   ├───cancel.php
-│       │   │   └───invoice.php
-│       │   ├───booking\
-│       │   │   ├───index.php
-│       │   │   ├───confirmation.php
-│       │   │   └───payment.php
-│       │   └───profile\
-│       │       ├───index.php
-│       │       ├───edit.php
-│       │       └───change-password.php
-│       ├───public\
-│       │   ├───room-search.php
-│       │   ├───rooms.php
-│       │   ├───room-details.php
-│       │   ├───room-compare.php
-│       │   ├───contact.php
-│       │   ├───about.php
-│       │   ├───home.php
-│       │   ├───amenities.php
-│       │   └───gallery.php
-│       ├───errors\
-│       │   ├───403.php
-│       │   ├───404.php
-│       │   ├───500.php
-│       │   └───maintenance.php
-│       └───layout\
-│           ├───header.php
-│           ├───footer.php
-│           └───sidebar.php
-├───config\
-│   ├───app.php
-│   ├───dbconn.php
-│   └───load_env.php
-├───public\
-│   ├───.htaccess
-│   ├───index.php
-│   └───uploads\
-│       ├───profile_pictures\
-│       ├───room_images\
-│       └───documents\
-└───style\
+Hotel/
+├── README.md
+├── RULES.md
+├── reservation.sql
+├── reservation_guests.sql
+├── app/
+│   ├── controllers/
+│   │   ├── AboutController.php
+│   │   ├── BookingController.php
+│   │   ├── CustomerController.php
+│   │   ├── DashboardController.php
+│   │   ├── ProfileController.php
+│   │   ├── ReservationController.php
+│   │   ├── RoomSearchController.php
+│   │   ├── Admin/
+│   │   │   ├── ContactController.php
+│   │   │   ├── DashboardController.php
+│   │   │   ├── ProfileController.php
+│   │   │   ├── ReportController.php
+│   │   │   ├── ReservationController.php
+│   │   │   ├── ReservationGuestsController.php
+│   │   │   ├── RoomController.php
+│   │   │   ├── ServiceController.php
+│   │   │   └── UserController.php
+│   │   ├── Auth/
+│   │   │   └── AuthController.php
+│   │   ├── Path/
+│   │   │   ├── BaseController.php
+│   │   │   └── Controller.php
+│   │   └── Public/
+│   │       ├── AboutController.php
+│   │       ├── AmenitiesController.php
+│   │       ├── ContactController.php
+│   │       ├── GalleryController.php
+│   │       ├── HomeController.php
+│   │       └── RoomController.php
+│   ├── middleware/
+│   │   └── auth.php
+│   └── views/
+│       ├── admin/
+│       │   ├── dashboard.php
+│       │   ├── contact/
+│       │   │   ├── index.php
+│       │   │   ├── reply-modal.php
+│       │   │   ├── reply.php
+│       │   │   └── view.php
+│       │   ├── partials/
+│       │   ├── profile/
+│       │   │   ├── edit.php
+│       │   │   └── index.php
+│       │   ├── reports/
+│       │   │   ├── customers.php
+│       │   │   ├── index.php
+│       │   │   ├── occupancy.php
+│       │   │   ├── reservations.php
+│       │   │   ├── revenue.php
+│       │   │   └── services.php
+│       │   ├── reservation-guests/
+│       │   │   ├── create.php
+│       │   │   ├── edit.php
+│       │   │   ├── index.php
+│       │   │   └── view.php
+│       │   ├── reservations/
+│       │   │   ├── create.php
+│       │   │   ├── edit.php
+│       │   │   ├── index.php
+│       │   │   └── view.php
+│       │   ├── rooms/
+│       │   │   ├── create.php
+│       │   │   ├── edit.php
+│       │   │   ├── index.php
+│       │   │   └── view.php
+│       │   ├── services/
+│       │   │   ├── create.php
+│       │   │   ├── edit.php
+│       │   │   ├── index.php
+│       │   │   └── view.php
+│       │   └── users/
+│       │       ├── create.php
+│       │       ├── edit.php
+│       │       ├── index.php
+│       │       └── view.php
+│       ├── auth/
+│       │   ├── error.php
+│       │   ├── forgot-password.php
+│       │   ├── login.php
+│       │   ├── logout.php
+│       │   ├── register.php
+│       │   └── reset-password.php
+│       ├── customer/
+│       │   ├── dashboard.php
+│       │   ├── booking/
+│       │   │   ├── confirmation.php
+│       │   │   ├── index.php
+│       │   │   └── payment.php
+│       │   ├── profile/
+│       │   └── reservations/
+│       ├── errors/
+│       │   ├── 403.php
+│       │   └── 404.php
+│       ├── images/
+│       ├── layout/
+│       │   ├── admin-header.php
+│       │   ├── base-footer.php
+│       │   ├── base-header.php
+│       │   ├── footer.php
+│       │   ├── navbar.php
+│       │   └── sidebar.php
+│       └── public/
+│           ├── about.php
+│           ├── amenities.php
+│           ├── contact.php
+│           ├── gallery.php
+│           ├── room-details.php
+│           ├── room-search.php
+│           └── rooms.php
+├── config/
+│   ├── app.php
+│   ├── dbconn.php
+│   └── load_env.php
+├── public/
+│   ├── index.php
+│   ├── images/
+│   │   └── rooms/
+│   └── uploads/
+└── style/
 ```
+
+## Usage
+
+- **Guests**: Can view rooms, search availability, register/login
+- **Customers**: Book rooms, view reservations, manage profile
+- **Staff**: Manage reservations, rooms, services
+- **Admins**: Full access including user management and reports
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Push to branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, please contact the development team or create an issue in the repository.

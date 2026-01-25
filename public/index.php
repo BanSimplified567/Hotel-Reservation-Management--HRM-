@@ -8,23 +8,18 @@ require_once '../config/app.php';
 require_once '../config/dbconn.php';
 require_once '../app/middleware/auth.php';
 
-// Get action from query parameter
-$action = $_GET['action'] ?? '';
-
-// Special handling for empty action - Redirect to home page
-if (empty($action)) {
-  header('Location: index.php?action=home');
+// Redirect admin/staff to their dashboard
+if (isset($_SESSION['user_id']) && in_array($_SESSION['role'], ['admin', 'staff'])) {
+  header("Location: index.php?action=admin/dashboard");
   exit;
 }
 
+// Get action from query parameter
+$action = $_GET['action'] ?? 'dashboard';
+
+
 // Route handling
 switch ($action) {
-  // ========== PUBLIC HOMEPAGE ROUTE ==========
-  case 'home':
-    require_once '../app/controllers/Public/HomeController.php';
-    $controller = new HomeController($pdo);
-    $controller->index();
-    break;
 
   // ========== OTHER PUBLIC ROUTES ==========
   case 'room-search':
@@ -122,11 +117,11 @@ switch ($action) {
     break;
 
   case 'dashboard':
-    authorize(['customer']);
     require_once '../app/controllers/DashboardController.php';
     $controller = new DashboardController($pdo);
     $controller->index();
     break;
+
 
   // ========== ADMIN ROUTES ==========
   case 'admin/users':
@@ -372,13 +367,15 @@ switch ($action) {
     }
     break;
 
-  // ========== CUSTOMER ROUTES ==========
-  case 'profile':
-    authorize(['customer']);
+// ========== CUSTOMER ROUTES ==========
+case 'profile':
+    authorize(['customer', 'guest']);
     require_once '../app/controllers/ProfileController.php';
     $controller = new ProfileController($pdo);
 
-    $sub_action = $_GET['sub_action'] ?? 'index';
+    // Extract the sub-action from the URL
+    $url_parts = explode('/', $_GET['action']);
+    $sub_action = $url_parts[2] ?? 'index';
 
     switch ($sub_action) {
       case 'edit':

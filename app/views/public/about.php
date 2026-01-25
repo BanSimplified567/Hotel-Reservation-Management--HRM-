@@ -1,151 +1,174 @@
-<?php
-// app/views/public/about.php
-// Note: $hotel_info, $team_members, $statistics, $page_title are passed from controller
-?>
-
 <!-- Hero Section -->
-<section class="bg-gradient-to-r from-primary to-secondary text-white py-16">
-  <div class="container mx-auto px-4">
-    <div class="max-w-4xl mx-auto text-center">
-      <h1 class="text-5xl font-bold mb-6">About Our Hotel</h1>
-      <p class="text-xl mb-8 text-gray-100"><?php echo htmlspecialchars($hotel_info['description'] ?? 'Experience luxury and comfort at our premier hotel.'); ?></p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="#history" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300">
-          Our History
-        </a>
-        <a href="#team" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary transition duration-300">
-          Meet Our Team
-        </a>
+<section class="hero-section bg-primary text-white py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 text-center">
+        <h1 class="display-4 fw-bold mb-4">About Our Hotel</h1>
+        <p class="lead mb-5 text-light"><?php echo htmlspecialchars($hotel_info['description'] ?? 'Experience luxury and comfort at our premier hotel.'); ?></p>
+        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+          <a href="#history" class="btn btn-light btn-lg px-5 py-3 fw-semibold text-primary">
+            Our History
+          </a>
+          <a href="#team" class="btn btn-outline-light btn-lg px-5 py-3 fw-semibold">
+            Meet Our Team
+          </a>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Statistics Section -->
-<section class="py-16 bg-gray-50">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Hotel Statistics</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <div class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-xl transition duration-300">
-        <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-bed text-primary text-2xl"></i>
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center display-5 fw-bold mb-5 text-dark">Hotel Statistics</h2>
+    <div class="row g-4">
+      <div class="col-6 col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center hover-shadow">
+          <div class="card-body p-4">
+            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+              <i class="fas fa-bed text-primary fs-3"></i>
+            </div>
+            <h3 class="text-primary fw-bold display-6 mb-2"><?php echo $statistics['total_rooms'] ?? 0; ?></h3>
+            <p class="text-muted fw-semibold">Total Rooms</p>
+          </div>
         </div>
-        <div class="text-4xl font-bold text-primary mb-2"><?php echo $statistics['total_rooms'] ?? 0; ?></div>
-        <div class="text-gray-600 font-semibold">Total Rooms</div>
       </div>
-      <div class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-xl transition duration-300">
-        <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-home text-primary text-2xl"></i>
+      <div class="col-6 col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center hover-shadow">
+          <div class="card-body p-4">
+            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+              <i class="fas fa-home text-primary fs-3"></i>
+            </div>
+            <h3 class="text-primary fw-bold display-6 mb-2"><?php echo $statistics['room_types'] ?? 0; ?></h3>
+            <p class="text-muted fw-semibold">Room Types</p>
+          </div>
         </div>
-        <div class="text-4xl font-bold text-primary mb-2"><?php echo $statistics['room_types'] ?? 0; ?></div>
-        <div class="text-gray-600 font-semibold">Room Types</div>
       </div>
-      <div class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-xl transition duration-300">
-        <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-users text-primary text-2xl"></i>
+      <div class="col-6 col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center hover-shadow">
+          <div class="card-body p-4">
+            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+              <i class="fas fa-users text-primary fs-3"></i>
+            </div>
+            <h3 class="text-primary fw-bold display-6 mb-2"><?php echo $statistics['total_guests'] ?? 0; ?>+</h3>
+            <p class="text-muted fw-semibold">Happy Guests</p>
+          </div>
         </div>
-        <div class="text-4xl font-bold text-primary mb-2"><?php echo $statistics['total_guests'] ?? 0; ?>+</div>
-        <div class="text-gray-600 font-semibold">Happy Guests</div>
       </div>
-      <div class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-xl transition duration-300">
-        <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-calendar-check text-primary text-2xl"></i>
+      <div class="col-6 col-md-3">
+        <div class="card h-100 border-0 shadow-sm text-center hover-shadow">
+          <div class="card-body p-4">
+            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+              <i class="fas fa-calendar-check text-primary fs-3"></i>
+            </div>
+            <h3 class="text-primary fw-bold display-6 mb-2"><?php echo $statistics['total_reservations'] ?? 0; ?></h3>
+            <p class="text-muted fw-semibold">Reservations</p>
+          </div>
         </div>
-        <div class="text-4xl font-bold text-primary mb-2"><?php echo $statistics['total_reservations'] ?? 0; ?></div>
-        <div class="text-gray-600 font-semibold">Reservations</div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- History Section -->
-<section id="history" class="py-16">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Our History</h2>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-      <div>
-        <div class="space-y-8">
-          <div class="flex gap-6">
+<section id="history" class="py-5">
+  <div class="container">
+    <h2 class="text-center display-5 fw-bold mb-5 text-dark">Our History</h2>
+    <div class="row g-5">
+      <div class="col-lg-6">
+        <div class="timeline">
+          <div class="d-flex mb-5">
             <div class="flex-shrink-0">
-              <div class="bg-primary text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-lg">
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 80px; height: 80px;">
                 <?php echo htmlspecialchars($hotel_info['established'] ?? '2005'); ?>
               </div>
             </div>
-            <div>
-              <h4 class="text-xl font-semibold mb-2 text-gray-800">Foundation</h4>
-              <p class="text-gray-600">Our hotel was established with a vision to provide exceptional hospitality services.</p>
+            <div class="flex-grow-1 ms-4">
+              <h4 class="fw-semibold mb-2 fs-4">Foundation</h4>
+              <p class="text-muted">Our hotel was established with a vision to provide exceptional hospitality services.</p>
             </div>
           </div>
-          <div class="flex gap-6">
+          <div class="d-flex mb-5">
             <div class="flex-shrink-0">
-              <div class="bg-primary text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-lg">2010</div>
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 80px; height: 80px;">2010</div>
             </div>
-            <div>
-              <h4 class="text-xl font-semibold mb-2 text-gray-800">First Expansion</h4>
-              <p class="text-gray-600">Expanded our facilities and added new room types to accommodate growing demand.</p>
+            <div class="flex-grow-1 ms-4">
+              <h4 class="fw-semibold mb-2 fs-4">First Expansion</h4>
+              <p class="text-muted">Expanded our facilities and added new room types to accommodate growing demand.</p>
             </div>
           </div>
-          <div class="flex gap-6">
+          <div class="d-flex mb-5">
             <div class="flex-shrink-0">
-              <div class="bg-primary text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-lg">2018</div>
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 80px; height: 80px;">2018</div>
             </div>
-            <div>
-              <h4 class="text-xl font-semibold mb-2 text-gray-800">Renovation Complete</h4>
-              <p class="text-gray-600">Completed major renovations with modern amenities and eco-friendly features.</p>
+            <div class="flex-grow-1 ms-4">
+              <h4 class="fw-semibold mb-2 fs-4">Renovation Complete</h4>
+              <p class="text-muted">Completed major renovations with modern amenities and eco-friendly features.</p>
             </div>
           </div>
-          <div class="flex gap-6">
+          <div class="d-flex">
             <div class="flex-shrink-0">
-              <div class="bg-primary text-white w-20 h-20 rounded-full flex items-center justify-center font-bold text-lg">2023</div>
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 80px; height: 80px;">2023</div>
             </div>
-            <div>
-              <h4 class="text-xl font-semibold mb-2 text-gray-800">Award Winning</h4>
-              <p class="text-gray-600">Received "Best Luxury Hotel" award for exceptional service and facilities.</p>
+            <div class="flex-grow-1 ms-4">
+              <h4 class="fw-semibold mb-2 fs-4">Award Winning</h4>
+              <p class="text-muted">Received "Best Luxury Hotel" award for exceptional service and facilities.</p>
             </div>
           </div>
         </div>
       </div>
-      <div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <i class="fas fa-bullseye text-primary text-xl"></i>
+      <div class="col-lg-6">
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                  <i class="fas fa-bullseye text-primary fs-4"></i>
+                </div>
+                <h3 class="fw-semibold mb-3 fs-5">Our Mission</h3>
+                <p class="text-muted"><?php echo htmlspecialchars($hotel_info['mission'] ?? 'To provide exceptional hospitality services.'); ?></p>
+              </div>
             </div>
-            <h3 class="text-xl font-semibold mb-2 text-gray-800">Our Mission</h3>
-            <p class="text-gray-600"><?php echo htmlspecialchars($hotel_info['mission'] ?? 'To provide exceptional hospitality services.'); ?></p>
           </div>
-          <div class="bg-white rounded-lg shadow-md p-6">
-            <div class="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-              <i class="fas fa-eye text-primary text-xl"></i>
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                  <i class="fas fa-eye text-primary fs-4"></i>
+                </div>
+                <h3 class="fw-semibold mb-3 fs-5">Our Vision</h3>
+                <p class="text-muted"><?php echo htmlspecialchars($hotel_info['vision'] ?? 'To be the most preferred luxury hotel brand globally.'); ?></p>
+              </div>
             </div>
-            <h3 class="text-xl font-semibold mb-2 text-gray-800">Our Vision</h3>
-            <p class="text-gray-600"><?php echo htmlspecialchars($hotel_info['vision'] ?? 'To be the most preferred luxury hotel brand globally.'); ?></p>
           </div>
         </div>
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h4 class="text-xl font-semibold mb-4 text-gray-800">Hotel Information</h4>
-          <ul class="space-y-3">
-            <li class="flex items-center text-gray-600">
-              <i class="fas fa-map-marker-alt text-primary mr-3"></i>
-              <?php echo htmlspecialchars($hotel_info['address'] ?? '123 Luxury Street, City Center'); ?>
-            </li>
-            <li class="flex items-center text-gray-600">
-              <i class="fas fa-phone text-primary mr-3"></i>
-              <?php echo htmlspecialchars($hotel_info['phone'] ?? '+1 (123) 456-7890'); ?>
-            </li>
-            <li class="flex items-center text-gray-600">
-              <i class="fas fa-envelope text-primary mr-3"></i>
-              <?php echo htmlspecialchars($hotel_info['email'] ?? 'info@luxuryhotel.com'); ?>
-            </li>
-            <li class="flex items-center text-gray-600">
-              <i class="fas fa-building text-primary mr-3"></i>
-              Established: <?php echo htmlspecialchars($hotel_info['established'] ?? '2005'); ?>
-            </li>
-            <li class="flex items-center text-gray-600">
-              <i class="fas fa-trophy text-primary mr-3"></i>
-              Awards: <?php echo htmlspecialchars($hotel_info['awards'] ?? 'Best Luxury Hotel 2023'); ?>
-            </li>
-          </ul>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h4 class="fw-semibold mb-4 fs-5">Hotel Information</h4>
+            <ul class="list-unstyled mb-0">
+              <li class="d-flex align-items-center mb-3 text-muted">
+                <i class="fas fa-map-marker-alt text-primary me-3 fs-5"></i>
+                <?php echo htmlspecialchars($hotel_info['address'] ?? '123 Luxury Street, City Center'); ?>
+              </li>
+              <li class="d-flex align-items-center mb-3 text-muted">
+                <i class="fas fa-phone text-primary me-3 fs-5"></i>
+                <?php echo htmlspecialchars($hotel_info['phone'] ?? '+1 (123) 456-7890'); ?>
+              </li>
+              <li class="d-flex align-items-center mb-3 text-muted">
+                <i class="fas fa-envelope text-primary me-3 fs-5"></i>
+                <?php echo htmlspecialchars($hotel_info['email'] ?? 'info@luxuryhotel.com'); ?>
+              </li>
+              <li class="d-flex align-items-center mb-3 text-muted">
+                <i class="fas fa-building text-primary me-3 fs-5"></i>
+                Established: <?php echo htmlspecialchars($hotel_info['established'] ?? '2005'); ?>
+              </li>
+              <li class="d-flex align-items-center text-muted">
+                <i class="fas fa-trophy text-primary me-3 fs-5"></i>
+                Awards: <?php echo htmlspecialchars($hotel_info['awards'] ?? 'Best Luxury Hotel 2023'); ?>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -153,35 +176,41 @@
 </section>
 
 <!-- Team Section -->
-<section id="team" class="py-16 bg-gray-50">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Meet Our Team</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<section id="team" class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center display-5 fw-bold mb-5 text-dark">Meet Our Team</h2>
+    <div class="row g-4">
       <?php foreach ($team_members ?? [] as $member): ?>
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-          <div class="h-64 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-            <?php if (!empty($member['photo'])): ?>
-              <img src="<?php echo htmlspecialchars($member['photo']); ?>" alt="<?php echo htmlspecialchars($member['name']); ?>" class="w-full h-full object-cover">
-            <?php else: ?>
-              <i class="fas fa-user-circle text-white text-8xl"></i>
-            <?php endif; ?>
-          </div>
-          <div class="p-6">
-            <h5 class="text-lg font-semibold mb-1 text-gray-800"><?php echo htmlspecialchars($member['name'] ?? 'Team Member'); ?></h5>
-            <div class="text-primary font-semibold mb-2 text-sm"><?php echo htmlspecialchars($member['position'] ?? 'Staff'); ?></div>
-            <p class="text-gray-600 text-sm mb-4"><?php echo htmlspecialchars($member['bio'] ?? ''); ?></p>
-            <div class="flex justify-between items-center">
-              <span class="text-primary text-sm">
-                <i class="fas fa-clock mr-1"></i>
-                <?php echo $member['experience_years'] ?? '0'; ?> exp.
-              </span>
-              <div class="flex gap-2">
-                <a href="#" class="text-gray-400 hover:text-primary transition duration-300">
-                  <i class="fab fa-linkedin"></i>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-primary transition duration-300">
-                  <i class="fab fa-twitter"></i>
-                </a>
+        <div class="col-md-6 col-lg-3">
+          <div class="card border-0 shadow-sm h-100 hover-shadow">
+            <div class="bg-primary position-relative" style="height: 250px;">
+              <?php if (!empty($member['photo'])): ?>
+                <img src="<?php echo htmlspecialchars($member['photo']); ?>"
+                     alt="<?php echo htmlspecialchars($member['name']); ?>"
+                     class="img-fluid w-100 h-100 object-fit-cover">
+              <?php else: ?>
+                <div class="d-flex align-items-center justify-content-center h-100">
+                  <i class="fas fa-user-circle text-white display-1"></i>
+                </div>
+              <?php endif; ?>
+            </div>
+            <div class="card-body p-4">
+              <h5 class="card-title fw-semibold mb-1"><?php echo htmlspecialchars($member['name'] ?? 'Team Member'); ?></h5>
+              <div class="text-primary fw-semibold mb-2 small"><?php echo htmlspecialchars($member['position'] ?? 'Staff'); ?></div>
+              <p class="card-text text-muted small mb-4"><?php echo htmlspecialchars($member['bio'] ?? ''); ?></p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-primary small">
+                  <i class="fas fa-clock me-1"></i>
+                  <?php echo $member['experience_years'] ?? '0'; ?> exp.
+                </span>
+                <div class="d-flex gap-2">
+                  <a href="#" class="text-muted hover-primary">
+                    <i class="fab fa-linkedin fs-5"></i>
+                  </a>
+                  <a href="#" class="text-muted hover-primary">
+                    <i class="fab fa-twitter fs-5"></i>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -192,14 +221,35 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-16 bg-gradient-to-r from-primary to-secondary text-white">
-  <div class="container mx-auto px-4">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-4xl font-bold mb-4">Experience Luxury Hospitality</h2>
-      <p class="text-xl mb-8 text-gray-100">Book your stay with us and experience world-class service and comfort.</p>
-      <a href="index.php?action=rooms" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 inline-block">
-        <i class="fas fa-calendar-check mr-2"></i> Book Now
-      </a>
+<section class="py-5 bg-primary text-white">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 text-center">
+        <h2 class="display-5 fw-bold mb-4">Experience Luxury Hospitality</h2>
+        <p class="lead mb-5 text-light">Book your stay with us and experience world-class service and comfort.</p>
+        <a href="index.php?action=rooms" class="btn btn-light btn-lg px-5 py-3 fw-semibold text-primary">
+          <i class="fas fa-calendar-check me-2"></i> Book Now
+        </a>
+      </div>
     </div>
   </div>
 </section>
+
+<style>
+.hover-shadow {
+  transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+.hover-primary:hover {
+  color: var(--bs-primary) !important;
+}
+.object-fit-cover {
+  object-fit: cover;
+}
+.hero-section {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-secondary) 100%);
+}
+</style>
