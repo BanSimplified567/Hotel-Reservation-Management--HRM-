@@ -526,10 +526,148 @@ class BookingController extends BaseController
     }
   }
 
-  private function sendConfirmationEmail($userId, $reservationId)
+  public function payment()
   {
-    // In production, implement email sending
-    // This is a placeholder function
-    return true;
+    $this->requireLogin('customer');
+
+    $userId = $_SESSION['user_id'];
+    $reservationId = intval($_GET['id'] ?? 0);
+
+    if (!$reservationId) {
+      $_SESSION['error'] = "Invalid reservation ID.";
+      $this->redirect('my-reservations');
+    }
+
+    // Verify the reservation belongs to the user and is pending
+    $stmt = $this->pdo->prepare("
+        SELECT r.*, rt.base_price as price_per_night
+        FROM reservations r
+        JOIN rooms rm ON r.room_id = rm.id
+        JOIN room_types rt ON rm.room_type_id = rt.id
+        WHERE r.id = ? AND r.user_id = ? AND r.status = 'pending'
+    ");
+    $stmt->execute([$reservationId, $userId]);
+    $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$reservation) {
+      $_SESSION['error'] = "Reservation not found or already processed.";
+      $this->redirect('my-reservations');
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+      $this->processPayment($reservation, $userId);
+    } else {
+      // Calculate deposit amount
+      $nights = (new DateTime($reservation['check_in']))->diff(new DateTime($reservation['check_out']))->days;
+      $room_total = $reservation['price_per_night'] * $nights;
+      $tax_amount = $room_total * 0.10; // 10% tax
+      $total_amount = $room_total + $tax_amount;
+      $deposit_amount = $total_amount * 0.20; // 20% deposit
+
+      $data = [
+        'reservation' => $reservation,
+        'nights' => $nights,
+        'room_total' => $room_total,
+        'tax_amount' => $tax_amount,
+        'total_amount' => $total_amount,
+        'deposit_amount' => $deposit_amount,
+        'page_title' => 'Payment'
+      ];
+
+      $this->render('customer/booking/payment', $data);
+    }
+  }
+
+  private function processPayment($reservation, $userId)
+  {
+    $payment_method = $_POST['payment_method'] ?? '';
+    $card_number = $_POST['card_number'] ?? '';
+    $card_expiry = $_POST['card_expiry'] ?? '';
+    $card_cvc = $_POST['card_cvc'] ?? '';
+    $card_name = $_POST['card_name'] ?? '';
+
+    $errors = [];
+
+    if (empty($payment_method)) {
+      $errors[] = "Please select a payment method.";
+    }
+
+    if (empty($card_number) || !preg_match('/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/', $card_number)) {
+      $errors[] = "Please enter a valid card number.";
+    }
+
+    if (empty($card_expiry) || !preg_match('/^\d{2}\/\d{2}$/', $card_expiry)) {
+      $errors[] = "Please enter a valid expiry date (MM/YY).";
+    }
+
+    if (empty($card_cvc) || !preg_match('/^\d{3,4}$/', $card_cvc)) {
+      $errors[] = "Please enter a valid CVC.";
+    }
+
+    if (empty($card_name)) {
+      $errors[] = "Please enter the name on the card.";
+    }
+
+    if (!isset($_POST['paymentTerms'])) {
+      $errors[] = "Please accept the payment terms.";
+    }
+
+    if (!empty($errors)) {
+      $_SESSION['error'] = implode("<br>", $errors);
+      $_SESSION['old'] = $_POST;
+      $this->redirect('customer/booking/payment?id=' . $reservation['id']);
+    }
+
+    try {
+      // Calculate amounts
+      $nights = (new DateTime($reservation['check_in']))->diff(new DateTime($reservation['check_out']))->days;
+      $room_total = $reservation['price_per_night'] * $nights;
+      $tax_amount = $room_total * 0.10;
+      $total_amount = $room_total + $tax_amount;
+      $deposit_amount = $total_amount * 0.20;
+
+      // Start transaction
+      $this->pdo->beginTransaction();
+
+      // Create payment record
+      $stmt = $this->pdo->prepare("
+          INSERT INTO payments
+          (reservation_id, payment_method, amount, transaction_id, payment_date, status, card_last_four)
+          VALUES (?, ?, ?, ?, NOW(), 'completed', ?)
+      ");
+      $transaction_id = 'TXN' . strtoupper(substr(uniqid(), -8));
+      $card_last_four = substr(str_replace(' ', '', $card_number), -4);
+      $stmt->execute([
+        $reservation['id'],
+        $payment_method,
+        $deposit_amount,
+        $transaction_id,
+        $card_last_four
+      ]);
+
+      // Update reservation status to confirmed
+      $stmt = $this->pdo->prepare("
+          UPDATE reservations SET
+          status = 'confirmed',
+          payment_status = 'paid'
+          WHERE id = ?
+      ");
+      $stmt->execute([$reservation['id']]);
+
+      // Log the payment
+      $this->logAction($userId, "Paid deposit for reservation #$reservation[id]");
+
+      // Commit transaction
+      $this->pdo->commit();
+
+      $_SESSION['success'] = "Payment processed successfully! Your reservation is now confirmed.";
+      unset($_SESSION['last_booking']);
+      $this->redirect('my-reservations');
+    } catch (PDOException $e) {
+      $this->pdo->rollBack();
+      error_log("Payment processing error: " . $e->getMessage());
+      $_SESSION['error'] = "Payment processing failed. Please try again.";
+      $this->redirect('customer/booking/payment?id=' . $reservation['id']);
+    }
   }
 }

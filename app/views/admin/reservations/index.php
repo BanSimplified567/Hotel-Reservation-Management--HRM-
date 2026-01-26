@@ -250,8 +250,21 @@
                     <small class="text-muted">#<?php echo str_pad($reservation['id'], 4, '0', STR_PAD_LEFT); ?></small>
                   </td>
                   <td>
-                    <small class="d-block fw-medium"><?php echo htmlspecialchars($reservation['first_name'] . ' ' . $reservation['last_name']); ?></small>
-                    <small class="text-muted d-block"><?php echo htmlspecialchars($reservation['email'] ?? ''); ?></small>
+                    <small class="d-block fw-medium">
+                      <?php
+                      if ($reservation['user_id']) {
+                        echo htmlspecialchars($reservation['first_name'] . ' ' . $reservation['last_name']);
+                      } else {
+                        echo htmlspecialchars(($reservation['guest_first_name'] ?? '') . ' ' . ($reservation['guest_last_name'] ?? ''));
+                      }
+                      ?>
+                    </small>
+                    <small class="text-muted d-block">
+                      <?php
+                      $email = $reservation['user_id'] ? $reservation['email'] : $reservation['guest_email'];
+                      echo htmlspecialchars($email ?? '');
+                      ?>
+                    </small>
                   </td>
                   <td>
                     <small class="fw-medium d-block"><?php echo htmlspecialchars($reservation['room_number']); ?></small>

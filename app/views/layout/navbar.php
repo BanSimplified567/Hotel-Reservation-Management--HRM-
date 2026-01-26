@@ -113,6 +113,11 @@ $isCustomer = $role === 'customer';
                     </a>
                   </li>
                   <li>
+                    <a class="dropdown-item d-flex align-items-center py-2" href="index.php?action=reservation-guests">
+                      <i class="fas fa-users me-2 small"></i> Reservation Guests
+                    </a>
+                  </li>
+                  <li>
                     <a class="dropdown-item d-flex align-items-center py-2" href="index.php?action=book-room">
                       <i class="fas fa-book me-2 small"></i> Book Room
                     </a>

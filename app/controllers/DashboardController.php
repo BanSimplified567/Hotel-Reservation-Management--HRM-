@@ -205,58 +205,96 @@ class DashboardController extends BaseController
     }
   }
 
-  private function getAvailableRooms()
-  {
-    try {
-      $stmt = $this->pdo->query("
-              SELECT
-                  rt.id as room_type_id,
-                  rt.name as type,
-                  rt.description,
-                  rt.base_price as price_per_night,
-                  rt.capacity,
-                  rt.size,
-                  rt.amenities,
-                  COUNT(r.id) as available_count,
-                  -- Get primary image for each room type
-                  (
-                      SELECT ri.image_url
-                      FROM room_images ri
-                      WHERE ri.room_type_id = rt.id
-                      AND ri.is_primary = 1
-                      LIMIT 1
-                  ) as primary_image,
-                  -- Get all images for each room type
-                  (
-                      SELECT JSON_ARRAYAGG(ri.image_url)
-                      FROM room_images ri
-                      WHERE ri.room_type_id = rt.id
-                  ) as all_images
-              FROM rooms r
-              JOIN room_types rt ON r.room_type_id = rt.id
-              WHERE r.status = 'available'
-              AND rt.name != 'Common / Background'  -- Exclude non-bookable rooms
-              GROUP BY rt.id, rt.name, rt.description, rt.base_price,
-                       rt.capacity, rt.size, rt.amenities
-              ORDER BY rt.base_price ASC
-          ");
+ private function getAvailableRooms()
+{
+  try {
+    $stmt = $this->pdo->query("
+            SELECT
+                rt.id as room_type_id,
+                rt.name as type,
+                rt.category,
+                rc.name as category_name,  -- Get category name from room_categories
+                rc.description as category_description,  -- Optional: category description
+                rt.description,
+                rt.base_price as price_per_night,
+                rt.capacity,
+                rt.size,
+                rt.amenities,
+                COUNT(r.id) as available_count,
+                -- Get category information with subquery
+                (
+                    SELECT rc2.name
+                    FROM room_categories rc2
+                    WHERE rc2.id = rt.category_id
+                ) as category_full_name,
+                -- Get parent category name if hierarchical
+                (
+                    SELECT rc3.name
+                    FROM room_categories rc3
+                    WHERE rc3.id = (
+                        SELECT rc4.parent_id
+                        FROM room_categories rc4
+                        WHERE rc4.id = rt.category_id
+                    )
+                ) as parent_category_name,
+                -- Optional: Get category-specific images if you store them in room_categories
+                (
+                    SELECT rc5.images
+                    FROM room_categories rc5
+                    WHERE rc5.id = rt.category_id
+                ) as category_images
+            FROM rooms r
+            JOIN room_types rt ON r.room_type_id = rt.id
+            LEFT JOIN room_categories rc ON rt.category_id = rc.id
+            WHERE r.status = 'available'
+            AND rt.name != 'Common / Background'  -- Exclude non-bookable rooms
+            AND rc.is_active = 1  -- Only include active categories
+            GROUP BY rt.id, rt.name, rt.category, rt.description,
+                     rt.base_price, rt.capacity, rt.size, rt.amenities,
+                     rc.name, rc.description
+            ORDER BY
+                -- Order by category sort order first, then price
+                (
+                    SELECT rc6.sort_order
+                    FROM room_categories rc6
+                    WHERE rc6.id = rt.category_id
+                ) ASC,
+                rt.base_price ASC
+        ");
 
-      $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-      // Process the results to ensure proper image paths
-      foreach ($result as &$room) {
-        // Add full path for images (assuming images are in app/views/images/)
-        $room['images'] = $this->processRoomImages($room);
+    // Process the results
+    foreach ($result as &$room) {
+      // Decode JSON fields if needed
+      if ($room['amenities'] && is_string($room['amenities'])) {
+        $room['amenities'] = json_decode($room['amenities'], true);
       }
 
-      return $result ?: [];
-    } catch (PDOException $e) {
-      error_log("Available rooms error: " . $e->getMessage());
-      return [];
+      // Use images from room_types or fallback to category images
+      if ($room['images'] && is_string($room['images'])) {
+        $room['images'] = json_decode($room['images'], true);
+      } elseif ($room['category_images'] && is_string($room['category_images'])) {
+        $room['images'] = json_decode($room['category_images'], true);
+      }
+
+      // Add full path for images
+      $room['images'] = $this->processRoomImages($room);
+
+      // Add category info
+      $room['category_info'] = [
+        'name' => $room['category_name'] ?? $room['category'],
+        'description' => $room['category_description'] ?? '',
+        'parent' => $room['parent_category_name'] ?? null
+      ];
     }
+
+    return $result ?: [];
+  } catch (PDOException $e) {
+    error_log("Available rooms error: " . $e->getMessage());
+    return [];
   }
-
-
+}
 
 
   // Helper method to process room images

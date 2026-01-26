@@ -33,10 +33,6 @@ $isStaff = in_array($role, ['admin', 'staff']);
             <i class="fas fa-calendar-alt me-3" style="width: 20px;"></i>
             <span>All Reservations</span>
           </a>
-          <a href="index.php?action=admin/reservation-guests" class="nav-link text-white d-flex align-items-center py-2 px-3 mb-1 rounded">
-            <i class="fas fa-users me-3" style="width: 20px;"></i>
-            <span>Reservation Guests</span>
-          </a>
         </div>
 
         <div class="mt-3">
@@ -117,6 +113,9 @@ $isStaff = in_array($role, ['admin', 'staff']);
           <a href="index.php?action=admin/reservations" class="nav-link text-dark py-3 px-3 border-bottom">
             <i class="fas fa-calendar-alt me-3"></i> Reservations
           </a>
+          <a href="index.php?action=admin/reservation-guests" class="nav-link text-dark py-3 px-3 border-bottom">
+            <i class="fas fa-users me-3"></i> Reservation Guests
+          </a>
           <a href="index.php?action=admin/rooms" class="nav-link text-dark py-3 px-3 border-bottom">
             <i class="fas fa-bed me-3"></i> Rooms
           </a>
@@ -131,7 +130,7 @@ $isStaff = in_array($role, ['admin', 'staff']);
               <i class="fas fa-chart-bar me-3"></i> Reports
             </a>
           <?php endif; ?>
-          <a href="index.php?action=profile" class="nav-link text-dark py-3 px-3 border-bottom">
+          <a href="index.php?action=admin/profile" class="nav-link text-dark py-3 px-3 border-bottom">
             <i class="fas fa-user-circle me-3"></i> Profile
           </a>
           <a href="index.php?action=logout" class="nav-link text-dark py-3 px-3">

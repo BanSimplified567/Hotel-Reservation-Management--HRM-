@@ -202,11 +202,11 @@ $grand_total = $room_total + $services_total;
         </div>
       </div>
 
-      <!-- Customer Information -->
+      <!-- Customer/Guest Information -->
       <div class="card shadow mb-4">
         <div class="card-header bg-white py-3">
           <h6 class="m-0 fw-bold text-primary d-flex align-items-center">
-            <i class="fas fa-user me-2"></i>Customer Information
+            <i class="fas fa-user me-2"></i><?php echo $reservation['user_id'] ? 'Customer' : 'Guest'; ?> Information
           </h6>
         </div>
         <div class="card-body">
@@ -217,22 +217,37 @@ $grand_total = $room_total + $services_total;
                   <tbody>
                     <tr>
                       <td width="40%"><strong>Name:</strong></td>
-                      <td><?php echo htmlspecialchars($reservation['first_name'] . ' ' . $reservation['last_name']); ?></td>
+                      <td>
+                        <?php
+                        if ($reservation['user_id']) {
+                          echo htmlspecialchars($reservation['first_name'] . ' ' . $reservation['last_name']);
+                        } else {
+                          echo htmlspecialchars(($reservation['guest_first_name'] ?? '') . ' ' . ($reservation['guest_last_name'] ?? ''));
+                        }
+                        ?>
+                      </td>
                     </tr>
                     <tr>
                       <td><strong>Email:</strong></td>
                       <td>
-                        <a href="mailto:<?php echo htmlspecialchars($reservation['email']); ?>" class="text-decoration-none">
-                          <?php echo htmlspecialchars($reservation['email']); ?>
-                        </a>
+                        <?php
+                        $email = $reservation['user_id'] ? $reservation['email'] : $reservation['guest_email'];
+                        if (!empty($email)) {
+                          echo '<a href="mailto:' . htmlspecialchars($email) . '" class="text-decoration-none">' . htmlspecialchars($email) . '</a>';
+                        } else {
+                          echo '<span class="text-muted">Not provided</span>';
+                        }
+                        ?>
                       </td>
                     </tr>
-                    <?php if (!empty($reservation['phone'])): ?>
+                    <?php
+                    $phone = $reservation['user_id'] ? $reservation['phone'] : $reservation['guest_phone'];
+                    if (!empty($phone)): ?>
                       <tr>
                         <td><strong>Phone:</strong></td>
                         <td>
-                          <a href="tel:<?php echo htmlspecialchars($reservation['phone']); ?>" class="text-decoration-none">
-                            <?php echo htmlspecialchars($reservation['phone']); ?>
+                          <a href="tel:<?php echo htmlspecialchars($phone); ?>" class="text-decoration-none">
+                            <?php echo htmlspecialchars($phone); ?>
                           </a>
                         </td>
                       </tr>
@@ -243,12 +258,27 @@ $grand_total = $room_total + $services_total;
             </div>
             <div class="col-md-6">
               <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                <a href="index.php?action=admin/users&sub_action=view&id=<?php echo $reservation['user_id']; ?>"
-                  class="btn btn-outline-primary mb-2 w-100">
-                  <i class="fas fa-user me-1"></i> View Customer Profile
-                </a>
-                <a href="index.php?action=admin/reservations&search=<?php echo urlencode($reservation['email']); ?>"
-                  class="btn btn-outline-info w-100">
+                <?php if ($reservation['user_id']): ?>
+                  <a href="index.php?action=admin/users&sub_action=view&id=<?php echo $reservation['user_id']; ?>"
+                    class="btn btn-outline-primary mb-2 w-100">
+                    <i class="fas fa-user me-1"></i> View Customer Profile
+                  </a>
+                  <a href="index.php?action=admin/reservations&search=<?php echo urlencode($reservation['email']); ?>"
+                    class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-search me-1"></i> View Customer Reservations
+                  </a>
+                <?php else: ?>
+                  <div class="text-center">
+                    <i class="fas fa-user-circle fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">Walk-in Guest</p>
+                  </div>
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+                 <a class="btn btn-outline-info w-100">
                   <i class="fas fa-history me-1"></i> View Booking History
                 </a>
               </div>

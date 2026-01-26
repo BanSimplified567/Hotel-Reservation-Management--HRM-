@@ -42,7 +42,7 @@ class ReservationController extends BaseController
                    u.username, u.email, u.first_name, u.last_name,
                    rm.room_number, rt.name as room_type
             FROM reservations r
-            JOIN users u ON r.user_id = u.id
+            LEFT JOIN users u ON r.user_id = u.id
             JOIN rooms rm ON r.room_id = rm.id
             JOIN room_types rt ON rm.room_type_id = rt.id
             WHERE 1=1
@@ -55,10 +55,13 @@ class ReservationController extends BaseController
                 u.email LIKE ? OR
                 u.first_name LIKE ? OR
                 u.last_name LIKE ? OR
-                rm.room_number LIKE ?
+                CONCAT(r.guest_first_name, ' ', r.guest_last_name) LIKE ? OR
+                r.guest_email LIKE ? OR
+                rm.room_number LIKE ? OR
+                r.reservation_code LIKE ?
             )";
       $searchTerm = "%$search%";
-      $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+      $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
     }
 
     if (!empty($status)) {
@@ -191,7 +194,12 @@ class ReservationController extends BaseController
     $errors = [];
 
     // Collect form data
+    $reservation_type = $_POST['reservation_type'] ?? 'customer';
     $user_id = intval($_POST['user_id'] ?? 0);
+    $guest_first_name = trim($_POST['guest_first_name'] ?? '');
+    $guest_last_name = trim($_POST['guest_last_name'] ?? '');
+    $guest_email = trim($_POST['guest_email'] ?? '');
+    $guest_phone = trim($_POST['guest_phone'] ?? '');
     $room_id = intval($_POST['room_id'] ?? 0);
     $check_in = $_POST['check_in'] ?? '';
     $check_out = $_POST['check_out'] ?? '';
@@ -202,8 +210,22 @@ class ReservationController extends BaseController
     $special_requests = trim($_POST['special_requests'] ?? '');
 
     // Validation
-    if ($user_id < 1) {
-      $errors[] = "Please select a customer.";
+    if ($reservation_type === 'customer') {
+      if ($user_id < 1) {
+        $errors[] = "Please select a customer.";
+      }
+    } elseif ($reservation_type === 'guest') {
+      if (empty($guest_first_name)) {
+        $errors[] = "Guest first name is required.";
+      }
+      if (empty($guest_last_name)) {
+        $errors[] = "Guest last name is required.";
+      }
+      if (!empty($guest_email) && !filter_var($guest_email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Invalid guest email format.";
+      }
+    } else {
+      $errors[] = "Invalid reservation type.";
     }
 
     if ($room_id < 1) {
@@ -328,6 +350,10 @@ class ReservationController extends BaseController
             INSERT INTO reservations (
                 reservation_code,
                 user_id,
+                guest_first_name,
+                guest_last_name,
+                guest_email,
+                guest_phone,
                 room_id,
                 check_in,
                 check_out,
@@ -349,6 +375,10 @@ class ReservationController extends BaseController
             ) VALUES (
                 :reservation_code,
                 :user_id,
+                :guest_first_name,
+                :guest_last_name,
+                :guest_email,
+                :guest_phone,
                 :room_id,
                 :check_in,
                 :check_out,
@@ -372,7 +402,11 @@ class ReservationController extends BaseController
 
         $stmt->execute([
           ':reservation_code' => $reservation_code,
-          ':user_id' => $user_id,
+          ':user_id' => $reservation_type === 'customer' ? $user_id : null,
+          ':guest_first_name' => $reservation_type === 'guest' ? $guest_first_name : null,
+          ':guest_last_name' => $reservation_type === 'guest' ? $guest_last_name : null,
+          ':guest_email' => $reservation_type === 'guest' ? $guest_email : null,
+          ':guest_phone' => $reservation_type === 'guest' ? $guest_phone : null,
           ':room_id' => $room_id,
           ':check_in' => $check_in,
           ':check_out' => $check_out,
@@ -448,7 +482,7 @@ class ReservationController extends BaseController
                        u.username, u.email, u.first_name, u.last_name, u.phone,
                        rm.room_number, rt.name as room_type, rt.base_price as price_per_night
                 FROM reservations r
-                JOIN users u ON r.user_id = u.id
+                LEFT JOIN users u ON r.user_id = u.id
                 JOIN rooms rm ON r.room_id = rm.id
                 JOIN room_types rt ON rm.room_type_id = rt.id
                 WHERE r.id = ?
@@ -529,6 +563,12 @@ class ReservationController extends BaseController
     $errors = [];
 
     // Collect form data
+    $reservation_type = $_POST['reservation_type'] ?? 'customer';
+    $user_id = intval($_POST['user_id'] ?? 0);
+    $guest_first_name = trim($_POST['guest_first_name'] ?? '');
+    $guest_last_name = trim($_POST['guest_last_name'] ?? '');
+    $guest_email = trim($_POST['guest_email'] ?? '');
+    $guest_phone = trim($_POST['guest_phone'] ?? '');
     $room_id = intval($_POST['room_id'] ?? 0);
     $check_in = $_POST['check_in'] ?? '';
     $check_out = $_POST['check_out'] ?? '';
@@ -543,7 +583,7 @@ class ReservationController extends BaseController
       // Get current reservation details with transaction
       $this->pdo->beginTransaction();
 
-      $stmt = $this->pdo->prepare("SELECT room_id, status, admin_notes FROM reservations WHERE id = ? FOR UPDATE");
+      $stmt = $this->pdo->prepare("SELECT user_id, room_id, status, admin_notes FROM reservations WHERE id = ? FOR UPDATE");
       $stmt->execute([$id]);
       $current = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -555,10 +595,7 @@ class ReservationController extends BaseController
       // Check ownership for customers
       $role = strtolower($_SESSION['role'] ?? '');
       if ($role === 'customer') {
-        $stmt = $this->pdo->prepare("SELECT user_id FROM reservations WHERE id = ?");
-        $stmt->execute([$id]);
-        $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$reservation || $reservation['user_id'] != $_SESSION['user_id']) {
+        if (!$current || $current['user_id'] != $_SESSION['user_id']) {
           $this->pdo->rollBack();
           $this->redirect('403');
         }
@@ -569,6 +606,24 @@ class ReservationController extends BaseController
       $current_admin_notes = $current['admin_notes'] ?? '';
 
       // Validation
+      if ($reservation_type === 'customer') {
+        if ($user_id < 1) {
+          $errors[] = "Please select a customer.";
+        }
+      } elseif ($reservation_type === 'guest') {
+        if (empty($guest_first_name)) {
+          $errors[] = "Guest first name is required.";
+        }
+        if (empty($guest_last_name)) {
+          $errors[] = "Guest last name is required.";
+        }
+        if (!empty($guest_email) && !filter_var($guest_email, FILTER_VALIDATE_EMAIL)) {
+          $errors[] = "Invalid guest email format.";
+        }
+      } else {
+        $errors[] = "Invalid reservation type.";
+      }
+
       if ($room_id < 1) {
         $errors[] = "Please select a room.";
       }
@@ -672,12 +727,18 @@ class ReservationController extends BaseController
         // Update reservation - INCLUDING admin_notes
         $stmt = $this->pdo->prepare("
                 UPDATE reservations SET
+                user_id = ?, guest_first_name = ?, guest_last_name = ?, guest_email = ?, guest_phone = ?,
                 room_id = ?, check_in = ?, check_out = ?, adults = ?, children = ?,
                 price_per_night = ?, total_nights = ?, base_price = ?, total_amount = ?,
                 special_requests = ?, status = ?, admin_notes = ?, updated_at = NOW()
                 WHERE id = ?
             ");
         $stmt->execute([
+          $reservation_type === 'customer' ? $user_id : null,
+          $reservation_type === 'guest' ? $guest_first_name : null,
+          $reservation_type === 'guest' ? $guest_last_name : null,
+          $reservation_type === 'guest' ? $guest_email : null,
+          $reservation_type === 'guest' ? $guest_phone : null,
           $room_id,
           $check_in,
           $check_out,
@@ -747,7 +808,7 @@ class ReservationController extends BaseController
                        rm.room_number, rm.id as room_id, rt.name as room_type, rt.capacity,
                        rt.base_price as price_per_night
                 FROM reservations r
-                JOIN users u ON r.user_id = u.id
+                LEFT JOIN users u ON r.user_id = u.id
                 JOIN rooms rm ON r.room_id = rm.id
                 JOIN room_types rt ON rm.room_type_id = rt.id
                 WHERE r.id = ?
@@ -763,6 +824,20 @@ class ReservationController extends BaseController
       // Calculate guests from adults + children
       $reservation['guests'] = ($reservation['adults'] ?? 1) + ($reservation['children'] ?? 0);
 
+      // Determine reservation type
+      $reservation['reservation_type'] = $reservation['user_id'] ? 'customer' : 'guest';
+
+      // Get customers
+      $stmt = $this->pdo->prepare("
+                SELECT id, username, email, first_name, last_name, phone
+                FROM users
+                WHERE role = 'customer'
+                AND (is_active = 1 OR is_active IS NULL)
+                ORDER BY first_name, last_name
+            ");
+      $stmt->execute();
+      $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
       // Get all rooms for editing
       $stmt = $this->pdo->prepare("
                 SELECT r.id, r.room_number, rt.name as room_type, rt.base_price, rt.capacity
@@ -776,6 +851,7 @@ class ReservationController extends BaseController
       $data = [
         'reservation' => $reservation,
         'rooms' => $rooms,
+        'customers' => $customers,
         'page_title' => 'Edit Reservation #' . $reservation['id']
       ];
 

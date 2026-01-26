@@ -17,8 +17,19 @@ class AdminDashboardController extends BaseController
       $this->redirect('403');
     }
 
-    // Get dashboard statistics
-    $stats = $this->getDashboardStatistics();
+    // Get date filters with defaults
+    $start_date = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
+    $end_date = $_GET['end_date'] ?? date('Y-m-d');
+
+    // Validate dates
+    if (strtotime($start_date) > strtotime($end_date)) {
+      $temp = $start_date;
+      $start_date = $end_date;
+      $end_date = $temp;
+    }
+
+    // Get dashboard statistics with date filters
+    $stats = $this->getDashboardStatistics($start_date, $end_date);
 
     // Get recent reservations
     $recentReservations = $this->getRecentReservations();
@@ -32,15 +43,15 @@ class AdminDashboardController extends BaseController
     // Get room occupancy
     $roomOccupancy = $this->getRoomOccupancy();
 
-    // Get revenue data
-    $revenueData = $this->getRevenueData();
+    // Get revenue data with date filter
+    $revenueData = $this->getRevenueData($start_date, $end_date);
 
     // Get today's check-ins and check-outs for detailed view
     $todayCheckins = $this->getTodayCheckins();
     $todayCheckouts = $this->getTodayCheckouts();
 
     // Get additional stats for the enhanced dashboard
-    $additionalStats = $this->getAdditionalStatistics();
+    $additionalStats = $this->getAdditionalStatistics($start_date, $end_date);
 
     // Merge all stats
     $stats = array_merge($stats, $additionalStats);
@@ -53,35 +64,37 @@ class AdminDashboardController extends BaseController
       'revenueData' => $revenueData,
       'todayCheckins' => $todayCheckins,
       'todayCheckouts' => $todayCheckouts,
+      'start_date' => $start_date,
+      'end_date' => $end_date,
       'page_title' => 'Admin Dashboard'
     ];
 
     $this->render('admin/dashboard', $data);
   }
 
-  private function getDashboardStatistics()
+  private function getDashboardStatistics($start_date, $end_date)
   {
     $stats = [];
 
     try {
-      // Total reservations
-      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations");
-      $stmt->execute();
+      // Total reservations (with date filter)
+      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE created_at BETWEEN ? AND ?");
+      $stmt->execute([$start_date, $end_date]);
       $stats['total_reservations'] = $stmt->fetchColumn();
 
       // Active reservations (confirmed or checked_in)
-      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE status IN ('confirmed', 'checked_in')");
-      $stmt->execute();
+      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE status IN ('confirmed', 'checked_in') AND created_at BETWEEN ? AND ?");
+      $stmt->execute([$start_date, $end_date]);
       $stats['active_reservations'] = $stmt->fetchColumn();
 
       // Pending reservations
-      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE status = 'pending'");
-      $stmt->execute();
+      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reservations WHERE status = 'pending' AND created_at BETWEEN ? AND ?");
+      $stmt->execute([$start_date, $end_date]);
       $stats['pending_reservations'] = $stmt->fetchColumn();
 
       // Total customers
-      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'customer'");
-      $stmt->execute();
+      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'customer' AND created_at BETWEEN ? AND ?");
+      $stmt->execute([$start_date, $end_date]);
       $stats['total_customers'] = $stmt->fetchColumn();
 
       // Occupied rooms
@@ -91,8 +104,9 @@ class AdminDashboardController extends BaseController
                 JOIN rooms r ON res.room_id = r.id
                 WHERE res.status IN ('checked_in', 'confirmed')
                 AND CURRENT_DATE BETWEEN res.check_in AND res.check_out
+                AND res.created_at BETWEEN ? AND ?
             ");
-      $stmt->execute();
+      $stmt->execute([$start_date, $end_date]);
       $stats['occupied_rooms'] = $stmt->fetchColumn();
 
       // Today's check-ins
@@ -102,8 +116,9 @@ class AdminDashboardController extends BaseController
                 FROM reservations
                 WHERE check_in = ?
                 AND status IN ('confirmed', 'pending')
+                AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$today]);
+      $stmt->execute([$today, $start_date, $end_date]);
       $stats['today_checkins'] = $stmt->fetchColumn();
 
       // Today's check-outs
@@ -112,50 +127,57 @@ class AdminDashboardController extends BaseController
                 FROM reservations
                 WHERE check_out = ?
                 AND status IN ('checked_in', 'confirmed')
+                AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$today]);
+      $stmt->execute([$today, $start_date, $end_date]);
       $stats['today_checkouts'] = $stmt->fetchColumn();
 
-      // Monthly revenue (all completed reservations this month)
-      $monthStart = date('Y-m-01');
-      $monthEnd = date('Y-m-t');
+      // Revenue (with date filter)
       $stmt = $this->pdo->prepare("
                 SELECT SUM(total_amount)
                 FROM reservations
                 WHERE status = 'completed'
                 AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$monthStart, $monthEnd]);
-      $stats['monthly_revenue'] = $stmt->fetchColumn() ?: 0;
+      $stmt->execute([$start_date, $end_date]);
+      $stats['total_revenue'] = $stmt->fetchColumn() ?: 0;
 
-      // Today's revenue
+      // Average daily rate
       $stmt = $this->pdo->prepare("
-                SELECT SUM(total_amount)
+                SELECT AVG(total_amount/total_nights)
                 FROM reservations
                 WHERE status = 'completed'
-                AND DATE(created_at) = ?
+                AND total_nights > 0
+                AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$today]);
-      $stats['today_revenue'] = $stmt->fetchColumn() ?: 0;
+      $stmt->execute([$start_date, $end_date]);
+      $stats['average_daily_rate'] = round($stmt->fetchColumn() ?: 0, 2);
 
-      // New customers this month
+      // New customers this period
       $stmt = $this->pdo->prepare("
                 SELECT COUNT(*)
                 FROM users
                 WHERE role = 'customer'
                 AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$monthStart, $monthEnd]);
-      $stats['new_customers_month'] = $stmt->fetchColumn();
+      $stmt->execute([$start_date, $end_date]);
+      $stats['new_customers'] = $stmt->fetchColumn();
 
-      // Reservations this month
+      // Reservations this period
       $stmt = $this->pdo->prepare("
                 SELECT COUNT(*)
                 FROM reservations
                 WHERE created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$monthStart, $monthEnd]);
-      $stats['reservations_month'] = $stmt->fetchColumn();
+      $stmt->execute([$start_date, $end_date]);
+      $stats['reservations_count'] = $stmt->fetchColumn();
+
+      // Occupancy rate
+      $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM rooms WHERE status IN ('available', 'occupied', 'reserved')");
+      $stmt->execute();
+      $totalRooms = $stmt->fetchColumn();
+      $stats['occupancy_rate'] = $totalRooms > 0 ? round(($stats['occupied_rooms'] / $totalRooms) * 100, 1) : 0;
+
     } catch (PDOException $e) {
       error_log("Dashboard stats error: " . $e->getMessage());
       // Return empty stats if there's an error
@@ -167,73 +189,64 @@ class AdminDashboardController extends BaseController
         'occupied_rooms',
         'today_checkins',
         'today_checkouts',
-        'monthly_revenue',
-        'today_revenue',
-        'new_customers_month',
-        'reservations_month'
+        'total_revenue',
+        'average_daily_rate',
+        'new_customers',
+        'reservations_count',
+        'occupancy_rate'
       ], 0);
     }
 
     return $stats;
   }
 
-  private function getAdditionalStatistics()
+  private function getAdditionalStatistics($start_date, $end_date)
   {
     $stats = [];
 
     try {
-      // Get previous month data for comparison
-      $prevMonthStart = date('Y-m-01', strtotime('-1 month'));
-      $prevMonthEnd = date('Y-m-t', strtotime('-1 month'));
-      $currentMonthStart = date('Y-m-01');
+      // Calculate percentage change from previous period
+      $prevStartDate = date('Y-m-d', strtotime($start_date . ' -30 days'));
+      $prevEndDate = date('Y-m-d', strtotime($end_date . ' -30 days'));
 
-      // Previous month revenue
+      // Previous period revenue
       $stmt = $this->pdo->prepare("
                 SELECT SUM(total_amount)
                 FROM reservations
                 WHERE status = 'completed'
                 AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$prevMonthStart, $prevMonthEnd]);
-      $prevMonthRevenue = $stmt->fetchColumn() ?: 0;
+      $stmt->execute([$prevStartDate, $prevEndDate]);
+      $prevRevenue = $stmt->fetchColumn() ?: 0;
 
-      // Current month revenue (so far)
-      $stmt = $this->pdo->prepare("
-                SELECT SUM(total_amount)
-                FROM reservations
-                WHERE status = 'completed'
-                AND created_at >= ?
-            ");
-      $stmt->execute([$currentMonthStart]);
-      $currentMonthRevenue = $stmt->fetchColumn() ?: 0;
+      // Current period revenue
+      $stmt->execute([$start_date, $end_date]);
+      $currentRevenue = $stmt->fetchColumn() ?: 0;
 
       // Calculate percentage change
-      if ($prevMonthRevenue > 0) {
-        $stats['revenue_change'] = round((($currentMonthRevenue - $prevMonthRevenue) / $prevMonthRevenue) * 100, 1);
+      if ($prevRevenue > 0) {
+        $stats['revenue_change'] = round((($currentRevenue - $prevRevenue) / $prevRevenue) * 100, 1);
       } else {
-        $stats['revenue_change'] = $currentMonthRevenue > 0 ? 100 : 0;
+        $stats['revenue_change'] = $currentRevenue > 0 ? 100 : 0;
       }
 
-      // Active reservations change (compared to yesterday)
-      $yesterday = date('Y-m-d', strtotime('-1 day'));
-      $today = date('Y-m-d');
-
+      // Active reservations change
       $stmt = $this->pdo->prepare("
                 SELECT COUNT(*)
                 FROM reservations
                 WHERE status IN ('confirmed', 'checked_in')
-                AND DATE(created_at) = ?
+                AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$yesterday]);
-      $yesterdayActive = $stmt->fetchColumn();
+      $stmt->execute([$prevStartDate, $prevEndDate]);
+      $prevActive = $stmt->fetchColumn();
 
-      $stmt->execute([$today]);
-      $todayActive = $stmt->fetchColumn();
+      $stmt->execute([$start_date, $end_date]);
+      $currentActive = $stmt->fetchColumn();
 
-      if ($yesterdayActive > 0) {
-        $stats['active_change'] = round((($todayActive - $yesterdayActive) / $yesterdayActive) * 100, 1);
+      if ($prevActive > 0) {
+        $stats['active_change'] = round((($currentActive - $prevActive) / $prevActive) * 100, 1);
       } else {
-        $stats['active_change'] = $todayActive > 0 ? 100 : 0;
+        $stats['active_change'] = $currentActive > 0 ? 100 : 0;
       }
 
       // Pending reservations change
@@ -241,18 +254,18 @@ class AdminDashboardController extends BaseController
                 SELECT COUNT(*)
                 FROM reservations
                 WHERE status = 'pending'
-                AND DATE(created_at) = ?
+                AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$yesterday]);
-      $yesterdayPending = $stmt->fetchColumn();
+      $stmt->execute([$prevStartDate, $prevEndDate]);
+      $prevPending = $stmt->fetchColumn();
 
-      $stmt->execute([$today]);
-      $todayPending = $stmt->fetchColumn();
+      $stmt->execute([$start_date, $end_date]);
+      $currentPending = $stmt->fetchColumn();
 
-      if ($yesterdayPending > 0) {
-        $stats['pending_change'] = round((($todayPending - $yesterdayPending) / $yesterdayPending) * 100, 1);
+      if ($prevPending > 0) {
+        $stats['pending_change'] = round((($currentPending - $prevPending) / $prevPending) * 100, 1);
       } else {
-        $stats['pending_change'] = $todayPending > 0 ? 100 : 0;
+        $stats['pending_change'] = $currentPending > 0 ? 100 : 0;
       }
 
       // Customers change
@@ -260,19 +273,20 @@ class AdminDashboardController extends BaseController
                 SELECT COUNT(*)
                 FROM users
                 WHERE role = 'customer'
-                AND DATE(created_at) = ?
+                AND created_at BETWEEN ? AND ?
             ");
-      $stmt->execute([$yesterday]);
-      $yesterdayCustomers = $stmt->fetchColumn();
+      $stmt->execute([$prevStartDate, $prevEndDate]);
+      $prevCustomers = $stmt->fetchColumn();
 
-      $stmt->execute([$today]);
-      $todayCustomers = $stmt->fetchColumn();
+      $stmt->execute([$start_date, $end_date]);
+      $currentCustomers = $stmt->fetchColumn();
 
-      if ($yesterdayCustomers > 0) {
-        $stats['customers_change'] = round((($todayCustomers - $yesterdayCustomers) / $yesterdayCustomers) * 100, 1);
+      if ($prevCustomers > 0) {
+        $stats['customers_change'] = round((($currentCustomers - $prevCustomers) / $prevCustomers) * 100, 1);
       } else {
-        $stats['customers_change'] = $todayCustomers > 0 ? 100 : 0;
+        $stats['customers_change'] = $currentCustomers > 0 ? 100 : 0;
       }
+
     } catch (PDOException $e) {
       error_log("Additional stats error: " . $e->getMessage());
       $stats['revenue_change'] = 0;
@@ -378,12 +392,9 @@ class AdminDashboardController extends BaseController
     }
   }
 
-  private function getRevenueData($days = 30)
+  private function getRevenueData($start_date, $end_date)
   {
     try {
-      $startDate = date('Y-m-d', strtotime("-$days days"));
-      $endDate = date('Y-m-d');
-
       $stmt = $this->pdo->prepare("
                 SELECT
                     DATE(created_at) as date,
@@ -395,13 +406,13 @@ class AdminDashboardController extends BaseController
                 GROUP BY DATE(created_at)
                 ORDER BY date ASC
             ");
-      $stmt->execute([$startDate, $endDate]);
+      $stmt->execute([$start_date, $end_date]);
       $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       // Fill in missing dates with zero revenue
       $result = [];
-      $currentDate = $startDate;
-      while ($currentDate <= $endDate) {
+      $currentDate = $start_date;
+      while ($currentDate <= $end_date) {
         $found = false;
         foreach ($data as $row) {
           if ($row['date'] == $currentDate) {

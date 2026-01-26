@@ -1,12 +1,3 @@
-<?php
-// app/views/public/room-search.php
-// Note: $available_rooms, $room_types, $all_amenities, $check_in, $check_out, $guests, $page_title are passed from controller
-?>
-
-<?php
-// app/views/public/room-search.php
-// Note: $available_rooms, $room_types, $all_amenities, $check_in, $check_out, $guests, $page_title are passed from controller
-?>
 
 <!-- Hero Section -->
 <section class="bg-primary text-white py-5">

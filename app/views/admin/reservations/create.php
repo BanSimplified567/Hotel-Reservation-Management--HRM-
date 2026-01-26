@@ -52,8 +52,32 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
         </div>
         <div class="card-body p-3">
           <form method="POST" action="index.php?action=admin/reservations&sub_action=create">
+            <!-- Reservation Type -->
             <div class="row g-2 mb-3">
-              <div class="col-md-6">
+              <div class="col-12">
+                <label class="form-label small fw-medium">
+                  <i class="fas fa-user-tag me-1"></i>Reservation Type *
+                </label>
+                <div class="d-flex gap-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="reservation_type" id="type_customer" value="customer" checked>
+                    <label class="form-check-label small" for="type_customer">
+                      Customer (Registered User)
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="reservation_type" id="type_guest" value="guest">
+                    <label class="form-check-label small" for="type_guest">
+                      Guest (Walk-in)
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Selection -->
+            <div id="customer_section" class="row g-2 mb-3">
+              <div class="col-12">
                 <label for="user_id" class="form-label small fw-medium">
                   <i class="fas fa-user me-1"></i>Customer *
                 </label>
@@ -70,8 +94,41 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
                     <option value="">No customers found</option>
                   <?php endif; ?>
                 </select>
-                <small class="text-muted">Select booking customer</small>
+                <small class="text-muted">Select registered customer</small>
               </div>
+            </div>
+
+            <!-- Guest Details -->
+            <div id="guest_section" class="row g-2 mb-3" style="display: none;">
+              <div class="col-md-6">
+                <label for="guest_first_name" class="form-label small fw-medium">
+                  <i class="fas fa-user me-1"></i>First Name *
+                </label>
+                <input type="text" class="form-control form-control-sm" id="guest_first_name" name="guest_first_name"
+                  value="<?php echo htmlspecialchars($old['guest_first_name'] ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-md-6">
+                <label for="guest_last_name" class="form-label small fw-medium">
+                  <i class="fas fa-user me-1"></i>Last Name *
+                </label>
+                <input type="text" class="form-control form-control-sm" id="guest_last_name" name="guest_last_name"
+                  value="<?php echo htmlspecialchars($old['guest_last_name'] ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-md-6">
+                <label for="guest_email" class="form-label small fw-medium">
+                  <i class="fas fa-envelope me-1"></i>Email
+                </label>
+                <input type="email" class="form-control form-control-sm" id="guest_email" name="guest_email"
+                  value="<?php echo htmlspecialchars($old['guest_email'] ?? ''); ?>" maxlength="100">
+              </div>
+              <div class="col-md-6">
+                <label for="guest_phone" class="form-label small fw-medium">
+                  <i class="fas fa-phone me-1"></i>Phone
+                </label>
+                <input type="tel" class="form-control form-control-sm" id="guest_phone" name="guest_phone"
+                  value="<?php echo htmlspecialchars($old['guest_phone'] ?? ''); ?>" maxlength="20">
+              </div>
+            </div>
 
               <div class="col-md-6">
                 <label for="room_id" class="form-label small fw-medium">
@@ -292,6 +349,33 @@ $defaultCheckOut = date('Y-m-d', strtotime('+2 days'));
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const customerRadio = document.getElementById('type_customer');
+    const guestRadio = document.getElementById('type_guest');
+    const customerSection = document.getElementById('customer_section');
+    const guestSection = document.getElementById('guest_section');
+    const userIdSelect = document.getElementById('user_id');
+    const guestInputs = document.querySelectorAll('#guest_section input');
+
+    function toggleSections() {
+      if (customerRadio.checked) {
+        customerSection.style.display = 'block';
+        guestSection.style.display = 'none';
+        userIdSelect.required = true;
+        guestInputs.forEach(input => input.required = false);
+      } else {
+        customerSection.style.display = 'none';
+        guestSection.style.display = 'block';
+        userIdSelect.required = false;
+        guestInputs.forEach(input => input.required = true);
+      }
+    }
+
+    customerRadio.addEventListener('change', toggleSections);
+    guestRadio.addEventListener('change', toggleSections);
+
+    // Initialize
+    toggleSections();
+
     const roomSelect = document.getElementById('room_id');
     const adultsInput = document.getElementById('adults');
     const childrenInput = document.getElementById('children');

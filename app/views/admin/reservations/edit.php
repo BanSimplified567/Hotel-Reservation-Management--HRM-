@@ -88,9 +88,84 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
            <form method="POST" action="index.php?admin/reservations&sub_action=edit&id=<?php echo $reservation['id'] ?? ''; ?>">
                         <!-- Hidden fields -->
                         <input type="hidden" name="reservation_id" value="<?php echo $reservation['id'] ?? ''; ?>">
-                        <input type="hidden" name="user_id" value="<?php echo $reservation['user_id'] ?? ''; ?>">
 
                         <div class="row g-3">
+                            <!-- Reservation Type -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-tag me-1"></i>Reservation Type *
+                                </label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reservation_type" id="type_customer" value="customer"
+                                            <?php echo ($data['reservation_type'] ?? $reservation['reservation_type'] ?? 'customer') === 'customer' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="type_customer">
+                                            Customer (Registered User)
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="reservation_type" id="type_guest" value="guest"
+                                            <?php echo ($data['reservation_type'] ?? $reservation['reservation_type'] ?? 'customer') === 'guest' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="type_guest">
+                                            Guest (Walk-in)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Selection -->
+                            <div id="customer_section" class="col-12">
+                                <label for="user_id" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>Customer *
+                                </label>
+                                <select class="form-select" id="user_id" name="user_id">
+                                    <option value="">Select Customer</option>
+                                    <?php if (isset($customers) && is_array($customers)): ?>
+                                        <?php foreach ($customers as $customer): ?>
+                                            <option value="<?php echo $customer['id']; ?>"
+                                                <?php echo (($data['user_id'] ?? $reservation['user_id'] ?? '') == $customer['id']) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="">No customers found</option>
+                                    <?php endif; ?>
+                                </select>
+                                <div class="form-text">Select registered customer</div>
+                            </div>
+
+                            <!-- Guest Details -->
+                            <div id="guest_section" class="row g-3" style="display: none;">
+                                <div class="col-md-6">
+                                    <label for="guest_first_name" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i>First Name *
+                                    </label>
+                                    <input type="text" class="form-control" id="guest_first_name" name="guest_first_name"
+                                        value="<?php echo htmlspecialchars($data['guest_first_name'] ?? $reservation['guest_first_name'] ?? ''); ?>" maxlength="50">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guest_last_name" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i>Last Name *
+                                    </label>
+                                    <input type="text" class="form-control" id="guest_last_name" name="guest_last_name"
+                                        value="<?php echo htmlspecialchars($data['guest_last_name'] ?? $reservation['guest_last_name'] ?? ''); ?>" maxlength="50">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guest_email" class="form-label fw-bold">
+                                        <i class="fas fa-envelope me-1"></i>Email
+                                    </label>
+                                    <input type="email" class="form-control" id="guest_email" name="guest_email"
+                                        value="<?php echo htmlspecialchars($data['guest_email'] ?? $reservation['guest_email'] ?? ''); ?>" maxlength="100">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guest_phone" class="form-label fw-bold">
+                                        <i class="fas fa-phone me-1"></i>Phone
+                                    </label>
+                                    <input type="tel" class="form-control" id="guest_phone" name="guest_phone"
+                                        value="<?php echo htmlspecialchars($data['guest_phone'] ?? $reservation['guest_phone'] ?? ''); ?>" maxlength="20">
+                                </div>
+                            </div>
+
                             <div class="col-md-6">
                                 <label for="room_id" class="form-label fw-bold">
                                     <i class="fas fa-bed me-1"></i>Room *
@@ -113,13 +188,86 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
                                 <div class="form-text">Change room if needed</div>
                             </div>
 
-                            <div class="col-md-6">
+                            <!-- Reservation Type Section -->
+                            <div class="col-12 mb-3">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-user me-1"></i>Current Customer
+                                    <i class="fas fa-users me-1"></i>Reservation Type *
                                 </label>
-                                <div class="form-control bg-light">
-                                    <?php echo $customer_name; ?>
-                                    <small class="text-muted d-block">(Customer cannot be changed)</small>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="reservation_type" id="customer_type" value="customer"
+                                                <?php echo ($reservation['user_id'] ? 'checked' : ''); ?>>
+                                            <label class="form-check-label fw-bold" for="customer_type">
+                                                <i class="fas fa-user-check me-1"></i>Registered Customer
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="reservation_type" id="guest_type" value="guest"
+                                                <?php echo (!$reservation['user_id'] ? 'checked' : ''); ?>>
+                                            <label class="form-check-label fw-bold" for="guest_type">
+                                                <i class="fas fa-user-plus me-1"></i>Walk-in Guest
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Selection (shown when customer type is selected) -->
+                            <div class="col-12 mb-3" id="customer_section" style="<?php echo ($reservation['user_id'] ? '' : 'display: none;'); ?>">
+                                <label for="user_id" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>Select Customer *
+                                </label>
+                                <select class="form-select" id="user_id" name="user_id">
+                                    <option value="">Choose a customer...</option>
+                                    <?php foreach ($customers as $customer): ?>
+                                        <option value="<?php echo $customer['id']; ?>"
+                                            <?php echo ($reservation['user_id'] == $customer['id'] ? 'selected' : ''); ?>>
+                                            <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'] . ' (' . $customer['email'] . ')'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="form-text">Select the registered customer for this reservation</div>
+                            </div>
+
+                            <!-- Guest Details (shown when guest type is selected) -->
+                            <div id="guest_section" style="<?php echo (!$reservation['user_id'] ? '' : 'display: none;'); ?>">
+                                <div class="col-md-6 mb-3">
+                                    <label for="guest_first_name" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i>Guest First Name *
+                                    </label>
+                                    <input type="text" class="form-control" id="guest_first_name" name="guest_first_name"
+                                        value="<?php echo htmlspecialchars($reservation['guest_first_name'] ?? ''); ?>" maxlength="50">
+                                    <div class="form-text">Walk-in guest's first name</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="guest_last_name" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i>Guest Last Name *
+                                    </label>
+                                    <input type="text" class="form-control" id="guest_last_name" name="guest_last_name"
+                                        value="<?php echo htmlspecialchars($reservation['guest_last_name'] ?? ''); ?>" maxlength="50">
+                                    <div class="form-text">Walk-in guest's last name</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="guest_email" class="form-label fw-bold">
+                                        <i class="fas fa-envelope me-1"></i>Guest Email *
+                                    </label>
+                                    <input type="email" class="form-control" id="guest_email" name="guest_email"
+                                        value="<?php echo htmlspecialchars($reservation['guest_email'] ?? ''); ?>" maxlength="100">
+                                    <div class="form-text">Walk-in guest's email address</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="guest_phone" class="form-label fw-bold">
+                                        <i class="fas fa-phone me-1"></i>Guest Phone *
+                                    </label>
+                                    <input type="tel" class="form-control" id="guest_phone" name="guest_phone"
+                                        value="<?php echo htmlspecialchars($reservation['guest_phone'] ?? ''); ?>" maxlength="20">
+                                    <div class="form-text">Walk-in guest's phone number</div>
                                 </div>
                             </div>
 
@@ -436,6 +584,33 @@ $updated_at = $reservation['updated_at'] ?? 'N/A';
         // Initialize calculations
         calculateTotal();
         updateGuestsCount();
+
+        // Toggle between customer and guest sections
+        const customerTypeRadio = document.getElementById('customer_type');
+        const guestTypeRadio = document.getElementById('guest_type');
+        const customerSection = document.getElementById('customer_section');
+        const guestSection = document.getElementById('guest_section');
+
+        function toggleReservationType() {
+            if (customerTypeRadio.checked) {
+                customerSection.style.display = '';
+                guestSection.style.display = 'none';
+                // Clear guest fields when switching to customer
+                document.getElementById('guest_first_name').value = '';
+                document.getElementById('guest_last_name').value = '';
+                document.getElementById('guest_email').value = '';
+                document.getElementById('guest_phone').value = '';
+            } else if (guestTypeRadio.checked) {
+                customerSection.style.display = 'none';
+                guestSection.style.display = '';
+                // Clear customer selection when switching to guest
+                document.getElementById('user_id').value = '';
+            }
+        }
+
+        // Add event listeners for radio buttons
+        customerTypeRadio.addEventListener('change', toggleReservationType);
+        guestTypeRadio.addEventListener('change', toggleReservationType);
 
         // Auto-hide alerts after 5 seconds
         setTimeout(() => {
